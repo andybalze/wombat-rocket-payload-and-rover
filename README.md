@@ -108,7 +108,9 @@ Here's how to set up everything under Ubuntu.
 Run these commands:
 
 - `sudo apt-get update`
-- `sudo apt-get install build-essential gcc-avr binutils-avr avr-libc gdb-avr avrdude git`
+- `sudo apt-get install build-essential gcc-avr binutils-avr avr-libc gdb-avr avrdude git gh`
+
+Run `gh auth login`. Choose `HTTPS`. Close and re-open the terminal.
 
 Congratulations, you are done.
 
