@@ -83,7 +83,7 @@ Grab the zip folder from Discord. It should have `avrdude.exe` and `avrdude.conf
 
 Make a folder for it like `C:\Program Files\avrdude` and extract the files in there.
 
-Add it to your path, as before.
+Add it to your `PATH`, as before.
 
 ### Install the drivers
 
