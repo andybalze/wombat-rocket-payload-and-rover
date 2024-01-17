@@ -23,9 +23,9 @@ Then, from within the `cube/` or `rover/` folders:
 - run `make clean` to delete the generated files
 
 
-# Setup
+# Setup (Windows)
 
-This section describes how to set everything up in Windows. Setup for Linux should be similar. You'll just need to figure it out on your own like you do everything else with your computer.
+This section describes how to set everything up in Windows. 
 
 To give you context so you know the reason behind these steps: when you run `make`, it runs these commands:
 
@@ -100,3 +100,17 @@ If you don't have Git, download it from [here](https://git-scm.com/download/win)
 Then you need to give Git your Github credentials. In my opinion, the easiest way to do this is Github CLI, which you can grab [here](https://cli.github.com/). Run the installer. Then, open Git Bash and run `gh auth login`. Follow the steps. Choose `HTTPS` instead of `SSH` unless you know what you're doing.
 
 Once you log in, you should be able to run the `git` commands on repos stored on Github. You might need to close and re-open the terminal first.
+
+# Setup (Ubuntu)
+
+Here's how to set up everything under Ubuntu.
+
+Run these commands:
+
+- `sudo apt-get update`
+- `sudo apt-get install build-essential gcc-avr binutils-avr avr-libc gdb-avr avrdude git gh`
+
+Run `gh auth login`. Choose `HTTPS`. Close and re-open the terminal.
+
+Congratulations, you are done.
+
