@@ -1,5 +1,5 @@
-#ifndef ROVER_TEST1_H
-#define ROVER_TEST1_H
+#ifndef TEST1_H
+#define TEST1_H
 
 int test1(int var1, int var2);
 
