@@ -1,5 +1,14 @@
 .PHONY: all rover_all rover_compile rover_size rover_fuse rover_flash cube_all cube_compile cube_size cube_fuse cube_flash trx_all trx_compile trx_size trx_fuse trx_flash
 
+# As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
+rover_dependencies = rover/main.c common/test1.c common/test1.h
+cube_dependencies = cube/standalone/main.c
+trx_dependencies = cube/rover_trx/main.c
+
+
+
+
+
 # ============ Compile everything ==========
 
 all: rover_compile cube_compile trx_compile
@@ -13,8 +22,8 @@ rover_compile: build/rover.hex rover_size
 build/rover.hex: build/rover.out
 	avr-objcopy -j .text -j .data -O ihex build/rover.out build/rover.hex
 
-build/rover.out: rover/main.c
-	avr-gcc rover/main.c -mmcu=atmega328p -o build/rover.out
+build/rover.out: $(rover_dependencies)
+	avr-gcc -Irover -Icommon $(rover_dependencies) -mmcu=atmega328p -o build/rover.out
 
 rover_size: build/rover.hex
 	avr-size build/rover.hex
@@ -36,8 +45,8 @@ cube_compile: build/cube.hex cube_size
 build/cube.hex: build/cube.out
 	avr-objcopy -j .text -j .data -O ihex build/cube.out build/cube.hex
 
-build/cube.out: cube/standalone/main.c
-	avr-gcc cube/standalone/main.c -mmcu=atmega328p -o build/cube.out
+build/cube.out: $(cube_dependencies)
+	avr-gcc -Icube/standalone -Icube/common -Icommon $(cube_dependencies) -mmcu=atmega328p -o build/cube.out
 
 cube_size: build/cube.hex
 	avr-size build/cube.hex
@@ -58,8 +67,8 @@ trx_compile: build/trx.hex trx_size
 build/trx.hex: build/trx.out
 	avr-objcopy -j .text -j .data -O ihex build/trx.out build/trx.hex
 
-build/trx.out: cube/rover_trx/main.c
-	avr-gcc cube/rover_trx/main.c -mmcu=atmega328p -o build/trx.out
+build/trx.out: $(trx_dependencies)
+	avr-gcc -Icube/rover_trx -Icube/common -Icommon $(trx_dependencies) -mmcu=atmega328p -o build/trx.out
 
 trx_size: build/trx.hex
 	avr-size build/trx.hex
