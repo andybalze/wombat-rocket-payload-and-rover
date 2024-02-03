@@ -1,6 +1,6 @@
 # rocket-rover
 
-A repository for true gamers (the USU Spaceport 2023 Payload team).
+A repository for true gamers (the USU Spaceport 2023-2024 Payload team).
 
 # Usage
 
