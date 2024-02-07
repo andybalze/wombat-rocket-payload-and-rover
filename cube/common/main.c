@@ -45,6 +45,9 @@ int main(void) {
 
 }
 
+// Handles the interrupt generated whenever the count register of Timer 1
+// equals the value in register OCR1B. In this case, that means turning the
+// LED on.
 ISR(TIMER1_COMPB_vect) {
 
   // Turns on the LED.
@@ -52,6 +55,9 @@ ISR(TIMER1_COMPB_vect) {
 
 }
 
+// Handles the interrupt generated whenever the count register of Timer 1
+// equals the value in register OCR1A. In this case, that means turning the
+// LED off.
 ISR(TIMER1_COMPA_vect) {
 
   // Turns off the LED.
