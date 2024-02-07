@@ -11,12 +11,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <avr/io.h>
+#include <avr/interrupt.h>>
 
 int main(void) {
 
   // Configure the chosen pin as an output.
   DDRB |= _BV(DDB0);
+  
+}
 
-  // Set the pin high.
-  PORTB |= _BV(PORTB0);
+ISR(TIMER0_COMPA_vect) {
+
+  // Toggles the LED state.
+  PORTB ^= _BV(PORTB0);
+
 }
