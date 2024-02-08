@@ -57,7 +57,7 @@ void uart_initialize(void) {
 
 
   // Reenables global interrupts.
-  SREG |= BV(SREG_I);
+  SREG |= _BV(SREG_I);
 
 }
 
