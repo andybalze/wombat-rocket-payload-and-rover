@@ -15,10 +15,15 @@
 ///////////////////// ADC Settings /////////////////////////////////////////////
 
 // Determines the reference value of the ADC.
-// 0 selects the voltage on the AREF pin.
-// 1 selects the value on the AVCC pin.
-// 2 selects the internal 1.1V reference.
-#define ADC_REFERENCE_MODE (1)
+#define ADC_REFERENCE_MODE_AREF     (1)
+#define ADC_REFERENCE_MODE_AVCC     (2)
+#define ADC_REFERENCE_MODE_INTERNAL (3)
+
+#define ADC_REFERENCE_MODE ADC_REFERENCE_MODE_AVCC
+
+// The prescaler between the system clock and the ADC clock, f_s / f_adc.
+// Must be a power of 2 between 2 and 128, inclusive.
+#define ADC_PRESCALAR (8) // 8 allows the system clock to be 1 MHz or below.
 
 ///////////////////// Type Definitions /////////////////////////////////////////
 
