@@ -2,7 +2,7 @@
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 rover_dependencies = rover/main.c common/test1.c common/test1.h
-cube_dependencies = cube/standalone/main.c
+cube_dependencies = cube/standalone/main.c common/uart.c common/uart.h
 trx_dependencies = cube/rover_trx/main.c
 
 
