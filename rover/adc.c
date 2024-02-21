@@ -122,10 +122,52 @@ static char adc_mux_sequence[] = {
   ADC_MUX_GND,
 #endif
 };
-int adc_mux_sequence_length = sizeof(adc_mux_sequence) / sizeof(*adc_mux_sequence);
 
-// Tracks what the next ADC channel to be sampled is.
-int adc_mux_sequence_next_index;
+// The sequence of results buffer indices to run through. Includes only enabled
+// channels.
+static int adc_results_buffer_index_sequence[] = {
+#ifdef ADC_ENABLE_ADC0
+  ADC_RESULTS_BUFFER_INDEX_ADC0,
+#endif
+#ifdef ADC_ENABLE_ADC1
+  ADC_RESULTS_BUFFER_INDEX_ADC1,
+#endif
+#ifdef ADC_ENABLE_ADC2
+  ADC_RESULTS_BUFFER_INDEX_ADC2,
+#endif
+#ifdef ADC_ENABLE_ADC3
+  ADC_RESULTS_BUFFER_INDEX_ADC3,
+#endif
+#ifdef ADC_ENABLE_ADC4
+  ADC_RESULTS_BUFFER_INDEX_ADC4,
+#endif
+#ifdef ADC_ENABLE_ADC5
+  ADC_RESULTS_BUFFER_INDEX_ADC5,
+#endif
+#ifdef ADC_ENABLE_ADC6
+  ADC_RESULTS_BUFFER_INDEX_ADC6,
+#endif
+#ifdef ADC_ENABLE_ADC7
+  ADC_RESULTS_BUFFER_INDEX_ADC7,
+#endif
+#ifdef ADC_ENABLE_TEMP
+  ADC_RESULTS_BUFFER_INDEX_TEMP,
+#endif
+#ifdef ADC_ENABLE_REF
+  ADC_RESULTS_BUFFER_INDEX_REF,
+#endif
+#ifdef ADC_ENABLE_GND
+  ADC_RESULTS_BUFFER_INDEX_GND,
+#endif
+};
+
+// The length of the adc channel sequence. Equal to the length of both
+// adc_mux_sequence and adc_results_buffer_index_sequence.
+int adc_sequence_length = sizeof(adc_mux_sequence) / sizeof(*adc_mux_sequence);
+
+// Tracks what the next ADC channel to be sampled is. Indexes both 
+// adc_mux_sequence and adc_results_buffer_index_sequence.
+int adc_sequence_index;
 
 //////////////// Public Function Bodies ////////////////////////////////////////
 
@@ -138,15 +180,15 @@ void adc_initialize(void) {
     adc_results_buffer[i] = 0;
   }
 
-  adc_mux_sequence_next_index = 0;
+  adc_sequence_index = 0;
 
   // Set up ADC registers
 
   // Selects the reference mode
   #ifdef SETTINGS_PARANOID_REGISTERS
-    ADMUX &= ADC_REFS_MASK;
+    ADMUX &= (ADC_REFS_MASK | ADC_MUX_MASK);
   #endif
-  ADMUX |= (ADC_REFS & ADC_REFS_MASK);
+  ADMUX = (ADC_REFS | adc_mux_sequence[0]);
 
   // Configures ADC Control and Status Register A
   ADCSRA = (
@@ -177,6 +219,9 @@ void adc_initialize(void) {
       | _BV(ADC5D)
     #endif
   );
+
+  // Begin the first conversion.
+  ADCSRA |= _BV(ADSC);
 
 }
 
@@ -233,5 +278,35 @@ adc_result_t adc_get_channel_result(adc_channel_t channel) {
     return 0;
     break;
   }
+
+}
+
+///////////// Interrupt Service Routines ///////////////////////////////////////
+
+// Runs each time a conversion finishes. Stores the result of the conversion
+// and begins the next conversion.
+ISR(ADC_vect) {
+
+  // Reads out the ADC conversion result.
+  adc_result_t result;
+  result = (ADCH << 8 + ADCL);
+
+  // Stores the result.
+  // (Goodness gracious this is an ugly line)
+  adc_results_buffer[adc_results_buffer_index_sequence[adc_sequence_index]] = result;
+
+  // Moves on to the next channel.
+  if (adc_sequence_index = adc_sequence_length - 1) {
+    adc_sequence_length = 0;
+  } else {
+    adc_sequence_index = adc_sequence_index + 1;
+  }
+
+  // Selects the next channel.
+  ADMUX &= ~ADC_MUX_MASK;
+  ADMUX |= adc_mux_sequence[adc_sequence_index];
+
+  // Starts the new conversion.
+  ADCSRA |= _BV(ADSC);
 
 }
