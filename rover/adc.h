@@ -25,6 +25,19 @@
 // Must be a power of 2 between 2 and 128, inclusive.
 #define ADC_PRESCALAR (8) // 8 allows the system clock to be 1 MHz or below.
 
+// Define these macros to configure which channels should be enabled.
+#define ADC_ENABLE_ADC0
+#define ADC_ENABLE_ADC1
+#define ADC_ENABLE_ADC2
+#define ADC_ENABLE_ADC3
+#define ADC_ENABLE_ADC4
+#define ADC_ENABLE_ADC5
+#define ADC_ENABLE_ADC6
+#define ADC_ENABLE_ADC7
+#define ADC_ENABLE_TEMP
+#define ADC_ENABLE_REF
+#define ADC_ENABLE_GND
+
 ///////////////////// Type Definitions /////////////////////////////////////////
 
 // The digitized result of an analog-to-digital conversion.
