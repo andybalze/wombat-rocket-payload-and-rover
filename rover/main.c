@@ -18,6 +18,9 @@
 #include "uart.h"
 #include "adc.h"
 
+//////////////// Private Defines ///////////////////////////////////////////////
+
+// UART keystrokes that correspond to each ADC channel.
 #define KEYSTROKE_ADC0 	('0')
 #define KEYSTROKE_ADC1 	('1')
 #define KEYSTROKE_ADC2 	('2')
@@ -30,11 +33,19 @@
 #define KEYSTROKE_REF 	('r')
 #define KEYSTROKE_GND 	('g')
 
+#define OUTPUT_MESSAGE_BUFFER_LENGTH (256)
+
+//////////////// Static Variable Definitions ///////////////////////////////////
+
+// Hello world message that is printed to the UART whenever the device is reset.
 static char* restart_message = "Hello World.\n\r";
 static int restart_message_length = 15;
 
+// The most recent keystroke received from the UART.
 static uart_message_element_t received_data;
 
+// The human-readable name of each channel. Used to format the UART output
+// message.
 static char* channel_name_adc0 = "ADC0";
 static char* channel_name_adc1 = "ADC1";
 static char* channel_name_adc2 = "ADC2";
@@ -47,10 +58,19 @@ static char* channel_name_temp = "Temperature";
 static char* channel_name_ref = "Analog Reference";
 static char* channel_name_gnd = "Ground Plane";
 
+// The format string for the UART output message.
 static char* output_message_format = "%s channel has a value of %u";
 
-#define OUTPUT_MESSAGE_BUFFER_LENGTH (256)
+// Buffers the output message string.
 static char output_message_buffer[OUTPUT_MESSAGE_BUFFER_LENGTH];
+
+//////////////// Private Function Prototypes ///////////////////////////////////
+
+// Transmits a formatted output message over the UART.
+void transmit_output_message(
+	char *channel_name,
+	adc_result_t channel_value
+);
 
 int main() {
 
