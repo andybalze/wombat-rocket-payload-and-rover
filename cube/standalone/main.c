@@ -27,11 +27,11 @@ int main(void) {
   TCCR1B |= _BV(WGM12);
 
   // Sets the output compare value for turning off the LED.
-  OCR1A = 15624; // 16,000,000/1024 - 1 = 15,624
+  OCR1A = 7813; // 8,000,000/1024 - 1 = 7,813
 
   // Sets the output compare value for turning on the LED.
   // The LED turns on halfway through the counter cycle.
-  OCR1B = 7812;
+  OCR1B = 3906;
 
   // Enables the output compare A and B interrupts
   TIMSK1 |= _BV(OCIE1A);
