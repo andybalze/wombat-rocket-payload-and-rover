@@ -22,6 +22,7 @@ int main(void) {
   
   // Selects the 1/1024 prescaler.
   TCCR1B |= _BV(CS10);
+  TCCR1B |= _BV(CS12);
 
   // Sets the timer into CTC mode.
   TCCR1B |= _BV(WGM12);
