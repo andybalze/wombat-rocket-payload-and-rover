@@ -40,7 +40,7 @@ void uart_initialize(void) {
   
   UCSR0B =
     _BV(RXCIE0) | // Enables data receive interrupt.
-    _BV(UDRIE0) | // Enables transmit data empty interrupt.
+    //_BV(UDRIE0) | // Enables transmit data empty interrupt.
     _BV(RXEN0)  | // Enables transmitter.
     _BV(TXEN0)    // Enables receiver.
   ;
@@ -91,6 +91,7 @@ uint8_t uart_transmit_message(
 
   // The message's transmission has been started successfully.
   message_is_being_transmitted = 1;
+  UCSR0B |= _BV(UDRIE0);
   return 1;
 }
 
@@ -104,6 +105,7 @@ ISR(USART_UDRE_vect) {
   // If that was the final element, the message has finished.
   if (message_index_current_element == message_index_final_element) {
     message_is_being_transmitted = 0;
+    UCSR0B &= ~_BV(UDRIE0);
     return;
   }
 
