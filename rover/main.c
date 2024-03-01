@@ -59,7 +59,7 @@ static char* channel_name_ref = "Analog Reference";
 static char* channel_name_gnd = "Ground Plane";
 
 // The format string for the UART output message.
-static char* output_message_format = "%s channel has a value of %u";
+static char* output_message_format = "%s channel has a value of %u\n\r";
 
 // Buffers the output message string.
 static char output_message_buffer[OUTPUT_MESSAGE_BUFFER_LENGTH];
@@ -82,6 +82,8 @@ int main() {
 
 	// Initialize ADC
 	adc_initialize();
+
+	while(1);
 
 }
 
