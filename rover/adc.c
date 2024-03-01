@@ -296,7 +296,7 @@ ISR(ADC_vect) {
   adc_results_buffer[adc_results_buffer_index_sequence[adc_sequence_index]] = result;
 
   // Moves on to the next channel.
-  if (adc_sequence_index = adc_sequence_length - 1) {
+  if (adc_sequence_index == adc_sequence_length - 1) {
     adc_sequence_index = 0;
   } else {
     adc_sequence_index = adc_sequence_index + 1;

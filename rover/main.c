@@ -104,7 +104,8 @@ int main() {
 	// Retreive the result.
 	_delay_us(10);
 	int result;
-	result = (ADCH << 8) + ADCL;
+	result = ADCL;
+	result = result + (ADCH << 8);
 
 	// Transmit the result over UART.
 	char* message_format = "Result: %u\n\r";
