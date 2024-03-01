@@ -235,43 +235,43 @@ adc_result_t adc_get_channel_result(adc_channel_t channel) {
     break;
 
   case ADC_CHANNEL_ADC1:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC1];
     break;
 
   case ADC_CHANNEL_ADC2:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC2];
     break;
 
   case ADC_CHANNEL_ADC3:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC3];
     break;
 
   case ADC_CHANNEL_ADC4:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC4];
     break;
 
   case ADC_CHANNEL_ADC5:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC5];
     break;
 
   case ADC_CHANNEL_ADC6:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC6];
     break;
 
   case ADC_CHANNEL_ADC7:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC7];
     break;
 
   case ADC_CHANNEL_TEMP:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_TEMP];
     break;
 
   case ADC_CHANNEL_REF:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_REF];
     break;
 
   case ADC_CHANNEL_GND:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_GND];
     break;
   
   default:

@@ -16,7 +16,9 @@
 #include <stdio.h>
 
 #include "uart.h"
-#include "adc.h"
+
+#define F_CPU 8000000UL
+#include <util/delay.h>
 
 //////////////// Private Defines ///////////////////////////////////////////////
 
@@ -67,10 +69,10 @@ static char output_message_buffer[OUTPUT_MESSAGE_BUFFER_LENGTH];
 //////////////// Private Function Prototypes ///////////////////////////////////
 
 // Transmits a formatted output message over the UART.
-void transmit_output_message(
+/*void transmit_output_message(
 	char *channel_name,
 	adc_result_t channel_value
-);
+);*/
 
 int main() {
 
@@ -78,15 +80,49 @@ int main() {
 	uart_initialize();
 
 	// Transmit hello world message.
-	uart_transmit_message(restart_message, restart_message_length);
+	// uart_transmit_message(restart_message, restart_message_length);
 
-	// Initialize ADC
-	adc_initialize();
+	// Set up ADC
+	ADCSRA |= (
+		0
+		| _BV(ADEN)
+		| _BV(ADPS0) | _BV(ADPS1) | _BV(ADPS2)
+	);
+
+	ADMUX |= (
+		0
+		| _BV(REFS0)	// AVCC reference
+		| _BV(MUX2)		// Temp channel
+	);
+
+	// Start conversion
+	ADCSRA |= _BV(ADSC);
+
+	// Wait for conversion to finish
+	while((ADCSRA & _BV(ADIF)) == 0);
+
+	// Retreive the result.
+	_delay_us(10);
+	int result;
+	result = (ADCH << 8) + ADCL;
+
+	// Transmit the result over UART.
+	char* message_format = "Result: %u\n\r";
+	char message[256];
+	int message_length;
+	message_length = snprintf(
+		message,
+		256,
+		message_format,
+		result
+	);
+	uart_transmit_message(message, message_length);
 
 	while(1);
 
 }
 
+/*
 ISR(USART_RX_vect) {
 	received_data = UDR0;
 	adc_result_t channel_value;
@@ -142,7 +178,9 @@ ISR(USART_RX_vect) {
 	}
 	transmit_output_message(channel_name, channel_value);
 }
+*/
 
+/*
 void transmit_output_message(
 	char *channel_name,
 	adc_result_t channel_value
@@ -160,3 +198,4 @@ void transmit_output_message(
 	uart_transmit_message(output_message_buffer, output_message_length);
 
 }
+*/
