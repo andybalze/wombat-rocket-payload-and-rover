@@ -297,7 +297,7 @@ ISR(ADC_vect) {
 
   // Moves on to the next channel.
   if (adc_sequence_index = adc_sequence_length - 1) {
-    adc_sequence_length = 0;
+    adc_sequence_index = 0;
   } else {
     adc_sequence_index = adc_sequence_index + 1;
   }
