@@ -10,6 +10,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "uart.h"
 
 //////////////// Static Variable Definitions ///////////////////////////////////
@@ -92,6 +95,56 @@ uint8_t uart_transmit_message(
   return 1;
 }
 
+// Transmits a formatted message over the U(S)ART. Returns the number of
+// characters that will be transmitted. If the message cannot be transmitted at
+// this time, returns 0. If the message to be transmitted cannot fit in the
+// message buffer, transmits as many characters as possible and discards the
+// rest.
+void uart_transmit_formatted_message(
+  uart_message_element_t *message_format,
+  ...
+) {
+
+  va_list args;
+  va_start(args, message_format);
+  
+  // If a message is already being transmitted, a new one cannot be started.
+  // The status is determined by checking the interrupt enable bit.
+  int interrupt_enabled;
+  interrupt_enabled = UCSR0B & _BV(UDRIE0);
+  if (interrupt_enabled != 0) {
+    return 0;
+  }
+
+  // Prints the formatted message into the uart message buffer.
+  int formatted_character_count;
+  formatted_character_count = vsnprintf(
+    message_buffer, 
+    UART_MESSAGE_MAX_LENGTH, 
+    message_format, 
+    args
+  );
+
+  // Determine the possibly-truncated length of the message.
+  int message_length;
+  if(formatted_character_count > UART_MESSAGE_MAX_LENGTH) {
+    message_length = UART_MESSAGE_MAX_LENGTH;
+  } else {
+    message_length = formatted_character_count;
+  }
+
+  message_index_final_element = message_length - 1;
+
+  va_end(args);
+
+  // Begin the transmission.
+  message_index_current_element = 0;
+  UDR0 = message_buffer[0];
+  UCSR0B |= _BV(UDRIE0);
+
+  return message_length;
+
+}
 
 ///////////// Interrupt Service Routines ///////////////////////////////////////
 
