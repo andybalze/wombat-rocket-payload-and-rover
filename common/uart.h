@@ -40,8 +40,12 @@ uint8_t uart_transmit_message(
   int length
 );
 
+// Transmits a formatted message over the U(S)ART. Returns the number of
+// characters that will be transmitted. If the message cannot be transmitted at
+// this time, returns 0. If the message to be transmitted cannot fit in the
+// message buffer, transmits as many characters as possible and discards the
+// rest.
 void uart_transmit_formatted_message(
-  uart_message_length_t message_length, 
   uart_message_element_t *message_format,
   ...
 );
