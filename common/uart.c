@@ -82,7 +82,7 @@ uint8_t uart_transmit_message(
 // message buffer, transmits as many characters as possible and discards the
 // rest.
 uart_message_length_t uart_transmit_formatted_message(
-  uart_message_element_t *message_format,
+  const uart_message_element_t *message_format,
   ...
 ) {
 

@@ -44,8 +44,8 @@ uint8_t uart_transmit_message(
 // this time, returns 0. If the message to be transmitted cannot fit in the
 // message buffer, transmits as many characters as possible and discards the
 // rest.
-void uart_transmit_formatted_message(
-  uart_message_element_t *message_format,
+uart_message_length_t uart_transmit_formatted_message(
+  const uart_message_element_t *message_format,
   ...
 );
 

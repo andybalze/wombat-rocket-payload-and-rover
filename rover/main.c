@@ -33,8 +33,6 @@
 #define KEYSTROKE_REF 	('r')
 #define KEYSTROKE_GND 	('g')
 
-#define OUTPUT_MESSAGE_BUFFER_LENGTH (256)
-
 //////////////// Static Variable Definitions ///////////////////////////////////
 
 // Hello world message that is printed to the UART whenever the device is reset.
@@ -61,9 +59,6 @@ static char* channel_name_gnd = "Ground Plane";
 // The format string for the UART output message.
 static char* output_message_format = "%s channel has a value of %u\n\r";
 
-// Buffers the output message string.
-static char output_message_buffer[OUTPUT_MESSAGE_BUFFER_LENGTH];
-
 //////////////// Private Function Prototypes ///////////////////////////////////
 
 // Transmits a formatted output message over the UART.
@@ -78,7 +73,7 @@ int main() {
 	uart_initialize();
 
 	// Transmit hello world message.
-	uart_transmit_message(restart_message, restart_message_length);
+	uart_transmit_formatted_message(restart_message);
 
 	// Initialize ADC
 	adc_initialize();
@@ -148,15 +143,10 @@ void transmit_output_message(
 	adc_result_t channel_value
 ) {
 
-	int output_message_length;
-	output_message_length = snprintf(
-		output_message_buffer,
-		OUTPUT_MESSAGE_BUFFER_LENGTH,
+	uart_transmit_formatted_message(
 		output_message_format,
 		channel_name,
 		channel_value
 	);
-
-	uart_transmit_message(output_message_buffer, output_message_length);
 
 }
