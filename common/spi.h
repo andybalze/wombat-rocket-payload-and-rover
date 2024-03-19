@@ -38,8 +38,7 @@
 // may not be exactly this.
 #define SPI_FREQUENCY_MHZ (1)
 
-#define SPI_RECEIVE_MESSAGE_MAX_LENGTH (64)
-#define SPI_TRANSMIT_MESSAGE_MAX_LENGTH (64)
+#define SPI_TRANSACTION_MAX_LENGTH (64)
 
 /////////////////// SPI Type Definitions ///////////////////////////////////////
 
