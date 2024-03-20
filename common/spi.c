@@ -70,10 +70,10 @@
 //////////////////// Static Variable Definitions ///////////////////////////////
 
 // The message currently being received.
-static spi_message_element_t receive_message_buffer[SPI_TRANSACTION_MAX_LENGTH];
+static spi_transaction_element_t receive_message_buffer[SPI_TRANSACTION_MAX_LENGTH];
 
 // The message currently being transmitted.
-static spi_message_element_t transmit_message_buffer[SPI_TRANSACTION_MAX_LENGTH];
+static spi_transaction_element_t transmit_message_buffer[SPI_TRANSACTION_MAX_LENGTH];
 
 // The index of the transaction bit that is currently being transmitted and received.
 static int transaction_index;
@@ -82,7 +82,7 @@ static int transaction_index;
 static int current_transaction_length;
 
 // The callback that will be executed once the current transaction finishes.
-static void (*current_transaction_complete_callback)(const spi_message_element_t *received_message);
+static void (*current_transaction_complete_callback)(const spi_transaction_element_t *received_message);
 
 //////////////////// Public Function Bodies ////////////////////////////////////
 
@@ -114,9 +114,9 @@ void spi_initialize(void) {
 
 // Transmits a message over the SPI.
 void spi_begin_transaction(
-  const spi_message_element_t *transmit_message,
+  const spi_transaction_element_t *transmit_message,
   int transaction_length,
-  void (*transaction_complete_callback)(const spi_message_element_t *received_message)
+  void (*transaction_complete_callback)(const spi_transaction_element_t *received_message)
 ) {
 
   // If a SPI transaction is already underway, another one can be started.
