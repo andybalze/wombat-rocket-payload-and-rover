@@ -12,6 +12,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include <stdio.h>
+
 #include "spi.h"
 
 //////////////////// Private Defines ///////////////////////////////////////////
@@ -167,10 +169,14 @@ ISR(SPI_STC_vect) {
 
     // Stop the transaction and call the callback.
     SPCR &= ~_BV(SPIE);
-    current_transaction_complete_callback(
-      receive_message_buffer, 
-      current_transaction_length
-    );
+
+    // Only call the callback if there is one.
+    if (current_transaction_complete_callback != NULL) {
+      current_transaction_complete_callback(
+        receive_message_buffer, 
+        current_transaction_length
+      );
+    }
 
   } else {
 
