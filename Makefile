@@ -46,7 +46,7 @@ build/cube.hex: build/cube.out
 	avr-objcopy -j .text -j .data -O ihex build/cube.out build/cube.hex
 
 build/cube.out: $(cube_dependencies)
-	avr-gcc -Icube/standalone -Icube/common -Icommon $(cube_dependencies) -mmcu=atmega328p -o build/cube.out
+	avr-gcc -Icube/standalone -Icube/common -Icommon $(cube_dependencies) -mmcu=atmega328p -Os -o build/cube.out
 
 cube_size: build/cube.hex
 	avr-size build/cube.hex
