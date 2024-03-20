@@ -10,9 +10,9 @@
 
 static uart_message_element_t received_data;
 
-static char* restart_message_format 					= "Hello World.\n\r";
+static char* restart_message_format 					= "\n\rHello World.\n\r";
 static char* spi_initialized_message_format 	= "SPI perhipheral initialized.\n\r";
-static char* spi_echo_message_format 					= "Received message over SPI: %02x%02x%02x%02x";
+static char* spi_echo_message_format 					= "Received message over SPI: %02x%02x%02x%02x\n\r";
 
 // "DEADBEEF", an easily recognizeable hex number.
 static spi_message_element_t spi_message[] = {0xDE, 0xAD, 0xBE, 0xEF};
@@ -39,11 +39,15 @@ int main() {
 	while((UCSR0B & _BV(UDRIE0)) != 0);
 	// TODO: Make a macro or function to replace this?
 
+	// SPDR = 0xAA;
+
+	
 	spi_begin_transaction(
 		spi_message,
 		spi_message_length,
 		echo_spi_received
 	);
+	
 
 	while(1);
 
@@ -63,7 +67,7 @@ void echo_spi_received(
 	);
 
 	// Wait until the message is done being transmitted.
-	while((UCSR0B & _BV(UDRIE0)) != 0);
+	//while((UCSR0B & _BV(UDRIE0)) != 0);
 	// TODO: Make a macro or function to replace this?
 
 }
