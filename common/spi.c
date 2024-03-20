@@ -51,10 +51,6 @@
 #define SPI_SPR_64    (             _BV(SPR1) )
 #define SPI_SPR_128   ( _BV(SPR0) | _BV(SPR1) )
 #define SPI_SPR_MASK  ( _BV(SPR1) | _BV(SPR0) )
-#ifndef F_CPU
-  #error "F_CPU must be defined."
-#endif
-#define SPI_CLOCK_IDEAL_PRESCALAR (F_CPU / SPI_FREQUENCY_MHZ)
 #if SPI_CLOCK_IDEAL_PRESCALAR <= 4
   #define SPI_SPR (SPI_SPR_4 | SPI_SPR_MASK)
 #elif SPI_CLOCK_IDEAL_PRESCALAR <= 16

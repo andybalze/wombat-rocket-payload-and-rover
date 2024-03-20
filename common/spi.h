@@ -34,6 +34,11 @@
 #define SPI_CLOCK_PHASE_SAMPLE_TRIALING 1
 #define SPI_CLOCK_PHASE   SPI_CLOCK_PHASE_SAMPLE_LEADING
 
+// The "Ideal" prescaler that the SPI clock should have, relative to the 
+// CPU clock. The true SPI prescaler might not have this exact value, due to
+// limitations 
+#define SPI_CLOCK_IDEAL_PRESCALER 128;
+
 // The frequency of the SPI clock in MHz. The true frequency of the SPI clock
 // may not be exactly this.
 #define SPI_FREQUENCY_MHZ (1)
