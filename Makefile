@@ -2,7 +2,7 @@
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 rover_dependencies = rover/main.c rover/adc.h rover/adc.c common/uart.h common/uart.c
-cube_dependencies = cube/standalone/main.c common/uart.c common/uart.h
+cube_dependencies = cube/standalone/main.c common/uart.c common/uart.h common/spi.h common/spi.c
 trx_dependencies = cube/rover_trx/main.c
 
 
@@ -46,14 +46,13 @@ build/cube.hex: build/cube.out
 	avr-objcopy -j .text -j .data -O ihex build/cube.out build/cube.hex
 
 build/cube.out: $(cube_dependencies)
-	avr-gcc -Icube/standalone -Icube/common -Icommon $(cube_dependencies) -mmcu=atmega328p -o build/cube.out
+	avr-gcc -Icube/standalone -Icube/common -Icommon $(cube_dependencies) -mmcu=atmega328p -Os -o build/cube.out
 
 cube_size: build/cube.hex
 	avr-size build/cube.hex
 
 cube_fuse:
-# to be determined by the fuses we need (avrdude command)
-# example: avrdude -p m328p -c usbtiny -U lfuse:w:0xFF:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+	avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
 
 cube_flash: build/cube.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/cube.hex:i
