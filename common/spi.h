@@ -42,7 +42,7 @@
 
 /////////////////// SPI Type Definitions ///////////////////////////////////////
 
-typedef char spi_transaction_element_t;
+typedef char spi_message_element_t;
 
 /////////////////// Public Function Prototypes /////////////////////////////////
 
@@ -51,10 +51,10 @@ void spi_initialize(void);
 
 // Transmits a message over the SPI.
 void spi_begin_transaction(
-  const spi_transaction_element_t *transmit_message,
+  const spi_message_element_t *transmit_message,
   int transaction_length,
   void (*transaction_complete_callback)(
-    const spi_transaction_element_t *received_message,
+    const spi_message_element_t *received_message,
     int received_message_length
   )
 );
