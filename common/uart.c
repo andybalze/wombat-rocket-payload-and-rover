@@ -48,7 +48,7 @@ void uart_initialize(void) {
     _BV(UCSZ00) 
   ;
 
-  UBRR0 = 51;    // Select a baud rate of 9600 (Assuming 8MHz clock).
+  UBRR0 = 6;    // Select a baud rate of 9600 (Assuming 1MHz clock).
 
   // Initialize the appropriate pins.
   // I don't think there's any pin configuration to do??
