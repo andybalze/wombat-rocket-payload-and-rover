@@ -35,12 +35,13 @@ trx_status_buffer_t trx_status_buffer;
 void update_status_buffer (
   const spi_message_element_t *received_message,
   int received_message_length
-)
+);
 
 /////////////////// Public Function Bodies /////////////////////////////////////
 
-// Initialize the SPI, including configuring the appropriate pins.
-void spi_initialize(void) {
+// Initializes the TRX, including initializing the SPI and any other peripherals
+// required.
+void trx_initialize() {
 
   // Sets up GPIO pins used to drive transceiver.
 
