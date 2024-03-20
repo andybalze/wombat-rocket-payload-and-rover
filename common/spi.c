@@ -52,15 +52,15 @@
 #define SPI_SPR_128   ( _BV(SPR0) | _BV(SPR1) )
 #define SPI_SPR_MASK  ( _BV(SPR1) | _BV(SPR0) )
 #if SPI_CLOCK_IDEAL_PRESCALAR <= 4
-  #define SPI_SPR (SPI_SPR_4 | SPI_SPR_MASK)
+  #define SPI_SPR (SPI_SPR_4 & SPI_SPR_MASK)
 #elif SPI_CLOCK_IDEAL_PRESCALAR <= 16
-  #define SPI_SPR (SPI_SPR_16 | SPI_SPR_MASK)
+  #define SPI_SPR (SPI_SPR_16 & SPI_SPR_MASK)
 #elif SPI_CLOCK_IDEAL_PRESCALAR <= 64
-  #define SPI_SPR (SPI_SPR_64 | SPI_SPR_MASK)
+  #define SPI_SPR (SPI_SPR_64 & SPI_SPR_MASK)
 #elif SPI_CLOCK_IDEAL_PRESCALAR <= 128
-  #define SPI_SPR (SPI_SPR_128 | SPI_SPR_MASK)
+  #define SPI_SPR (SPI_SPR_128 & SPI_SPR_MASK)
 #else
-  #define SPI_SPR (SPI_SPR_128 | SPI_SPR_MASK)
+  #define SPI_SPR (SPI_SPR_128 & SPI_SPR_MASK)
 #endif
 
 //////////////////// Static Variable Definitions ///////////////////////////////
@@ -88,6 +88,15 @@ static void (*current_transaction_complete_callback)(
 // Initialize the SPI, including configuring the appropriate pins.
 void spi_initialize(void) {
 
+  // Configure the SPI pins appropriately.
+  DDRB |= (
+    0
+    | _BV(DDB5)   // Sets the SCK pin as an output.
+    | _BV(DDB3)   // Sets the MOSI pin as an output.
+    | _BV(DDB2)   // Sets the SS pin as an output.
+  );
+  // Other pins (MISO) are inputs.
+  
   // SPCR is the only SPI register that needs to be configured.  
   SPCR = (
     0
@@ -99,15 +108,6 @@ void spi_initialize(void) {
     | SPI_CPHA    // Configures the SPI clock phase.
     | SPI_SPR     // Configures the SPI prescaler.
   );
-
-  // Configure the SPI pins appropriately.
-  DDRB |= (
-    0
-    | _BV(DDB5)   // Sets the SCK pin as an output.
-    | _BV(DDB3)   // Sets the MOSI pin as an output.
-  );
-  // Other pins (MISO) are inputs.
-  // TODO: Slave Select pin.
 
 }
 
@@ -159,10 +159,11 @@ void spi_begin_transaction(
 
 ISR(SPI_STC_vect) {
 
-  transaction_index = transaction_index + 1;
+  // Store the received data.
+  receive_message_buffer[transaction_index] = SPDR;
 
   // Check if the transaction has been completed.
-  if (transaction_index == current_transaction_length) {
+  if (transaction_index == current_transaction_length - 1) {
 
     // Stop the transaction and call the callback.
     SPCR &= ~_BV(SPIE);
@@ -174,6 +175,7 @@ ISR(SPI_STC_vect) {
   } else {
 
     // Transmit the next character
+    transaction_index = transaction_index + 1;
     SPDR = transmit_message_buffer[transaction_index];
 
   }
