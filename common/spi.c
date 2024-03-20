@@ -127,7 +127,7 @@ void spi_begin_transaction(
 
   // If a SPI transaction is already underway, another one can be started.
   int transaction_underway;
-  transaction_underway = SPCR & BV(SPIE);
+  transaction_underway = SPCR & _BV(SPIE);
   if (transaction_underway != 0) {
     return;
   }
