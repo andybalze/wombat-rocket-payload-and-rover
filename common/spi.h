@@ -53,7 +53,10 @@ void spi_initialize(void);
 void spi_begin_transaction(
   const spi_transaction_element_t *transmit_message,
   int transaction_length,
-  void (*transaction_complete_callback)(const spi_transaction_element_t *received_message)
+  void (*transaction_complete_callback)(
+    const spi_transaction_element_t *received_message,
+    int received_message_length
+  )
 );
 
 #endif

@@ -82,7 +82,10 @@ static int transaction_index;
 static int current_transaction_length;
 
 // The callback that will be executed once the current transaction finishes.
-static void (*current_transaction_complete_callback)(const spi_transaction_element_t *received_message);
+static void (*current_transaction_complete_callback)(
+  const spi_transaction_element_t *received_message,
+  int received_message_length
+);
 
 //////////////////// Public Function Bodies ////////////////////////////////////
 
@@ -116,7 +119,10 @@ void spi_initialize(void) {
 void spi_begin_transaction(
   const spi_transaction_element_t *transmit_message,
   int transaction_length,
-  void (*transaction_complete_callback)(const spi_transaction_element_t *received_message)
+  void (*transaction_complete_callback)(
+    const spi_transaction_element_t *received_message,
+    int received_message_length
+  )
 ) {
 
   // If a SPI transaction is already underway, another one can be started.
@@ -164,7 +170,10 @@ ISR(SPI_STC_vect) {
 
     // Stop the transaction and call the callback.
     SPCR &= ~_BV(SPIE);
-    current_transaction_complete_callback(receive_message_buffer);
+    current_transaction_complete_callback(
+      receive_message_buffer, 
+      current_transaction_length
+    );
 
   } else {
 
