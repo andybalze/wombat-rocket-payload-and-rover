@@ -47,7 +47,7 @@
 
 /////////////////// SPI Type Definitions ///////////////////////////////////////
 
-typedef char spi_message_element_t;
+typedef unsigned char spi_message_element_t;
 
 /////////////////// Public Function Prototypes /////////////////////////////////
 
