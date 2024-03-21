@@ -98,6 +98,8 @@ void spi_initialize(void) {
     | _BV(DDB2)   // Sets the SS pin as an output.
   );
   // Other pins (MISO) are inputs.
+
+  // Set the CS pin high.
   
   // SPCR is the only SPI register that needs to be configured.  
   SPCR = (
@@ -148,6 +150,9 @@ void spi_begin_transaction(
     receive_message_buffer[i] = 0;
   }
 
+  // Select the device
+  // TODO: Set the CS pin low.
+
   // Start at the beginning of the transaction.
   transaction_index = 0;
   SPDR = transmit_message_buffer[0];
@@ -166,6 +171,8 @@ ISR(SPI_STC_vect) {
 
   // Check if the transaction has been completed.
   if (transaction_index == current_transaction_length - 1) {
+
+    // Set the CS pin high.
 
     // Stop the transaction and call the callback.
     SPCR &= ~_BV(SPIE);
