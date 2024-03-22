@@ -18,6 +18,14 @@
 
 //////////////////// Private Defines ///////////////////////////////////////////
 
+// The ports and pins of the SPI bus, including the SS/CS pin.
+#define SPI_DDR         DDRB
+#define SPI_PORT        PORTB
+#define SPI_SS_INDEX    (2)
+#define SPI_MOSI_INDEX  (3)
+#define SPI_MISO_INDEX  (4)
+#define SPI_SCLK_INDEX  (5)
+
 #define SPI_DORD_MSB_FIRST (0)
 #define SPI_DORD_LSB_FIRST ( _BV(DORD) )
 #if SPI_DATA_ORDER == SPI_DATA_ORDER_MSB_FIRST
@@ -91,15 +99,24 @@ static void (*current_transaction_complete_callback)(
 void spi_initialize(void) {
 
   // Configure the SPI pins appropriately.
-  DDRB |= (
+  SPI_DDR |= (
     0
-    | _BV(DDB5)   // Sets the SCK pin as an output.
-    | _BV(DDB3)   // Sets the MOSI pin as an output.
-    | _BV(DDB2)   // Sets the SS pin as an output.
+    | _BV(SPI_SCLK_INDEX) // Sets the SCK pin as an output.
+    | _BV(SPI_MOSI_INDEX) // Sets the MOSI pin as an output.
+    | _BV(SPI_SS_INDEX)   // Sets the SS pin as an output.
   );
-  // Other pins (MISO) are inputs.
 
-  // Set the CS pin high.
+  // Other pins (MISO) are inputs.
+  SPI_DDR &= ~(
+    0
+    | _BV(SPI_MISO_INDEX)
+  );
+
+  SPI_PORT |= (
+    0
+    | _BV(SPI_SS_INDEX)   // Set the CS pin high.
+    | _BV(SPI_MISO_INDEX) // Enable the pull-up on the MISO pin.
+  );
   
   // SPCR is the only SPI register that needs to be configured.  
   SPCR = (
@@ -150,17 +167,18 @@ void spi_begin_transaction(
     receive_message_buffer[i] = 0;
   }
 
-  // Select the device
-  // TODO: Set the CS pin low.
-
   // Start at the beginning of the transaction.
   transaction_index = 0;
-  SPDR = transmit_message_buffer[0];
 
   // The transaction has successfully been started.
-  SPCR |= _BV(SPIE);  // Enable the SPI interrupt.
   current_transaction_length = transaction_length;
   current_transaction_complete_callback = transaction_complete_callback;
+
+  // Finally starts the SPI hardware.
+
+  SPCR     |= _BV(SPIE);                  // Enable the SPI interrupt.
+  SPI_PORT &= ~_BV(SPI_SS_INDEX);         // Select the device.
+  SPDR      = transmit_message_buffer[0]; // Begin the transaction.
 
 }
 
@@ -173,6 +191,7 @@ ISR(SPI_STC_vect) {
   if (transaction_index == current_transaction_length - 1) {
 
     // Set the CS pin high.
+    SPI_PORT |= _BV(SPI_SS_INDEX);
 
     // Stop the transaction and call the callback.
     SPCR &= ~_BV(SPIE);
