@@ -52,8 +52,7 @@ cube_size: build/cube.hex
 	avr-size build/cube.hex
 
 cube_fuse:
-# to be determined by the fuses we need (avrdude command)
-# example: avrdude -p m328p -c usbtiny -U lfuse:w:0xFF:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+	avrdude -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFFm
 
 cube_flash: build/cube.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/cube.hex:i
