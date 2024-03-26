@@ -13,10 +13,14 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#define LED_DDR   DDRD
+#define LED_PORT  PORTD
+#define LED_INDEX PIN6
+
 int main(void) {
 
   // Configure the chosen pin as an output.
-  DDRB |= _BV(DDB0);
+  LED_DDR |= _BV(LED_INDEX);
 
   // Configure Timer1 to generate interrupts.
   
@@ -52,7 +56,7 @@ int main(void) {
 ISR(TIMER1_COMPB_vect) {
 
   // Turns on the LED.
-  PORTB |= _BV(PORTB0);
+  LED_PORT |= _BV(LED_INDEX);
 
 }
 
@@ -62,6 +66,6 @@ ISR(TIMER1_COMPB_vect) {
 ISR(TIMER1_COMPA_vect) {
 
   // Turns off the LED.
-  PORTB &= ~_BV(PORTB0);
+  LED_PORT &= ~_BV(LED_INDEX);
 
 }
