@@ -45,6 +45,11 @@
 
 #define SPI_TRANSACTION_MAX_LENGTH (64)
 
+/////////////////// SPI macros /////////////////////////////////////////////////
+
+// Waits until the current SPI transaction has concluded.
+#define SPI_WAIT_UNTIL_DONE() while ((SPCR & _BV(SPIE)) != 0)
+
 /////////////////// SPI Type Definitions ///////////////////////////////////////
 
 typedef unsigned char spi_message_element_t;
