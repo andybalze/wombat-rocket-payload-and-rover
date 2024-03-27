@@ -12,7 +12,7 @@
 static uart_message_element_t received_data;
 
 static char* restart_message_format = "\n\rHello World.\n\r";
-static char* status_message_format = "Transceiver has a status of %x.\n\r";
+static char* status_message_format = "Transceiver has a status of %02x.\n\r";
 
 int main() {
 
