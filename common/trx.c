@@ -23,8 +23,35 @@
 // Transceiver instruction definitions.
 
 // No-op used for reading the status register.
-#define TRX_NOOP_INSTRUCTION        (0xFF)      
-#define TRX_NOOP_TRANSACTION_LENGTH (1)
+#define TRX_NOOP_INSTRUCTION                  (0xFF)      
+#define TRX_NOOP_TRANSACTION_LENGTH           (1)
+
+// Reads the value of a configuration register.
+#define TRX_READ_REGISTER_INSTRUCTION         (0x00)
+#define TRX_READ_REGISTER_ADDRESS_MASK        (0x1F)
+
+// Writes the value of a configuration register.
+#define TRX_WRITE_REGISTER_INSTRUCTION        (0x20)
+#define TRX_WRITE_REGISTER_ADDRESS_MASK       (0x1F)
+
+// Register Addresses
+
+// Configuration register
+#define TRX_REGISTER_ADDRESS_CONFIG     (0x00)
+
+// Auto Acknowledgement Enable
+#define TRX_REGISTER_ADDRESS_EN_AA      (0x01)
+
+// Enable data pipes
+#define TRX_REGISTER_ADDRESS_EN_RXADDR  (0x02)
+
+// Address Widths
+#define TRX_REGISTER_ADDRESS_SETUP_AW   (0x03)
+
+// Register settings
+
+// This design uses only four-byte addresses.
+#define TRX_SETUP_AW (0x02) // 10 -> 4 bytes
 
 /////////////////// Static Variable Definitions ////////////////////////////////
 
