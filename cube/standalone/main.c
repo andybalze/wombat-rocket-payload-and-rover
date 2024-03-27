@@ -16,7 +16,7 @@ int main() {
 
 	uart_initialize();
 
-	uart_transmit_message(restart_message, restart_message_length);
+	uart_transmit_formatted_message(restart_message);
 
 	while(1);
 
@@ -25,5 +25,5 @@ int main() {
 // Echo any message received.
 ISR(USART_RX_vect) {
 	received_data = UDR0;
-	uart_transmit_message(&received_data, 1);
+	uart_transmit_formatted_message("%c", received_data);
 }
