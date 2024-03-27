@@ -25,7 +25,7 @@
 #define TRX_PAYLOAD_PADDING (0x00)
 
 // The receiver address of this transceiver.
-#define TRX_THIS_RX_ADDRESS (0xE7E7E7E7)
+#define TRX_THIS_RX_ADDRESS (0xDEADBEEF)
 
 // The ports and pins used to drive the chip-enable pin of the transceiver.
 #define TRX_CE_DDR    DDRB
