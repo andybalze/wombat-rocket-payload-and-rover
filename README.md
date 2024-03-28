@@ -4,11 +4,15 @@ A repository for true gamers (the USU Spaceport 2023-2024 Payload team).
 
 # Usage
 
-On the [USB programmer](https://www.sparkfun.com/products/9825), set this switch to "No power" if the board has batteries installed, or "Power target" if not.
+On the [USB programmer](https://www.sparkfun.com/products/9825), set this switch to "No power," otherwise the programmer will power the microcontroller at 5 V which is above the data cube transceiver's maximum rated voltage.
 
 ![Picture of switch](readme-images/power-switch.png)
 
 (Image from [Sparkfun](https://learn.sparkfun.com/tutorials/pocket-avr-programmer-hookup-guide))
+
+Cut the wire shown in the image below. Even with the programmer set to "No power," the power pin still carries a voltage above the transceiver's maximum rated voltage. It is recommended to do this for programmers used on the rover as well to protect its circuitry.
+
+![Picture of cut wire](readme-images/programmer-cut-wire.png)
 
 Then, plug in the USB programmer.
 
