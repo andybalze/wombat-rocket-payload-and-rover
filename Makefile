@@ -13,6 +13,10 @@ trx_dependencies = cube/rover_trx/main.c
 
 all: rover_compile cube_compile trx_compile
 
+# ============ Reset the ATMega without writing anything ============
+
+reset: avrdude -p m328p -c usbtiny
+
 # ============ Rover =============
 
 rover_all: rover_compile rover_fuse rover_flash
