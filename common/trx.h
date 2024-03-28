@@ -53,7 +53,7 @@ void trx_initialize();
 // Transmits a payload to the given address.
 void trx_transmit_payload(
   trx_address_t address,
-  trx_payload_element_t payload,
+  trx_payload_element_t *payload,
   int payload_length
 );
 
