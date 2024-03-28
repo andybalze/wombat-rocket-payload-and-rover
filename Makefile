@@ -15,7 +15,8 @@ all: rover_compile cube_compile trx_compile
 
 # ============ Reset the ATMega without writing anything ============
 
-reset: avrdude -p m328p -c usbtiny
+reset: 
+	avrdude -p m328p -c usbtiny
 
 # ============ Rover =============
 
