@@ -19,7 +19,8 @@ Then, from within the repository:
 - run `make <target>_all` to compile, fuse, and flash the microcontroller
 - run `make <target>_compile` to just compile the program
 - run `make <target>_fuse` to just set the microcontroller's fuses
-- run `make <target>_flash` to just flash the program onto the microcontroller
+- run `make <target>_flash` to just flash the program onto the microcontroller'
+- run `make reset` to reset the microcontroller without writing anything to it or changing power state
 - run `make clean` to delete the generated files
 
 Where `<target>` is `rover` for the rover program, `cube` for the data cube program, or `trx` for the special data cube on the rover.
