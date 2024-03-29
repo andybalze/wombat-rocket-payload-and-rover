@@ -21,7 +21,6 @@ int main() {
 	UART_WAIT_UNTIL_DONE();
 
 	trx_initialize();
-	// As part of this function, the status is retrieved from the transceiver.
 
 	while(1);
 
