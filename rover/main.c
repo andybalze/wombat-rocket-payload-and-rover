@@ -59,8 +59,6 @@ ISR(TIMER1_COMPB_vect) {
     // Turns on LED0.
     LED_PORT |= _BV(LED0_INDEX);
 
-    // Turns off LED1.
-    LED_PORT &= ~_BV(LED1_INDEX);
 }
 
 // Handles the interrupt generated whenever the count register of Timer 1
@@ -71,6 +69,4 @@ ISR(TIMER1_COMPA_vect) {
     // Turns off LED0.
     LED_PORT &= ~_BV(LED0_INDEX);
 
-    // Turns on LED1.
-    LED_PORT |= _BV(LED1_INDEX);
 }
