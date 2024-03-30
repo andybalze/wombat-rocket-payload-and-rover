@@ -127,5 +127,42 @@ Run these commands:
 
 Run `gh auth login`. Choose `HTTPS`. Close and re-open the terminal.
 
+If you are using WSL, you will have to perform the following steps. If you are running on a Linux system, skip the additional steps and jump straight to the Configuring to not Require Elevated Privileges section.
+
+### Additional Setup for WSL2
+
+- Follow the steps for installing the Windows driver under the Setup (Windows) section above.
+
+You need to allow WSL to connect to USB devices in order to use the AVR Pocket Programmer. Follow the steps below to set this up. Alternatively, you can follow the same steps from Microsoft's website [here](https://learn.microsoft.com/en-us/windows/wsl/connect-usb).
+
+- Install USBIPD-WIN from [here](https://github.com/dorssel/usbipd-win/releases) and run the .msi file.
+- Open PowerShell as an administrator.
+- Run `usbipd list` and note the bus ID of the USBtiny. You will have named this USB device when installing the Windows driver.
+- Run `usbipd bind --busid <bus ID>`
+- Run `usbipd list` and verify the USBtiny device state displays "Shared."
+
+The above steps are persistent, but the following steps will need to be run every time you wish to use the AVR Pocket Programmer from a WSL terminal. If you unplug the USB device, you will need to perform these steps again. Attaching a USB device to WSL removes your ability to access the device from Windows. If you wish to access the USB device from Windows, you can unplug and replug the device.
+
+- Open a WSL Ubuntu terminal.
+- From a non-administrator PowerShell, run `usbipd attach --wsl --busid <bus ID>`
+- Run `usbipd list` and verify the AVR Pocket Programmer device state displays "Attached."
+- From Ubuntu, run `lsusb` and verify the USBtiny device name is listed.
+- When you are done, if you want to unattach the USB device without unplugging it, run this command from a non-administrator PowerShell: `usbipd detach --busid <bus ID>`
+
+
+### Configuring to not Require Elevated Privileges
+
+You will need to use elevated privileges anytime you flash the microcontroller from Linux. The following steps will allow you to flash the microcontroller without using elevated privileges; they only need to be performed once.
+
+- Run the command `groups` and verify that the current user is in the `plugdev` group. If `plugdev` is not listed, perform the following steps, otherwise skip them.
+  - Run `sudo usermod -a -G plugdev <username>` replacing \<username\> with your Linux username.
+  - Close and reopen the terminal.
+- Using elevated privileges, create a file called `55-usbtiny.rules` in the directory `/etc/udev/rules.d`
+- Using elevated privileges, copy the following line into the newly created file.\
+```SUBSYSTEM=="usb", ATTRS{idVendor}=="1781", ATTRS{idProduct}=="0c9f", GROUP="plugdev", TAG+="uaccess"```
+- Run `sudo /etc/init.d/udev restart`
+- Unplug and replug the USB cable.
+- If using WSL, from a non-administrator PowerShell terminal, run `usbipd attach --wsl --busid <bus ID>`
+
 Congratulations, you are done.
 
