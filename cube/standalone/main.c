@@ -8,6 +8,12 @@
 #include "uart.h"
 #include "spi.h"
 
+// For a quick test
+#ifndef F_CPU
+#define F_CPU 1000000UL
+#endif
+#include <util/delay.h>
+
 static uart_message_element_t received_data;
 
 static char* restart_message_format 					= "\n\rHello World.\n\r";
@@ -25,8 +31,15 @@ void echo_spi_received(
 
 int main() {
 
+	// Let's wait for all of our hardware to turn on.
+	_delay_ms(1000);
+
 	uart_initialize();
-	uart_transmit_formatted_message(restart_message_format);
+
+	while(1) {
+		uart_transmit_formatted_message(restart_message_format);
+		_delay_ms(1000);
+	}
 	
 	// Wait until the message is done being transmitted.
 	while((UCSR0B & _BV(UDRIE0)) != 0);
