@@ -25,8 +25,8 @@ build/rover.hex: build/rover.out
 build/rover.out: $(rover_dependencies)
 	avr-gcc -Irover -Icommon $(rover_dependencies) -mmcu=atmega328p -Os -o build/rover.out
 
-rover_size: build/rover.hex
-	avr-size build/rover.hex
+rover_size: build/rover.out
+	avr-size build/rover.out --format=avr --mcu=atmega328p -C
 
 rover_fuse:
 # to be determined by the fuses we need (avrdude command)
@@ -48,8 +48,8 @@ build/cube.hex: build/cube.out
 build/cube.out: $(cube_dependencies)
 	avr-gcc -Icube/standalone -Icube/common -Icommon $(cube_dependencies) -mmcu=atmega328p -Os -o build/cube.out
 
-cube_size: build/cube.hex
-	avr-size build/cube.hex
+cube_size: build/cube.out
+	avr-size build/cube.out --format=avr --mcu=atmega328p -C
 
 cube_fuse:
 	avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
@@ -69,8 +69,8 @@ build/trx.hex: build/trx.out
 build/trx.out: $(trx_dependencies)
 	avr-gcc -Icube/rover_trx -Icube/common -Icommon $(trx_dependencies) -mmcu=atmega328p -o build/trx.out
 
-trx_size: build/trx.hex
-	avr-size build/trx.hex
+trx_size: build/trx.out
+	avr-size build/trx.out --format=avr --mcu=atmega328p -C
 
 trx_fuse:
 # to be determined by the fuses we need (avrdude command)
