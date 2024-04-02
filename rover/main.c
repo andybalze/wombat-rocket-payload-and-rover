@@ -2,88 +2,105 @@
 //
 // Main
 //
-// All the code necessary for a program that simply toggles an LED on and off
-// at a rate of 1 Hz. Intended as a "Hello World" program to provide a starting
-// point for more sophisticated projects.
-//
+// 
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define LED_DDR   DDRB
-#define LED_PORT  PORTB
-#define LED0_INDEX PIN0
-#define LED1_INDEX PIN5
+#define R1_DDR      DDRD
+#define R1_PORT     PORTD
+#define R1_INDEX    PIN3
+#define R1_OCR      OCR2B
+
+#define R2_DDR      DDRB
+#define R2_PORT     PORTB
+#define R2_INDEX    PIN3
+#define R2_OCR      OCR2A
+
+#define Y1_DDR      DDRD
+#define Y1_PORT     PORTD
+#define Y1_INDEX    PIN6
+#define Y1_OCR      OCR0A
+
+#define Y2_DDR      DDRD
+#define Y2_PORT     PORTD
+#define Y2_INDEX    PIN5
+#define Y2_OCR      OCR0B
+
+#define G1_DDR      DDRB
+#define G1_PORT     PORTB
+#define G1_INDEX    PIN1
+#define G1_OCR      OCR1A
+
+#define G2_DDR      DDRB
+#define G2_PORT     PORTB
+#define G2_INDEX    PIN2
+#define G2_OCR      OCR1B
+
 
 int main(void) {
 
-    // Configure the chosen pin as an output.
-    LED_DDR |= _BV(LED0_INDEX);
-    LED_DDR |= _BV(LED1_INDEX);
+    // Set data direction for output pins
+    R1_DDR |= _BV(R1_INDEX);
+    R2_DDR |= _BV(R2_INDEX);
+    G1_DDR |= _BV(G1_INDEX);
+    G2_DDR |= _BV(G2_INDEX);
+    Y1_DDR |= _BV(Y1_INDEX);
+    Y2_DDR |= _BV(Y2_INDEX);
 
-    // Initialize both LEDs as off
-    LED_PORT |= _BV(LED0_INDEX);
-    LED_PORT |= _BV(LED1_INDEX);
+    // Initialize outputs as off
+    R1_PORT &= ~_BV(R1_INDEX);
+    R2_PORT &= ~_BV(R2_INDEX);
+    G1_PORT &= ~_BV(G1_INDEX);
+    G2_PORT &= ~_BV(G2_INDEX);
+    Y1_PORT &= ~_BV(Y1_INDEX);
+    Y2_PORT &= ~_BV(Y2_INDEX);
 
-    // Configure Timer1 to generate interrupts.
+    // Configure Timers0-2 for PWM.
 
-    // Selects the 1/1024 prescaler.
+    // // Select the 1/1024 prescaler for all timers
+    // TCCR0B |= _BV(CS00) | _BV(CS02);
+    // TCCR1B |= _BV(CS10) | _BV(CS12);
+    // TCCR2B |= _BV(CS20) | _BV(CS21) | _BV(CS22);
+
+    // Select no prescaler for all the timers
+    TCCR0B |= _BV(CS00);
     TCCR1B |= _BV(CS10);
-    TCCR1B |= _BV(CS12);
+    TCCR2B |= _BV(CS20);
 
-    // Sets the timer into CTC mode.
+    // Set waveform generation mode to fast PWM (fast PWM is up-counting only)
+    TCCR0A |= _BV(WGM00) | _BV(WGM01);
+    TCCR1A |= _BV(WGM10);
     TCCR1B |= _BV(WGM12);
+    TCCR2A |= _BV(WGM20) | _BV(WGM21);
 
-    // Sets the output compare value for turning off the LED.
-    OCR1A = 975; // 1,000,000/1024 - 1 = 975
+    // Set compare match behavior to clear on compare match
+    TCCR0A |= _BV(COM0A1); //R1
+    TCCR1A |= _BV(COM1A1); //G1
+    TCCR2A |= _BV(COM2A1); //Y2
+    TCCR0A |= _BV(COM0B1); //R2
+    TCCR1A |= _BV(COM1B1); //G2
+    TCCR2A |= _BV(COM2B1); //Y1
 
-    // Sets the output compare value for turning on the LED.
-    // The LED turns on halfway through the counter cycle.
-    OCR1B = 487;
+    // Set the duty cycle 0-0xFF (0-255)
+    R1_OCR = 50;
+    Y1_OCR = 50;
+    G1_OCR = 75;
+    R2_OCR = 100;
+    Y2_OCR = 100;
+    G2_OCR = 100;
 
-    // Enables the output compare A and B interrupts
-    TIMSK1 |= _BV(OCIE1A);
-    TIMSK1 |= _BV(OCIE1B);
 
-    // Enables global interrupts.
-    SREG |= _BV(SREG_I);
+    // // Enables the output compare A and B interrupts
+    // TIMSK1 |= _BV(OCIE1A);
+    // TIMSK1 |= _BV(OCIE1B);
+
+    // // Enables global interrupts.
+    // SREG |= _BV(SREG_I);
 
     // Loops forever at the end of main.
     while(1);
-
-}
-
-// Handles the interrupt generated whenever the count register of Timer 1
-// equals the value in register OCR1B. In this case, that means turning the
-// LED on.
-ISR(TIMER1_COMPB_vect) {
-
-    static int decide_LED = 0;
-
-    if (decide_LED == 0)
-    {
-        LED_PORT &= ~_BV(LED0_INDEX);   // Turn on LED0
-        LED_PORT |= _BV(LED1_INDEX);    // Turn off LED1
-        decide_LED = 1;
-    }
-    else // if (decide_LED == 1)
-    {
-        LED_PORT |= _BV(LED0_INDEX);    // Turn off LED0
-        LED_PORT &= ~_BV(LED1_INDEX);   // Turn on LED1
-        decide_LED = 0;
-    }
-
-}
-
-// Handles the interrupt generated whenever the count register of Timer 1
-// equals the value in register OCR1A. In this case, that means turning the
-// LED off.
-ISR(TIMER1_COMPA_vect) {
-
-    // Turns off both LEDs.
-    LED_PORT |= _BV(LED0_INDEX);
-    LED_PORT |= _BV(LED1_INDEX);
 
 }
