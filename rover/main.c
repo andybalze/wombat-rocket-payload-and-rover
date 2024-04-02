@@ -2,6 +2,11 @@
 //
 // Main
 //
+// If SW2 is 0 then pressing SW3 will turn on the red LED and pressing SW3 will
+// turn on the green LED.
+// If SW2 is 1 then pressing SW3 will turn off the red LED and pressing SW3 will
+// turn off the green LED.
+//
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <avr/io.h>
