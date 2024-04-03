@@ -331,11 +331,11 @@ void read_write_check_register(
 ) {
 
   spi_message_element_t message_read[] = {
-    TRX_READ_REGISTER_INSTRUCTION | (address | TRX_READ_REGISTER_ADDRESS_MASK),
+    TRX_READ_REGISTER_INSTRUCTION | (address & TRX_READ_REGISTER_ADDRESS_MASK),
     0
   };
   spi_message_element_t message_write[] = {
-    TRX_WRITE_REGISTER_INSTRUCTION | (address | TRX_WRITE_REGISTER_ADDRESS_MASK),
+    TRX_WRITE_REGISTER_INSTRUCTION | (address & TRX_WRITE_REGISTER_ADDRESS_MASK),
     value
   };
 
