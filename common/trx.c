@@ -52,6 +52,10 @@
 #define TRX_WRITE_TX_PAYLOAD_INSTRUCTION        (0xA0)
 #define TRX_WRITE_TX_PAYLOAD_TRANSACTION_LENGTH (TRX_PAYLOAD_LENGTH + 1)
 
+// Reads a payload from the RX buffer.
+#define TRX_READ_RX_PAYLOAD_INSTRUCTION         (0x61)
+#define TRX_READ_RX_PAYLOAD_TRANSACTION_LENGTH  (TRX_PAYLOAD_LENGTH + 1)
+
 // Register Addresses
 
 // Configuration register
@@ -160,6 +164,9 @@ trx_status_buffer_t trx_status_buffer;
 // The RX address of this data cube.
 trx_address_t       trx_this_rx_address;
 
+// The buffer that the rx payload will be read to.
+spi_message_element_t *rx_payload_buffer;
+
 /////////////////// Private Function Prototypes ////////////////////////////////
 
 void read_status_buffer();
@@ -191,6 +198,15 @@ void write_address(
 
 void write_tx_payload(
   const spi_message_element_t *payload
+);
+
+void read_rx_payload(
+  spi_message_element_t *buffer
+);
+
+void update_rx_payload_buffer(
+  const spi_message_element_t *received_message,
+  int received_message_length
 );
 
 /////////////////// Public Function Bodies /////////////////////////////////////
@@ -317,7 +333,7 @@ void trx_transmit_payload(
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
   // Wait until the transceiver raises the IRQ flag (active low).
-  while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) != 0);
+  TRX_WAIT_FOR_IRQ();
 
   read_status_buffer();
 
@@ -373,6 +389,31 @@ void trx_transmit_payload(
 
   SPI_WAIT_UNTIL_DONE();
   UART_WAIT_UNTIL_DONE();
+
+}
+
+// Receives a payload using polling.
+int trx_receive_payload(
+  trx_payload_element_t *payload_buffer
+) {
+
+  // We assume we're already powered on and in receive mode, so we can just
+  // wait until something happens.
+  TRX_WAIT_FOR_IRQ();
+
+  // Determine which interrupt it was
+  read_status_buffer();
+  if ((trx_status_buffer & RX_DR) == 0) {
+    uart_transmit_formatted_message("Hit an unexpected interrupt while waiting to receive data.\n\r");
+    UART_WAIT_UNTIL_DONE();
+    return 0;
+  }
+
+  // We know it was a data-received interrupt.
+  // Read the payload data into the given buffer.
+  read_rx_payload(payload_buffer);
+
+  return TRX_PAYLOAD_LENGTH;
 
 }
 
@@ -481,4 +522,38 @@ void write_tx_payload(
     NULL
   );
   SPI_WAIT_UNTIL_DONE();
+}
+
+void read_rx_payload(
+  spi_message_element_t *buffer
+) {
+
+  rx_payload_buffer = buffer;
+
+  spi_message_element_t message[TRX_READ_RX_PAYLOAD_INSTRUCTION];
+  message[0] = TRX_READ_RX_PAYLOAD_INSTRUCTION;
+  int i;
+  for (i = 0; i < TRX_PAYLOAD_LENGTH; i++){
+    message[i + 1] = 0;
+  }
+
+  spi_begin_transaction(
+    message,
+    TRX_READ_RX_PAYLOAD_TRANSACTION_LENGTH,
+    update_rx_payload_buffer
+  );
+  SPI_WAIT_UNTIL_DONE();
+
+}
+
+void update_rx_payload_buffer(
+  const spi_message_element_t *received_message,
+  int received_message_length
+) {
+  
+  int i;
+  for (i = 0; i < received_message_length - 1; i++) {
+    rx_payload_buffer[i] = received_message[i + 1];
+  }
+
 }

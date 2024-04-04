@@ -38,6 +38,11 @@
 #define TRX_IRQ_INT       INT0
 #define TRX_IRQ_INT_vect  INT0_vect
 
+/////////////////// TRX Macros /////////////////////////////////////////////////
+
+// Waits until the TRX_IRQ pin goes low.
+#define TRX_WAIT_FOR_IRQ() while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) != 0)
+
 /////////////////// TRX type definitions ///////////////////////////////////////
 
 // Addresses are 32 bits wide, or 4 bytes.
@@ -62,6 +67,11 @@ void trx_transmit_payload(
   trx_address_t address,
   trx_payload_element_t *payload,
   int payload_length
+);
+
+// Receives a payload using polling.
+int trx_receive_payload(
+  trx_payload_element_t *payload_buffer
 );
 
 // Gets the value currently in the status buffer. This is equivalent to what was
