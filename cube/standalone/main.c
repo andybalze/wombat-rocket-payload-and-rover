@@ -16,7 +16,9 @@ static uart_message_element_t received_data;
 
 static char* restart_message_format = "\n\rHello World.\n\r";
 static char* status_message_format = "Transceiver has a status of %02x.\n\r";
-static spi_message_element_t *example_payload = "I hope this works, cuz if not...";
+static char* received_payload_format = "Received wireless message:\n\r%s\n\r";
+
+static trx_payload_element_t *example_payload = "I hope this works, cuz if not...";
 
 int main() {
 
@@ -31,7 +33,12 @@ int main() {
 		TRX_PAYLOAD_LENGTH
 	);
 
-
+	trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
+	trx_receive_payload(received_payload);
+	uart_transmit_formatted_message(
+		received_payload_format,
+		received_payload
+	);
 
 	while(1);
 
