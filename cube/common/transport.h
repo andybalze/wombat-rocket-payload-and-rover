@@ -7,6 +7,6 @@
 // The return value is the length of the message.
 int transport_rx(char* buffer, int buf_len);
 
-int transport_tx(char* buffer, int buf_len);
+void transport_tx(char* message, int message_len, int dest_port);
 
 #endif

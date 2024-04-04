@@ -6,6 +6,6 @@
 // How fun!
 int network_rx(char* buffer, int buf_len);
 
-int network_tx(char* buffer, int buf_len);
+void network_tx(char* payload, int payload_len, int dest_network_addr, int src_network_addr);
 
 #endif
