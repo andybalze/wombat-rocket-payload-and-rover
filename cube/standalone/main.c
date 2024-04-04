@@ -7,6 +7,7 @@
 
 #include "uart.h"
 #include "spi.h"
+#include "application.h"
 
 // For a quick test
 #ifndef F_CPU
@@ -35,6 +36,8 @@ int main() {
 	_delay_ms(1000);
 
 	uart_initialize();
+
+	application();
 
 	while(1) {
 		uart_transmit_formatted_message(restart_message_format);

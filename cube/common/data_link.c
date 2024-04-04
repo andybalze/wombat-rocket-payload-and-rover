@@ -1,4 +1,3 @@
-#include "networking_constants.h"
 #include "data_link.h"
 
 #define FIFO_DEPTH (4)

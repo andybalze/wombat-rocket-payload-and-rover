@@ -16,7 +16,7 @@ typedef uint8_t byte;
 #define DATA_SEGMENT_HEADER_LEN (5)
 #define END_SEGMENT_HEADER_LEN (4)
 
-#define MAX_MESSAGE_LEN (256)
+#define MAX_MESSAGE_LEN (255)
 
 #define MY_NETWORK_ADDR (0x0A) // later let's figure out how to move this guy to the makefile or something
 #define MY_PORT (0x0A)
