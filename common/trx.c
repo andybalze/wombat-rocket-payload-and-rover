@@ -43,7 +43,11 @@
 #define TRX_WRITE_REGISTER_INSTRUCTION        (0x20)
 #define TRX_WRITE_REGISTER_ADDRESS_MASK       (0x1F)
 #define TRX_WRITE_REGISTER_TRANSACTION_LENGTH (2)
-#define TRX_WRITE_ADDRESS_TRANSACTION_LENGTH  (5) 
+#define TRX_WRITE_ADDRESS_TRANSACTION_LENGTH  (5)
+
+// Writes a payload from the TX buffer.
+#define TRX_WRITE_TX_PAYLOAD_INSTRUCTION        (0xA0)
+#define TRX_WRITE_TX_PAYLOAD_TRANSACTION_LENGTH (TRX_PAYLOAD_LENGTH + 1)
 
 // Register Addresses
 
@@ -152,6 +156,8 @@ trx_status_buffer_t trx_status_buffer;
 
 /////////////////// Private Function Prototypes ////////////////////////////////
 
+void read_status_buffer();
+
 void update_status_buffer (
   const spi_message_element_t *received_message,
   int received_message_length
@@ -177,6 +183,10 @@ void read_write_check_address(
   trx_address_t         address 
 );
 
+void write_tx_payload(
+  const spi_message_element_t *payload
+);
+
 /////////////////// Public Function Bodies /////////////////////////////////////
 
 // Initializes the TRX, including initializing the SPI and any other peripherals
@@ -196,7 +206,7 @@ void trx_initialize() {
   EICRA = TRX_EICRA;
 
   // Enable the IRQ interrupt.
-  EIMSK |= _BV(TRX_IRQ_INT);
+  //EIMSK |= _BV(TRX_IRQ_INT);
 
   spi_initialize();
 
@@ -283,20 +293,50 @@ void trx_transmit_payload(
   );
 
   // Send the data to the transceiver.
-
+  write_tx_payload(
+    payload
+  );
 
   // Set the CE pin high to begin the transmission.
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
 
-  // Wait until the transceiver raises the IRQ flag.
+  // Wait until the transceiver raises the IRQ flag (active low).
+  while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) == 1);
 
   // Read in the status register.
+  read_status_buffer();
+  SPI_WAIT_UNTIL_DONE();
 
   // If the interrupt was a DS (Data Sent) interrupt, the packet has been
   // transmitted successfully.
+  if ((trx_status_buffer & _BV(TX_DS)) != 0) {
+    uart_transmit_formatted_message(
+      "Transmitted payload successfully!\n\r"
+    );
+  }
 
   // If the interrupt was a MAX_RT (Maximum Re-transmissions), the packet was
   // not received by the target.
+  else if ((trx_status_buffer & _BV(MAX_RT)) != 0) {
+    uart_transmit_formatted_message(
+      "Failed to transmit payload (ACK timed out).\n\r"
+    );
+  }
+
+  else {
+    uart_transmit_formatted_message(
+      "Program reached impossible state.\n\r"
+    );
+  }
+
+  // Move back into receive mode.
+  read_write_check_register(
+    TRX_REGISTER_ADDRESS_CONFIG,
+    TRX_CONFIG_RX
+  );
+
+  SPI_WAIT_UNTIL_DONE();
+  UART_WAIT_UNTIL_DONE();
 
 }
 
@@ -308,6 +348,15 @@ trx_status_buffer_t trx_get_status() {
 }
 
 /////////////////// Private function bodies ////////////////////////////////////
+
+void read_status_buffer() {
+  spi_message_element_t message[] = {TRX_NOOP_INSTRUCTION};
+  spi_begin_transaction(
+    message,
+    TRX_NOOP_TRANSACTION_LENGTH,
+    update_status_buffer
+  );
+}
 
 void update_status_buffer(
   const spi_message_element_t *received_message,
@@ -466,10 +515,17 @@ void read_write_check_address(
 }
 
 void write_tx_payload(
-  const spi_message_element_t *payload;
+  const spi_message_element_t *payload
 ) {
-  spi_message_element_t message[]
+  spi_message_element_t message[TRX_WRITE_TX_PAYLOAD_TRANSACTION_LENGTH];
+  message[0] = TRX_WRITE_TX_PAYLOAD_INSTRUCTION;
+  int i;
+  for (i = 0; i < TRX_PAYLOAD_LENGTH; i++) {
+    message[i + 1] = payload[i];
+  }
   spi_begin_transaction(
-
-  )
+    message,
+    TRX_WRITE_TX_PAYLOAD_TRANSACTION_LENGTH,
+    NULL
+  );
 }
