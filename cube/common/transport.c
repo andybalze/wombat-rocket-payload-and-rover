@@ -6,7 +6,6 @@
     be a little more elaborate.
 */
 
-#include "networking_constants.h"
 #include "address_resolution.h"
 #include "transport.h"
 #include "network.h"
@@ -63,15 +62,15 @@ enum segment_identifier_t {
 
 
 
-int transport_rx(char* buffer, int buf_len) {
+byte transport_rx(byte* buffer, byte buf_len) {
 
     int state = RXST_Idle;
-    int message_length;
+    byte message_length;
 
-    int segment_len;
-    char segment[MAX_SEGMENT_LEN];
+    byte segment_len;
+    byte segment[MAX_SEGMENT_LEN];
 
-    int segment_identifier;
+    byte segment_identifier;
 
     do {
 
@@ -92,9 +91,9 @@ int transport_rx(char* buffer, int buf_len) {
 
         case RXST_Receiving:
             if (segment_identifier == SEGID_DATA) {
-                int offset = segment[4];
-                int payload_len = segment_len - DATA_SEGMENT_HEADER_LEN;
-                for (int i = 0; i < payload_len; i++) {
+                byte offset = segment[4];
+                byte payload_len = segment_len - DATA_SEGMENT_HEADER_LEN;
+                for (byte i = 0; i < payload_len; i++) {
                     if (i + offset < buf_len) {
                         buffer[i + offset] = segment[i + DATA_SEGMENT_HEADER_LEN];
                     }
@@ -119,10 +118,10 @@ int transport_rx(char* buffer, int buf_len) {
     return message_length;
 }
 
-void transport_tx(char* message, int message_len, int dest_port) {
+void transport_tx(byte* message, byte message_len, byte dest_port) {
 
-    char segment[MAX_SEGMENT_LEN];
-    int bytes_remaining = message_len;
+    byte segment[MAX_SEGMENT_LEN];
+    byte bytes_remaining = message_len;
 
     // ------ send START_OF_MESSAGE -----
     segment[0] = START_SEGMENT_HEADER_LEN;
@@ -139,7 +138,7 @@ void transport_tx(char* message, int message_len, int dest_port) {
     while (bytes_remaining > 0) {
 
         // can't send the whole darn thing at once unless it's small
-        int this_payload_len;
+        byte this_payload_len;
         if (bytes_remaining > MAX_SEGMENT_LEN - DATA_SEGMENT_HEADER_LEN) {
             this_payload_len = MAX_SEGMENT_LEN - DATA_SEGMENT_HEADER_LEN;
         }
@@ -147,15 +146,15 @@ void transport_tx(char* message, int message_len, int dest_port) {
             this_payload_len = bytes_remaining;
         }
 
-        int this_segment_len = this_payload_len + DATA_SEGMENT_HEADER_LEN;
-        int start_address = message_len - bytes_remaining;
+        byte this_segment_len = this_payload_len + DATA_SEGMENT_HEADER_LEN;
+        byte start_address = message_len - bytes_remaining;
 
         segment[0] = this_segment_len;
         segment[1] = dest_port;
         segment[2] = MY_PORT;
         segment[3] = SEGID_DATA;
         segment[4] = start_address;
-        for (int i = 0; i < this_payload_len; i++) {
+        for (byte i = 0; i < this_payload_len; i++) {
             segment[i + DATA_SEGMENT_HEADER_LEN] = message[i + start_address];
         }
 

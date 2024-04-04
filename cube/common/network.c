@@ -1,4 +1,3 @@
-#include "networking_constants.h"
 #include "address_resolution.h"
 #include "network.h"
 #include "data_link.h"
@@ -12,8 +11,8 @@
 // Oh! This function will need to be different for EVERY data cube.
 // Maybe we can throw this under some ifdef's and have some fun with
 // our makefile. Until then, here's an example.
-int next_hop(int final_addr) {
-    int next_hop_addr;
+byte next_hop(byte final_addr) {
+    byte next_hop_addr;
     switch(final_addr) {
     case 0x0A:
         next_hop_addr = 0x0B;
@@ -34,10 +33,10 @@ int next_hop(int final_addr) {
 // This blocking function gets a payload from the network layer
 // and writes it to the buffer.
 // It returns the length of the payload (i.e. the segment).
-int network_rx(char* buffer, int buf_len) {
+byte network_rx(byte* buffer, byte buf_len) {
 
-    int packet_len;
-    char packet[MAX_PACKET_LEN];
+    byte packet_len;
+    byte packet[MAX_PACKET_LEN];
 
     // Repeat this until we get something that's for me.
     do {
@@ -54,7 +53,7 @@ int network_rx(char* buffer, int buf_len) {
     } while (packet[1] != MY_NETWORK_ADDR);
 
     // Got something for me. Let's return it.
-    for (int i = 0; i < packet_len - PACKET_HEADER_LEN && i < buf_len; i++) {
+    for (byte i = 0; i < packet_len - PACKET_HEADER_LEN && i < buf_len; i++) {
         buffer[i] = packet[i + PACKET_HEADER_LEN];
     }
 
@@ -62,18 +61,18 @@ int network_rx(char* buffer, int buf_len) {
 }
 
 // Transmit to the specified network address.
-void network_tx(char* payload, int payload_len, int dest_network_addr, int src_network_addr) {
+void network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte src_network_addr) {
 
-    int packet_len = payload_len + PACKET_HEADER_LEN;
-    char packet[packet_len];
+    byte packet_len = payload_len + PACKET_HEADER_LEN;
+    byte packet[packet_len];
 
     packet[0] = packet_len;
     packet[1] = dest_network_addr;
     packet[2] = src_network_addr;
-    for (int i = 0; i < payload_len && i < MAX_PACKET_LEN - PACKET_HEADER_LEN; i++) {
+    for (byte i = 0; i < payload_len && i < MAX_PACKET_LEN - PACKET_HEADER_LEN; i++) {
         packet[i + PACKET_HEADER_LEN] = payload[i];
     }
-    int next_hop_addr = next_hop(dest_network_addr);
+    byte next_hop_addr = next_hop(dest_network_addr);
 
     data_link_tx(packet, packet_len, resolve_data_link_addr(next_hop_addr));
 

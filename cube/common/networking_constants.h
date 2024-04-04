@@ -1,6 +1,10 @@
 #ifndef _NETWORING_CONSTANTS_H
 #define _NETWORING_CONSTANTS_H
 
+#include <stdint.h>
+
+typedef uint8_t byte;
+
 #define MAX_FRAME_LEN (32)
 #define FRAME_HEADER_LEN (1)
 
