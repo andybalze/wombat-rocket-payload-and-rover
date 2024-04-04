@@ -2,7 +2,7 @@
 
 uint32_t resolve_data_link_addr(byte network_addr) {
     // We have, like, four devices total. Let's not make this hard on ourselves.
-    int data_link_addr;
+    uint32_t data_link_addr;
     switch (network_addr) {
     case 0x0A:
         data_link_addr = 0x0A0A0A0A;
