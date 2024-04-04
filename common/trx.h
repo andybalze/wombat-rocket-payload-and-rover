@@ -33,6 +33,14 @@
 #define TRX_CE_PIN    PINB
 #define TRX_CE_INDEX  (1)
 
+// The ports and pins used for the transceiver's IRQ interrupt.
+#define TRX_IRQ_DDR       DDRD
+#define TRX_IRQ_PORT      PORTD
+#define TRX_IRQ_PIN       PIND
+#define TRX_IRQ_INDEX     (2)
+#define TRX_IRQ_INT       INT0
+#define TRX_IRQ_INT_vect  INT0_vect
+
 /////////////////// TRX type definitions ///////////////////////////////////////
 
 // Addresses are 32 bits wide, or 4 bytes.

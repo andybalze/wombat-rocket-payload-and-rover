@@ -21,6 +21,9 @@
 
 /////////////////// Private Defines ////////////////////////////////////////////
 
+#define TRX_EICRA (0)
+// Both interrupts are low-level (Interrupt 1 isn't used).
+
 #define TRX_TRANSACTION_MAX_LENGTH  (33)
 // 1 for the instruction, up to 32 for the data.
 
@@ -33,10 +36,14 @@
 // Reads the value of a configuration register.
 #define TRX_READ_REGISTER_INSTRUCTION         (0x00)
 #define TRX_READ_REGISTER_ADDRESS_MASK        (0x1F)
+#define TRX_READ_REGISTER_TRANSACTION_LENGTH  (2)
+#define TRX_READ_ADDRESS_TRANSACTION_LENGTH   (5)
 
 // Writes the value of a configuration register.
 #define TRX_WRITE_REGISTER_INSTRUCTION        (0x20)
 #define TRX_WRITE_REGISTER_ADDRESS_MASK       (0x1F)
+#define TRX_WRITE_REGISTER_TRANSACTION_LENGTH (2)
+#define TRX_WRITE_ADDRESS_TRANSACTION_LENGTH  (5) 
 
 // Register Addresses
 
@@ -78,14 +85,17 @@
 
 // Registers and fields
 
-// Configuration register fields
-#define MASK_RX_DR  (6)
-#define MASK_DS     (5)
-#define MASK_MAX_RT (4)
-#define EN_CRC      (3)
-#define CRCO        (2)
 #define PWR_UP      (1)
 #define PRIM_RX     (0)
+
+// Enable all interrupts, enable CRC, 1 byte CRC, power off.
+#define TRX_CONFIG_OFF  (0x08)
+
+// Same as above, but powered on and in PTX mode.
+#define TRX_CONFIG_TX  (TRX_CONFIG_OFF | _BV(PWR_UP))
+
+// Same as above, but in PRX mode.
+#define TRX_CONFIG_RX (TRX_CONFIG_TX | _BV(PRIM_RX))
 
 // Only Pipe 0 is used.
 #define TRX_EN_AA (0x01)
@@ -140,9 +150,6 @@
 
 trx_status_buffer_t trx_status_buffer;
 
-const int message_register_write_length = 2;
-const int message_register_read_length  = 2;
-
 /////////////////// Private Function Prototypes ////////////////////////////////
 
 void update_status_buffer (
@@ -155,9 +162,19 @@ void uart_transmit_register_value(
   int received_message_length
 );
 
+void uart_transmit_address_value(
+  const spi_message_element_t *received_message,
+  int received_message_length
+);
+
 void read_write_check_register(
   spi_message_element_t address,
   spi_message_element_t value
+);
+
+void read_write_check_address(
+  spi_message_element_t register_address,
+  trx_address_t         address 
 );
 
 /////////////////// Public Function Bodies /////////////////////////////////////
@@ -169,9 +186,24 @@ void trx_initialize() {
   // Sets the CE pin as an output.
   TRX_CE_DDR |= _BV(TRX_CE_INDEX);
   
-  // TODO: Set up interrupt on TRX_IRQ pin.
+  // Set up IRQ pin as an input.
+  TRX_IRQ_DDR &= ~_BV(TRX_IRQ_INDEX);
+
+  // Set the IRQ pin's pull-up.
+  TRX_IRQ_PORT |= _BV(TRX_IRQ_INDEX);
+
+  // Set the IRQ interrupt logic sense.
+  EICRA = TRX_EICRA;
+
+  // Enable the IRQ interrupt.
+  EIMSK |= _BV(TRX_IRQ_INT);
 
   spi_initialize();
+
+  read_write_check_register(
+    TRX_REGISTER_ADDRESS_CONFIG,
+    TRX_CONFIG_RX
+  );
 
   read_write_check_register(
     TRX_REGISTER_ADDRESS_EN_AA,
@@ -213,6 +245,11 @@ void trx_initialize() {
     TRX_FEATURE
   );
 
+  read_write_check_address(
+    TRX_REGISTER_ADDRESS_RX_ADDR_P0,
+    TRX_THIS_RX_ADDRESS
+  );
+
   uart_transmit_formatted_message("SPI initialization complete!\n\r");
   UART_WAIT_UNTIL_DONE();
   
@@ -223,8 +260,44 @@ void trx_transmit_payload(
   trx_payload_element_t *payload,
   int payload_length
 ) {
-  // Not currently implemented.
-  return;
+
+  uart_transmit_formatted_message("Attempting Transmission.\r\n");
+  UART_WAIT_UNTIL_DONE();
+
+  // Configure the transceiver as a primary transmitter.
+  read_write_check_register(
+    TRX_REGISTER_ADDRESS_CONFIG,
+    TRX_CONFIG_TX
+  );
+  
+  // Set the TX address.
+  read_write_check_address(
+    TRX_REGISTER_ADDRESS_TX_ADDR,
+    address
+  );
+
+  // Set the RX address of Pipe 0.
+  read_write_check_address(
+    TRX_REGISTER_ADDRESS_RX_ADDR_P0,
+    address
+  );
+
+  // Send the data to the transceiver.
+
+
+  // Set the CE pin high to begin the transmission.
+  TRX_CE_PORT |= _BV(TRX_CE_INDEX);
+
+  // Wait until the transceiver raises the IRQ flag.
+
+  // Read in the status register.
+
+  // If the interrupt was a DS (Data Sent) interrupt, the packet has been
+  // transmitted successfully.
+
+  // If the interrupt was a MAX_RT (Maximum Re-transmissions), the packet was
+  // not received by the target.
+
 }
 
 // Gets the value currently in the status buffer. This is equivalent to what was
@@ -253,6 +326,19 @@ void uart_transmit_register_value(
   );
 }
 
+void uart_transmit_address_value(
+  const spi_message_element_t *received_message,
+  int received_message_length
+) {
+  uart_transmit_formatted_message(
+    "%02x%02x%02x%02x",
+    received_message[1],
+    received_message[2],
+    received_message[3],
+    received_message[4]
+  );
+}
+
 void read_write_check_register(
   spi_message_element_t address,
   spi_message_element_t value
@@ -274,7 +360,7 @@ void read_write_check_register(
   UART_WAIT_UNTIL_DONE();
   spi_begin_transaction(
     message_read,
-    message_register_read_length,
+    TRX_READ_REGISTER_TRANSACTION_LENGTH,
     uart_transmit_register_value
   );
   SPI_WAIT_UNTIL_DONE();
@@ -290,7 +376,7 @@ void read_write_check_register(
   UART_WAIT_UNTIL_DONE();
   spi_begin_transaction(
     message_write,
-    message_register_write_length,
+    TRX_WRITE_REGISTER_TRANSACTION_LENGTH,
     NULL
   );
   SPI_WAIT_UNTIL_DONE();
@@ -302,7 +388,7 @@ void read_write_check_register(
   UART_WAIT_UNTIL_DONE();
   spi_begin_transaction(
     message_read,
-    message_register_read_length,
+    TRX_READ_REGISTER_TRANSACTION_LENGTH,
     uart_transmit_register_value
   );
   SPI_WAIT_UNTIL_DONE();
@@ -310,4 +396,80 @@ void read_write_check_register(
   uart_transmit_formatted_message("\n\r\n\r");
   UART_WAIT_UNTIL_DONE();
 
+}
+
+void read_write_check_address(
+  spi_message_element_t register_address,
+  trx_address_t         address 
+) { 
+  
+  spi_message_element_t message_read[] = {
+    TRX_READ_REGISTER_INSTRUCTION | (register_address & TRX_READ_REGISTER_ADDRESS_MASK),
+    (address >> 0)  & 0xFF,
+    (address >> 8)  & 0xFF,
+    (address >> 16) & 0xFF,
+    (address >> 24) & 0xFF
+  };
+  spi_message_element_t message_write[] = {
+    TRX_WRITE_REGISTER_INSTRUCTION | (register_address & TRX_WRITE_REGISTER_ADDRESS_MASK),
+    (address >> 0)  & 0xFF,
+    (address >> 8)  & 0xFF,
+    (address >> 16) & 0xFF,
+    (address >> 24) & 0xFF
+  };
+
+  uart_transmit_formatted_message(
+    "Reading address %02x:\t",
+    register_address
+  );
+  UART_WAIT_UNTIL_DONE();
+  spi_begin_transaction(
+    message_read,
+    TRX_READ_ADDRESS_TRANSACTION_LENGTH,
+    uart_transmit_address_value
+  );
+  SPI_WAIT_UNTIL_DONE();
+  UART_WAIT_UNTIL_DONE();
+  uart_transmit_formatted_message("\n\r");
+  UART_WAIT_UNTIL_DONE();
+
+  uart_transmit_formatted_message(
+    "Writing address %02x:\t%02x%02x%02x%02x\n\r", 
+    register_address, 
+    message_write[1],
+    message_write[2],
+    message_write[3],
+    message_write[4]
+  );
+  UART_WAIT_UNTIL_DONE();
+  spi_begin_transaction(
+    message_write,
+    TRX_WRITE_ADDRESS_TRANSACTION_LENGTH,
+    NULL
+  );
+  SPI_WAIT_UNTIL_DONE();
+
+  uart_transmit_formatted_message(
+    "Reading address %02x:\t", 
+    register_address
+  );
+  UART_WAIT_UNTIL_DONE();
+  spi_begin_transaction(
+    message_read,
+    TRX_READ_ADDRESS_TRANSACTION_LENGTH,
+    uart_transmit_address_value
+  );
+  SPI_WAIT_UNTIL_DONE();
+  UART_WAIT_UNTIL_DONE();
+  uart_transmit_formatted_message("\n\r\n\r");
+  UART_WAIT_UNTIL_DONE();
+}
+
+void write_tx_payload(
+  const spi_message_element_t *payload;
+) {
+  spi_message_element_t message[]
+  spi_begin_transaction(
+
+  )
 }
