@@ -157,6 +157,9 @@
 
 trx_status_buffer_t trx_status_buffer;
 
+// The RX address of this data cube.
+trx_address_t       trx_this_rx_address;
+
 /////////////////// Private Function Prototypes ////////////////////////////////
 
 void read_status_buffer();
@@ -194,7 +197,11 @@ void write_tx_payload(
 
 // Initializes the TRX, including initializing the SPI and any other peripherals
 // required.
-void trx_initialize() {
+void trx_initialize(
+  trx_address_t rx_address
+) {
+
+  trx_this_rx_address = rx_address;
 
   // Sets the CE pin as an output.
   TRX_CE_DDR |= _BV(TRX_CE_INDEX);
@@ -260,7 +267,7 @@ void trx_initialize() {
 
   write_address(
     TRX_REGISTER_ADDRESS_RX_ADDR_P0,
-    TRX_THIS_RX_ADDRESS
+    trx_this_rx_address
   );
 
   uart_transmit_formatted_message("SPI initialization complete!\n\r");
@@ -355,7 +362,7 @@ void trx_transmit_payload(
   // Restore the rx address
   write_address(
     TRX_REGISTER_ADDRESS_RX_ADDR_P0,
-    TRX_THIS_RX_ADDRESS
+    trx_this_rx_address
   );
 
   // Move back into receive mode.

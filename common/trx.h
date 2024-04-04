@@ -24,9 +24,6 @@
 // transmitted.
 #define TRX_PAYLOAD_PADDING (0x00)
 
-// The receiver address of this transceiver.
-#define TRX_THIS_RX_ADDRESS (0xDEADBEEF)
-
 // The ports and pins used to drive the chip-enable pin of the transceiver.
 #define TRX_CE_DDR    DDRB
 #define TRX_CE_PORT   PORTB
@@ -56,7 +53,9 @@ typedef uint8_t trx_status_buffer_t;
 
 // Initializes the TRX, including initializing the SPI and any other peripherals
 // required.
-void trx_initialize();
+void trx_initialize(
+  trx_address_t rx_address
+);
 
 // Transmits a payload to the given address.
 void trx_transmit_payload(
