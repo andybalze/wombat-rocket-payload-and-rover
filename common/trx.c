@@ -19,6 +19,9 @@
 #include "spi.h"
 #include "uart.h"
 
+#define F_CPU 1000000
+#include <util/delay.h>
+
 /////////////////// Private Defines ////////////////////////////////////////////
 
 #define TRX_EICRA (0)
@@ -299,13 +302,13 @@ void trx_transmit_payload(
 
   // Set the CE pin high to begin the transmission.
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
+  _delay_us(20);
+  TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
   // Wait until the transceiver raises the IRQ flag (active low).
-  while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) == 1);
+  while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) != 0);
 
-  // Read in the status register.
   read_status_buffer();
-  SPI_WAIT_UNTIL_DONE();
 
   // If the interrupt was a DS (Data Sent) interrupt, the packet has been
   // transmitted successfully.
@@ -313,14 +316,29 @@ void trx_transmit_payload(
     uart_transmit_formatted_message(
       "Transmitted payload successfully!\n\r"
     );
+
+    // Clear the interrupt flag
+    read_write_check_register(
+      TRX_REGISTER_ADDRESS_STATUS,
+      _BV(TX_DS)
+    );
+
   }
 
   // If the interrupt was a MAX_RT (Maximum Re-transmissions), the packet was
   // not received by the target.
   else if ((trx_status_buffer & _BV(MAX_RT)) != 0) {
+    
     uart_transmit_formatted_message(
       "Failed to transmit payload (ACK timed out).\n\r"
     );
+
+    // Clear the interrupt flag
+    read_write_check_register(
+      TRX_REGISTER_ADDRESS_STATUS,
+      _BV(MAX_RT)
+    );
+
   }
 
   else {
@@ -328,6 +346,13 @@ void trx_transmit_payload(
       "Program reached impossible state.\n\r"
     );
   }
+  UART_WAIT_UNTIL_DONE();
+
+  // Restore the rx address
+  read_write_check_address(
+    TRX_REGISTER_ADDRESS_RX_ADDR_P0,
+    TRX_THIS_RX_ADDRESS
+  );
 
   // Move back into receive mode.
   read_write_check_register(
@@ -356,6 +381,8 @@ void read_status_buffer() {
     TRX_NOOP_TRANSACTION_LENGTH,
     update_status_buffer
   );
+  SPI_WAIT_UNTIL_DONE();
+  UART_WAIT_UNTIL_DONE();
 }
 
 void update_status_buffer(
@@ -363,6 +390,7 @@ void update_status_buffer(
   int received_message_length
 ) {
   trx_status_buffer = received_message[0];
+  uart_transmit_formatted_message("Status register:\t%02X\r\n", trx_status_buffer);
 }
 
 void uart_transmit_register_value(
@@ -454,17 +482,17 @@ void read_write_check_address(
   
   spi_message_element_t message_read[] = {
     TRX_READ_REGISTER_INSTRUCTION | (register_address & TRX_READ_REGISTER_ADDRESS_MASK),
-    (address >> 0)  & 0xFF,
-    (address >> 8)  & 0xFF,
+    (address >> 24) & 0xFF,
     (address >> 16) & 0xFF,
-    (address >> 24) & 0xFF
+    (address >> 8)  & 0xFF,
+    (address >> 0)  & 0xFF
   };
   spi_message_element_t message_write[] = {
     TRX_WRITE_REGISTER_INSTRUCTION | (register_address & TRX_WRITE_REGISTER_ADDRESS_MASK),
-    (address >> 0)  & 0xFF,
-    (address >> 8)  & 0xFF,
+    (address >> 24) & 0xFF,
     (address >> 16) & 0xFF,
-    (address >> 24) & 0xFF
+    (address >> 8)  & 0xFF,
+    (address >> 0)  & 0xFF
   };
 
   uart_transmit_formatted_message(
@@ -528,4 +556,5 @@ void write_tx_payload(
     TRX_WRITE_TX_PAYLOAD_TRANSACTION_LENGTH,
     NULL
   );
+  SPI_WAIT_UNTIL_DONE();
 }
