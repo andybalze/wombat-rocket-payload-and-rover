@@ -12,8 +12,8 @@
 #define F_CPU 1000000
 #include <util/delay.h>
 
-#define THIS_RX_ADDRESS 0xDEADBEEF
-#define TARGET_ADDRESS	0xDEADBEEF
+#define THIS_RX_ADDRESS 0x04040404
+#define TARGET_ADDRESS	0x03030303
 
 static uart_message_element_t received_data;
 

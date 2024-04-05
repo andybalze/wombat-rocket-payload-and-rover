@@ -269,8 +269,9 @@ void trx_transmit_payload(
   UART_WAIT_UNTIL_DONE();
 
   // Configure the transceiver as a primary transmitter.
+  TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_TX);
-  // _delay_ms(500);
+  _delay_ms(100);
 
   // Set the TX address.
   write_address(TRX_REGISTER_ADDRESS_TX_ADDR, address);
@@ -284,6 +285,7 @@ void trx_transmit_payload(
   read_status_buffer();
 
   // Set the CE pin high to begin the transmission.
+  _delay_ms(1);
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
   _delay_us(10);
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
@@ -340,6 +342,7 @@ int trx_receive_payload(
 
   // Move back into receive mode.
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_RX);
+  _delay_ms(100);
 
   // Restore the rx address
   write_address(TRX_REGISTER_ADDRESS_RX_ADDR_P0, trx_this_rx_address);
@@ -365,6 +368,8 @@ int trx_receive_payload(
   // We know it was a data-received interrupt.
   // Read the payload data into the given buffer.
   read_rx_payload(payload_buffer);
+
+  uart_transmit_formatted_message("\nI got something!!\n\r");
 
   return TRX_PAYLOAD_LENGTH;
 
