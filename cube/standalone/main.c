@@ -9,6 +9,9 @@
 #include "spi.h"
 #include "trx.h"
 
+#define F_CPU 1000000
+#include <util/delay.h>
+
 #define THIS_RX_ADDRESS 0xDEADBEEF
 #define TARGET_ADDRESS	0xDEADBEEF
 
@@ -26,13 +29,16 @@ int main() {
 	uart_transmit_formatted_message(restart_message_format);
 	UART_WAIT_UNTIL_DONE();
 
+	_delay_ms(100);
 	trx_initialize(THIS_RX_ADDRESS);
+	_delay_ms(100);
 	trx_transmit_payload(
 		TARGET_ADDRESS, 
 		example_payload, 
 		TRX_PAYLOAD_LENGTH
 	);
 
+	_delay_ms(100);
 	trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
 	trx_receive_payload(received_payload);
 	uart_transmit_formatted_message(
