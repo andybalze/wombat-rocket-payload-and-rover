@@ -151,7 +151,7 @@
 
 // Number of bytes is data pipes is not relevant for this project, except for
 // data pipe 0.
-#define TRX_RX_PW_P0  (32)
+#define TRX_RX_PW_P0  TRX_PAYLOAD_LENGTH
 
 // FIFO status register are not relevant to this project.
 
@@ -241,55 +241,16 @@ void trx_initialize(
 
   spi_initialize();
 
-  write_register(
-    TRX_REGISTER_ADDRESS_CONFIG,
-    TRX_CONFIG_RX
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_EN_AA,
-    TRX_EN_AA
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_EN_RXADDR,
-    TRX_EN_RXADDR
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_SETUP_AW,
-    TRX_SETUP_AW
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_SETUP_RETR,
-    TRX_SETUP_RETR
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_RF_CH,
-    TRX_RF_CH
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_RF_SETUP,
-    TRX_RF_SETUP
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_DYNPD,
-    TRX_DYNPD
-  );
-
-  write_register(
-    TRX_REGISTER_ADDRESS_FEATURE,
-    TRX_FEATURE
-  );
-
-  write_address(
-    TRX_REGISTER_ADDRESS_RX_ADDR_P0,
-    trx_this_rx_address
-  );
+  write_register(TRX_REGISTER_ADDRESS_CONFIG,     TRX_CONFIG_RX       );
+  write_register(TRX_REGISTER_ADDRESS_EN_AA,      TRX_EN_AA           );
+  write_register(TRX_REGISTER_ADDRESS_EN_RXADDR,  TRX_EN_RXADDR       );
+  write_register(TRX_REGISTER_ADDRESS_SETUP_AW,   TRX_SETUP_AW        );
+  write_register(TRX_REGISTER_ADDRESS_SETUP_RETR, TRX_SETUP_RETR      );
+  write_register(TRX_REGISTER_ADDRESS_RF_CH,      TRX_RF_CH           );
+  write_register(TRX_REGISTER_ADDRESS_RF_SETUP,   TRX_RF_SETUP        );
+  write_register(TRX_REGISTER_ADDRESS_RX_PW_P0,   TRX_RX_PW_P0        );
+  write_register(TRX_REGISTER_ADDRESS_DYNPD,      TRX_DYNPD           );
+  write_register(TRX_REGISTER_ADDRESS_FEATURE,    TRX_FEATURE         );
 
   uart_transmit_formatted_message("SPI initialization complete!\n\r");
   UART_WAIT_UNTIL_DONE();
@@ -308,34 +269,23 @@ void trx_transmit_payload(
   UART_WAIT_UNTIL_DONE();
 
   // Configure the transceiver as a primary transmitter.
-  write_register(
-    TRX_REGISTER_ADDRESS_CONFIG,
-    TRX_CONFIG_TX
-  );
-  _delay_ms(500);
-  
+  write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_TX);
+  // _delay_ms(500);
+
   // Set the TX address.
-  write_address(
-    TRX_REGISTER_ADDRESS_TX_ADDR,
-    address
-  );
+  write_address(TRX_REGISTER_ADDRESS_TX_ADDR, address);
 
   // Set the RX address of Pipe 0.
-  write_address(
-    TRX_REGISTER_ADDRESS_RX_ADDR_P0,
-    address
-  );
+  write_address(TRX_REGISTER_ADDRESS_RX_ADDR_P0,address);
 
   // Send the data to the transceiver.
-  write_tx_payload(
-    payload
-  );
+  write_tx_payload(payload);
 
   read_status_buffer();
 
   // Set the CE pin high to begin the transmission.
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
-  _delay_us(20);
+  _delay_us(10);
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
   // Wait until the transceiver raises the IRQ flag (active low).
@@ -381,21 +331,6 @@ void trx_transmit_payload(
   }
   UART_WAIT_UNTIL_DONE();
 
-  // Restore the rx address
-  write_address(
-    TRX_REGISTER_ADDRESS_RX_ADDR_P0,
-    trx_this_rx_address
-  );
-
-  // Move back into receive mode.
-  write_register(
-    TRX_REGISTER_ADDRESS_CONFIG,
-    TRX_CONFIG_RX
-  );
-
-  SPI_WAIT_UNTIL_DONE();
-  UART_WAIT_UNTIL_DONE();
-
 }
 
 // Receives a payload using polling.
@@ -403,12 +338,21 @@ int trx_receive_payload(
   trx_payload_element_t *payload_buffer
 ) {
 
+  // Move back into receive mode.
+  write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_RX);
+
+  // Restore the rx address
+  write_address(TRX_REGISTER_ADDRESS_RX_ADDR_P0, trx_this_rx_address);
+
   // Enable active RX mode.
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
 
-  // We assume we're already powered on and in receive mode, so we can just
-  // wait until something happens.
+  _delay_us(160);
+
   TRX_WAIT_FOR_IRQ();
+
+  // Set the CE pin low.
+  TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
   // Determine which interrupt it was
   read_status_buffer();
@@ -501,9 +445,9 @@ void write_address(
 
   spi_message_element_t message[] = {
     TRX_WRITE_REGISTER_INSTRUCTION | (register_address & TRX_WRITE_REGISTER_ADDRESS_MASK),
-    (address >> 24) & 0xFF,
-    (address >> 16) & 0xFF,
-    (address >> 8)  & 0xFF,
+    (address >> 0)  & 0xFF,
+    (address >> 0)  & 0xFF,
+    (address >> 0)  & 0xFF,
     (address >> 0)  & 0xFF
   };
 
