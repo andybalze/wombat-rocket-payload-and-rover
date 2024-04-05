@@ -10,7 +10,7 @@
 #include "trx.h"
 
 #define THIS_RX_ADDRESS 0xDEADBEEF
-#define TARGET_ADDRESS	0x600DD00D
+#define TARGET_ADDRESS	0xDEADBEEF
 
 static uart_message_element_t received_data;
 

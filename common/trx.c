@@ -88,6 +88,9 @@
 // Transmit address.
 #define TRX_REGISTER_ADDRESS_TX_ADDR    (0x10)
 
+// RX data pipe 0
+#define TRX_REGISTER_ADDRESS_RX_PW_P0   (0x11)
+
 // Enable dynaic payload length.
 #define TRX_REGISTER_ADDRESS_DYNPD      (0x1C)
 
@@ -146,7 +149,9 @@
 
 // TX address is determined during code body.
 
-// Number of bytes is data pipes is not relevant for this project.
+// Number of bytes is data pipes is not relevant for this project, except for
+// data pipe 0.
+#define TRX_RX_PW_P0  (32)
 
 // FIFO status register are not relevant to this project.
 
@@ -307,6 +312,7 @@ void trx_transmit_payload(
     TRX_REGISTER_ADDRESS_CONFIG,
     TRX_CONFIG_TX
   );
+  _delay_ms(500);
   
   // Set the TX address.
   write_address(
@@ -396,6 +402,9 @@ void trx_transmit_payload(
 int trx_receive_payload(
   trx_payload_element_t *payload_buffer
 ) {
+
+  // Enable active RX mode.
+  TRX_CE_PORT |= _BV(TRX_CE_INDEX);
 
   // We assume we're already powered on and in receive mode, so we can just
   // wait until something happens.
