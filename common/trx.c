@@ -359,7 +359,7 @@ int trx_receive_payload(
 
   // Determine which interrupt it was
   read_status_buffer();
-  if ((trx_status_buffer & RX_DR) == 0) {
+  if ((trx_status_buffer & _BV(RX_DR)) == 0) {
     uart_transmit_formatted_message("Hit an unexpected interrupt while waiting to receive data.\n\r");
     UART_WAIT_UNTIL_DONE();
     return 0;
@@ -370,6 +370,7 @@ int trx_receive_payload(
   read_rx_payload(payload_buffer);
 
   uart_transmit_formatted_message("\nI got something!!\n\r");
+  UART_WAIT_UNTIL_DONE();
 
   return TRX_PAYLOAD_LENGTH;
 

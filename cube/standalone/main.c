@@ -12,8 +12,8 @@
 #define F_CPU 1000000
 #include <util/delay.h>
 
-#define THIS_RX_ADDRESS 0x04040404
-#define TARGET_ADDRESS	0x03030303
+#define THIS_RX_ADDRESS 0x0A0A0A0A
+#define TARGET_ADDRESS	0x0A0A0A0A
 
 static uart_message_element_t received_data;
 
@@ -38,14 +38,16 @@ int main() {
 		TRX_PAYLOAD_LENGTH
 	);
 
-	_delay_ms(100);
-	trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
-	trx_receive_payload(received_payload);
-	uart_transmit_formatted_message(
-		received_payload_format,
-		received_payload
-	);
+	while(1) {
 
-	while(1);
+		_delay_ms(100);
+		trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
+		trx_receive_payload(received_payload);
+		uart_transmit_formatted_message(
+			received_payload_format,
+			received_payload
+		);
+
+	}
 
 }
