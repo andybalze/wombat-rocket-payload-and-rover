@@ -1,10 +1,12 @@
 .PHONY: all rover_all rover_compile rover_size rover_fuse rover_flash cube_all cube_compile cube_size cube_fuse cube_flash trx_all trx_compile trx_size trx_fuse trx_flash
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
-rover_dependencies = rover/main.c rover/adc.h rover/adc.c common/uart.h common/uart.c
-cube_dependencies = cube/standalone/main.c cube/common/cube_parameters.h cube/common/trx.h cube/common/trx.c cube/standalone/application.h cube/standalone/application.c common/uart.c common/uart.h common/spi.h common/spi.c cube/common/networking_constants.h cube/common/address_resolution.h cube/common/address_resolution.c cube/common/transport.h cube/common/transport.c cube/common/network.h cube/common/network.c cube/common/data_link.h cube/common/data_link.c
-trx_dependencies = cube/rover_trx/main.c
+common_dependencies = common/spi.c common/spi.h common/uart.c common/uart.h
+cube_common_dependencies = cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h cube/common/trx.c cube/common/trx.h
 
+rover_dependencies = $(common_dependencies) rover/adc.c rover/adc.h rover/main.c
+trx_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/rover_trx/main.c 
+cube_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/standalone/main.c cube/standalone/application.c cube/standalone/application.h 
 
 
 
