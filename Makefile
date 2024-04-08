@@ -2,7 +2,7 @@
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 rover_dependencies = rover/main.c rover/adc.h rover/adc.c common/uart.h common/uart.c
-cube_dependencies = cube/standalone/main.c cube/common/cube_parameters.h common/trx.h common/trx.c cube/standalone/application.h cube/standalone/application.c common/uart.c common/uart.h common/spi.h common/spi.c cube/common/networking_constants.h cube/common/address_resolution.h cube/common/address_resolution.c cube/common/transport.h cube/common/transport.c cube/common/network.h cube/common/network.c cube/common/data_link.h cube/common/data_link.c
+cube_dependencies = cube/standalone/main.c cube/common/cube_parameters.h cube/common/trx.h cube/common/trx.c cube/standalone/application.h cube/standalone/application.c common/uart.c common/uart.h common/spi.h common/spi.c cube/common/networking_constants.h cube/common/address_resolution.h cube/common/address_resolution.c cube/common/transport.h cube/common/transport.c cube/common/network.h cube/common/network.c cube/common/data_link.h cube/common/data_link.c
 trx_dependencies = cube/rover_trx/main.c
 
 
