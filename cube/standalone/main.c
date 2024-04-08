@@ -8,6 +8,13 @@
 #include "uart.h"
 #include "spi.h"
 #include "trx.h"
+#include "application.h"
+
+// For a quick test
+#ifndef F_CPU
+#define F_CPU 1000000UL
+#endif
+#include <util/delay.h>
 
 #define F_CPU 1000000
 #include <util/delay.h>
@@ -24,6 +31,9 @@ static char* received_payload_format = "Received wireless message:\n\r%s\n\r";
 static trx_payload_element_t *example_payload = "I hope this works, cuz if not...";
 
 int main() {
+
+	// Let's wait for all of our hardware to turn on.
+	_delay_ms(1000);
 
 	uart_initialize();
 	uart_transmit_formatted_message(restart_message_format);

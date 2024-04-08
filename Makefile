@@ -2,7 +2,7 @@
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 rover_dependencies = rover/main.c rover/adc.h rover/adc.c common/uart.h common/uart.c
-cube_dependencies = cube/standalone/main.c common/uart.c common/uart.h common/spi.h common/spi.c common/trx.h common/trx.c
+cube_dependencies = cube/standalone/main.c common/trx.h common/trx.c cube/standalone/application.h cube/standalone/application.c common/uart.c common/uart.h common/spi.h common/spi.c cube/common/networking_constants.h cube/common/address_resolution.h cube/common/address_resolution.c cube/common/transport.h cube/common/transport.c cube/common/network.h cube/common/network.c cube/common/data_link.h cube/common/data_link.c
 trx_dependencies = cube/rover_trx/main.c
 
 
@@ -30,8 +30,8 @@ build/rover.hex: build/rover.out
 build/rover.out: $(rover_dependencies)
 	avr-gcc -Irover -Icommon $(rover_dependencies) -mmcu=atmega328p -Os -o build/rover.out
 
-rover_size: build/rover.hex
-	avr-size build/rover.hex
+rover_size: build/rover.out
+	avr-size build/rover.out --format=avr --mcu=atmega328p -C
 
 rover_fuse:
 # to be determined by the fuses we need (avrdude command)
@@ -53,8 +53,8 @@ build/cube.hex: build/cube.out
 build/cube.out: $(cube_dependencies)
 	avr-gcc -Icube/standalone -Icube/common -Icommon $(cube_dependencies) -mmcu=atmega328p -Os -o build/cube.out
 
-cube_size: build/cube.hex
-	avr-size build/cube.hex
+cube_size: build/cube.out
+	avr-size build/cube.out --format=avr --mcu=atmega328p -C
 
 cube_fuse:
 	avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
@@ -74,8 +74,8 @@ build/trx.hex: build/trx.out
 build/trx.out: $(trx_dependencies)
 	avr-gcc -Icube/rover_trx -Icube/common -Icommon $(trx_dependencies) -mmcu=atmega328p -o build/trx.out
 
-trx_size: build/trx.hex
-	avr-size build/trx.hex
+trx_size: build/trx.out
+	avr-size build/trx.out --format=avr --mcu=atmega328p -C
 
 trx_fuse:
 # to be determined by the fuses we need (avrdude command)
