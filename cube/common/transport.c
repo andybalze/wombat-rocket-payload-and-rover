@@ -15,9 +15,7 @@
 // the transport layer is actually responsible for preventing
 // a network from being overwhelmed by throttling its own output!
 
-#ifndef F_CPU
-#define F_CPU 1000000UL
-#endif
+#include "cube_parameters.h"
 #include <util/delay.h>
 
 #define TRANSPORT_DELAY_MS (100)

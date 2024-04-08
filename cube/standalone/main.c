@@ -10,14 +10,9 @@
 #include "trx.h"
 #include "application.h"
 
-// For a quick test
-#ifndef F_CPU
-#define F_CPU 1000000UL
-#endif
+#include "cube_parameters.h"
 #include <util/delay.h>
 
-#define F_CPU 1000000
-#include <util/delay.h>
 
 #define THIS_RX_ADDRESS 0x0A0A0A0A
 #define TARGET_ADDRESS	0x0A0A0A0A
