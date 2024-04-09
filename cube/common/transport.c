@@ -9,6 +9,7 @@
 #include "address_resolution.h"
 #include "transport.h"
 #include "network.h"
+#include "address.h"
 
 // the transport layer intentionally adds delays between segments.
 // fun fact: in the TCP/IP protocol stack,

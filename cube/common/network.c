@@ -1,34 +1,13 @@
 #include "address_resolution.h"
 #include "network.h"
 #include "data_link.h"
+#include "address.h"
+#include "routing_table.h"
 
 // packet[0] = length of packet
 // packet[1] = final destination network address
 // packet[2] = original source network address
 // rest is payload
-
-
-// Oh! This function will need to be different for EVERY data cube.
-// Maybe we can throw this under some ifdef's and have some fun with
-// our makefile. Until then, here's an example.
-byte next_hop(byte final_addr) {
-    byte next_hop_addr;
-    switch(final_addr) {
-    case 0x0A:
-        next_hop_addr = 0x0B;
-        break;
-    case 0x0B:
-        next_hop_addr = 0x0B;
-        break;
-    case 0x0C:
-        next_hop_addr = 0x0B;
-        break;
-    case 0x0D:
-        next_hop_addr = 0x0B;
-        break;
-    }
-    return next_hop_addr;
-}
 
 // This blocking function gets a payload from the network layer
 // and writes it to the buffer.
@@ -72,7 +51,7 @@ void network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte sr
     for (byte i = 0; i < payload_len && i < MAX_PACKET_LEN - PACKET_HEADER_LEN; i++) {
         packet[i + PACKET_HEADER_LEN] = payload[i];
     }
-    byte next_hop_addr = next_hop(dest_network_addr);
+    byte next_hop_addr = routing_table(dest_network_addr);
 
     data_link_tx(packet, packet_len, resolve_data_link_addr(next_hop_addr));
 

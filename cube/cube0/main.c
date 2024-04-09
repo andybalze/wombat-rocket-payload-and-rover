@@ -13,8 +13,7 @@
 #include "cube_parameters.h"
 #include <util/delay.h>
 
-
-#define THIS_RX_ADDRESS 0x0A0A0A0A
+#include "address.h"
 #define TARGET_ADDRESS	0x0A0A0A0A
 
 static uart_message_element_t received_data;
@@ -35,7 +34,7 @@ int main() {
 	UART_WAIT_UNTIL_DONE();
 
 	_delay_ms(100);
-	trx_initialize(THIS_RX_ADDRESS);
+	trx_initialize(MY_DATA_LINK_ADDR);
 	_delay_ms(100);
 	trx_transmit_payload(
 		TARGET_ADDRESS, 
