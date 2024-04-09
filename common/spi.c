@@ -206,4 +206,6 @@ void spi_execute_transaction(
   // Release the device.
   SPI_PORT &= ~_BV(SPI_SS_INDEX);
 
+  va_end(args);
+
 }
