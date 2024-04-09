@@ -147,7 +147,7 @@ void spi_execute_transaction(
 ) {
 
   va_list args;
-  va_start(args, response);
+  va_start(args, section_count);
 
   spi_message_element_t *section = va_arg(args, spi_message_element_t*);
   int section_length = va_arg(args, int);
