@@ -121,7 +121,6 @@ void spi_initialize(void) {
   // SPCR is the only SPI register that needs to be configured.  
   SPCR = (
     0
-    // | _BV(SPIE)   // Enables SPI interrupt.
     | _BV(SPE)    // Enables SPI.
     | SPI_DORD    // Configures data direction.
     | _BV(MSTR)   // Configures the SPI as a master.
@@ -132,84 +131,78 @@ void spi_initialize(void) {
 
 }
 
-// Transmits a message over the SPI.
-void spi_begin_transaction(
-  const spi_message_element_t *transmit_message,
-  int transaction_length,
-  void (*transaction_complete_callback)(
-    const spi_message_element_t *received_message,
-    int received_message_length
-  )
+// Transmits a message over the SPI. The response of the slave is placed in the
+// buffer passed in as the first argument. The message to transmit is composed
+// of a number of "sections." Each section consists of a buffer, containing the
+// data to transmit, and an integer, respresenting the number of bytes in the
+// section. For example,
+//
+// spi_execute_transaction(response, section1, section1_length, section2, section2_length);
+//
+// The second argument gives the number of sections that compose the message.
+void spi_execute_transaction(
+  spi_message_element_t *response,
+  int section_count,
+  ...
 ) {
 
-  // If a SPI transaction is already underway, another one can be started.
-  int transaction_underway;
-  transaction_underway = SPCR & _BV(SPIE);
-  if (transaction_underway != 0) {
-    return;
-  }
+  va_list args;
+  va_start(args, response);
 
-  // If the transaction length is larger than the maximum allowed, the
-  // transaction cannot be started.
-  if (transaction_length > SPI_TRANSACTION_MAX_LENGTH) {
-    return;
-  }
-  
-  // Copies the message to transmit into the buffer and clears the receiving 
-  // buffer.
-  int i;
-  for  (i = 0; i < SPI_TRANSACTION_MAX_LENGTH; i++) {
-    if (i < transaction_length) {
-      transmit_message_buffer[i] = transmit_message[i];
-    } else {
-      transmit_message_buffer[i] = 0;
-    }
-    receive_message_buffer[i] = 0;
-  }
+  spi_message_element_t *section = va_arg(args, spi_message_element_t*);
+  int section_length = va_arg(args, int);
+  int section_index = 0;
 
-  // Start at the beginning of the transaction.
-  transaction_index = 0;
+  spi_message_element_t next_element_index = 0;
+  char previous_element_was_last = 0;
 
-  // The transaction has successfully been started.
-  current_transaction_length = transaction_length;
-  current_transaction_complete_callback = transaction_complete_callback;
+  // Select the device.
+  SPI_PORT |= _BV(SPI_SS_INDEX);
 
-  // Finally starts the SPI hardware.
+  // The transaction will run no longer than the maximum length defined in the
+  // header. However, in normal operation, this loop will be broken as soon as
+  // the full message has been sent.
+  for (int i = 0; i < SPI_TRANSACTION_MAX_LENGTH; i++) {
 
-  SPCR     |= _BV(SPIE);                  // Enable the SPI interrupt.
-  SPI_PORT &= ~_BV(SPI_SS_INDEX);         // Select the device.
-  SPDR      = transmit_message_buffer[0]; // Begin the transaction.
-
-}
-
-ISR(SPI_STC_vect) {
-
-  // Store the received data.
-  receive_message_buffer[transaction_index] = SPDR;
-
-  // Check if the transaction has been completed.
-  if (transaction_index == current_transaction_length - 1) {
-
-    // Set the CS pin high.
-    SPI_PORT |= _BV(SPI_SS_INDEX);
-
-    // Stop the transaction and call the callback.
-    SPCR &= ~_BV(SPIE);
-
-    // Only call the callback if there is one.
-    if (current_transaction_complete_callback != NULL) {
-      current_transaction_complete_callback(
-        receive_message_buffer, 
-        current_transaction_length
-      );
+    if (previous_element_was_last) {
+      break;
     }
 
-  } else {
+    // Send the next character to the SPI and start the SPI running.
+    SPDR = *(section + next_element_index);
+    next_element_index = next_element_index + 1;
 
-    // Transmit the next character
-    transaction_index = transaction_index + 1;
-    SPDR = transmit_message_buffer[transaction_index];
+    // While the SPI is running, determine what the next character is.
+    // If that was the last element of the section,
+    if (next_element_index == section_length) {
+
+      section_index = section_index + 1;
+      if (section_index == section_count) {
+
+        // If that was the last section, the message is finished.
+        previous_element_was_last = 1;
+
+      } else {
+
+        // The next element is the first element of the next section.
+        section = va_arg(args, spi_message_element_t*);
+        section_count = va_arg(args, int);
+        next_element_index = 0;
+      
+      } 
+
+    }
+    // Otherwise, just continue through that section.
+
+    // Wait until the element has finished sending (the SPI flag goes high).
+    while ((SPSR & _BV(SPIF)) == 0);
+
+    // Read out the response element.
+    *(response + i) = SPDR;
 
   }
+
+  // Release the device.
+  SPI_PORT &= ~_BV(SPI_SS_INDEX);
 
 }
