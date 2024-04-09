@@ -199,6 +199,7 @@ void spi_execute_transaction(
 
     // Read out the response element.
     *(response + i) = SPDR;
+    // This read will clear the SPIF flag.
 
   }
 
