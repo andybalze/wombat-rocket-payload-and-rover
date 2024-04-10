@@ -8,50 +8,65 @@
 #include "uart.h"
 #include "spi.h"
 #include "trx.h"
-#include "application.h"
 
-#include "cube_parameters.h"
+#define F_CPU 1000000
 #include <util/delay.h>
 
-#include "address.h"
-#define TARGET_ADDRESS	0x0A0A0A0A
+#define STARTUP_DELAY_MS (100)
 
-static uart_message_element_t received_data;
+#define THIS_CUBE_RX_ADDRESS 0x0A0A0A0A
+#define TARGET_RX_ADDRESS THIS_CUBE_RX_ADDRESS
 
-static char* restart_message_format = "\n\rHello World.\n\r";
-static char* status_message_format = "Transceiver has a status of %02x.\n\r";
-static char* received_payload_format = "Received wireless message:\n\r%s\n\r";
+static char* restart_message_format 	= "\n\rHello World.\n\r";
+static char* received_message_format 	= "Received message:\t%s\n\r";
 
-static trx_payload_element_t *example_payload = "I hope this works, cuz if not...";
+static trx_payload_element_t *example_payload1 = "This better work, cuz if not...";
+static trx_payload_element_t *example_payload2 = "I swear I'll shit yourself!!!\n\r";
+
+static trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH + 1];
 
 int main() {
 
 	// Let's wait for all of our hardware to turn on.
-	_delay_ms(1000);
+	_delay_ms(STARTUP_DELAY_MS);
 
 	uart_initialize();
 	uart_transmit_formatted_message(restart_message_format);
 	UART_WAIT_UNTIL_DONE();
 
-	_delay_ms(100);
-	trx_initialize(MY_DATA_LINK_ADDR);
-	_delay_ms(100);
-	trx_transmit_payload(
-		TARGET_ADDRESS, 
-		example_payload, 
-		TRX_PAYLOAD_LENGTH
-	);
+	
+	trx_initialize(THIS_CUBE_RX_ADDRESS);
 
-	while(1) {
+	trx_transmission_outcome_t outcome;
 
-		_delay_ms(100);
-		trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
+	uart_transmit_formatted_message("Attempting to transmit payload 1.\n\r");
+	UART_WAIT_UNTIL_DONE();
+	if (trx_transmit_payload(TARGET_RX_ADDRESS, example_payload1, TRX_PAYLOAD_LENGTH) == TRX_TRANSMISSION_SUCCESS) {
+		uart_transmit_formatted_message("Successfully transmitted payload 1.\n\r");
+	} else {
+		uart_transmit_formatted_message("Failed to transmit payload 1.\n\r");
+	}
+	UART_WAIT_UNTIL_DONE();
+
+	_delay_ms(1000);
+	
+	uart_transmit_formatted_message("Attempting to transmit payload 2.\n\r");
+	UART_WAIT_UNTIL_DONE();
+	if (trx_transmit_payload(TARGET_RX_ADDRESS, example_payload2, TRX_PAYLOAD_LENGTH) == TRX_TRANSMISSION_SUCCESS) {
+		uart_transmit_formatted_message("Successfully transmitted payload 2.\n\r");
+	} else {
+		uart_transmit_formatted_message("Failed to transmit payload 2.\n\r");
+	}
+	UART_WAIT_UNTIL_DONE();
+
+	while (1) {
+
 		trx_receive_payload(received_payload);
-		uart_transmit_formatted_message(
-			received_payload_format,
-			received_payload
-		);
+		uart_transmit_formatted_message(received_message_format, received_payload);
+		UART_WAIT_UNTIL_DONE();
 
 	}
+
+	while(1);
 
 }

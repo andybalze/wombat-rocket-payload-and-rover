@@ -54,6 +54,11 @@ typedef uint8_t trx_payload_element_t;
 // The type of the transceiver's status register.
 typedef uint8_t trx_status_buffer_t;
 
+// Whether a given transmission succeeded or failed.
+typedef uint8_t trx_transmission_outcome_t;
+#define TRX_TRANSMISSION_FAILURE (0)
+#define TRX_TRANSMISSION_SUCCESS (1)
+
 /////////////////// Public function prototypes /////////////////////////////////
 
 // Initializes the TRX, including initializing the SPI and any other peripherals
@@ -63,7 +68,7 @@ void trx_initialize(
 );
 
 // Transmits a payload to the given address.
-void trx_transmit_payload(
+trx_transmission_outcome_t trx_transmit_payload(
   trx_address_t address,
   trx_payload_element_t *payload,
   int payload_length
