@@ -40,6 +40,37 @@
 #define SW4_INDEX   PIN7
 
 
+// Macros for motors
+#define LEFT1_DDR      DDRD
+#define LEFT1_PORT     PORTD
+#define LEFT1_INDEX    PIN3
+#define LEFT1_OCR      OCR2B
+
+#define LEFT2_DDR      DDRB
+#define LEFT2_PORT     PORTB
+#define LEFT2_INDEX    PIN3
+
+
+#define RIGHT1_DDR      DDRD
+#define RIGHT1_PORT     PORTD
+#define RIGHT1_INDEX    PIN6
+#define RIGHT1_OCR      OCR0A
+
+#define RIGHT2_DDR      DDRD
+#define RIGHT2_PORT     PORTD
+#define RIGHT2_INDEX    PIN5
+
+
+#define DISPENSER1_DDR      DDRB
+#define DISPENSER1_PORT     PORTB
+#define DISPENSER1_INDEX    PIN1
+#define DISPENSER1_OCR      OCR1A
+
+#define DISPENSER2_DDR      DDRB
+#define DISPENSER2_PORT     PORTB
+#define DISPENSER2_INDEX    PIN2
+
+
 int main(void) {
 
     int sw2State, sw3State, sw4State;
@@ -48,9 +79,25 @@ int main(void) {
     LED0_DDR |= _BV(LED0_INDEX);
     LED1_DDR |= _BV(LED1_INDEX);
 
+    // Configure the motor pins as outputs
+    LEFT1_DDR       |= _BV(LEFT1_INDEX);
+    LEFT2_DDR       |= _BV(LEFT2_INDEX);
+    RIGHT1_DDR      |= _BV(RIGHT1_INDEX);
+    RIGHT2_DDR      |= _BV(RIGHT2_INDEX);
+    DISPENSER1_DDR  |= _BV(DISPENSER1_INDEX);
+    DISPENSER2_DDR  |= _BV(DISPENSER2_INDEX);
+
     // Initialize both LEDs as off
     LED0_PORT |= _BV(LED0_INDEX);
     LED1_PORT |= _BV(LED1_INDEX);
+
+    // Initialize outputs as off
+    LEFT1_PORT      &= ~_BV(LEFT1_INDEX);
+    LEFT2_PORT      |= _BV(LEFT2_INDEX);
+    RIGHT1_PORT     &= ~_BV(RIGHT1_INDEX);
+    RIGHT2_PORT     &= ~_BV(RIGHT2_INDEX);
+    DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
+    DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
 
     // Configure the switch & pushbuttons as inputs
     SW2_DDR &= ~_BV(SW2_INDEX);
@@ -62,6 +109,7 @@ int main(void) {
     SW3_PORT &= ~_BV(SW3_INDEX);    // Turn off pull-up resistor
     SW4_PORT &= ~_BV(SW4_INDEX);    // Turn off pull-up resistor
 
+
     while(1)
     {
         sw2State = (SW2_RD & _BV(SW2_INDEX)) >> SW2_INDEX;
@@ -69,22 +117,17 @@ int main(void) {
         sw4State = (SW4_RD & _BV(SW4_INDEX)) >> SW4_INDEX;
 
 
-        if (sw2State ^ sw3State)
-        {
-            LED0_PORT &= ~_BV(LED0_INDEX);          // turn LED0 on
+        if (sw4State == 1) {
+            DISPENSER1_PORT |= _BV(DISPENSER1_INDEX);
+            DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
         }
-        else
-        {
-            LED0_PORT |= _BV(LED0_INDEX);           // turn LED0 off
+        else if (sw3State == 1) {
+            DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
+            DISPENSER2_PORT |= _BV(DISPENSER2_INDEX);
         }
-
-        if (sw2State ^ sw4State)
-        {
-            LED1_PORT &= ~_BV(LED1_INDEX);          // turn LED1 on
-        }
-        else
-        {
-            LED1_PORT |= _BV(LED1_INDEX);           // turn LED1 off
+        else {
+            DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
+            DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
         }
     }
 
