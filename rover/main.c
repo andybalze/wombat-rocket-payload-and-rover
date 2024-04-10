@@ -90,7 +90,7 @@ ISR(USART_RX_vect) {
 	switch (received_data)
 	{
 	case KEYSTROKE_ADC0:
-		channel_value = ir_distance_read();	// Edit this line to return distance in centimeters
+		channel_value = ir_distance_read();	// Edited this line to return distance in centimeters
 		channel_name  = channel_name_adc0;
 		break;
 	case KEYSTROKE_ADC1:
