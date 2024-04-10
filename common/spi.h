@@ -62,16 +62,19 @@ typedef unsigned char spi_message_element_t;
 void spi_initialize(void);
 
 // Transmits a message over the SPI. The response of the slave is placed in the
-// buffer passed in as the first argument. The message to transmit is composed
-// of a number of "sections." Each section consists of a buffer, containing the
-// data to transmit, and an integer, respresenting the number of bytes in the
-// section. For example,
+// buffer passed in as the first argument, beginning with given beginning index.
+// Any elements before that index are discarded. The message to transmit is 
+// composed of a number of "sections." Each section consists of a buffer, 
+// containing the data to transmit, and an integer, respresenting the number of 
+// bytes in the section. For example,
 //
-// spi_execute_transaction(response, section1, section1_length, section2, section2_length);
+// spi_execute_transaction(response, 1, 2, section1, section1_length, section2, section2_length);
 //
-// The second argument gives the number of sections that compose the message.
+// The third argument gives the number of sections that compose the message. If
+// a section is given as "NULL", that section is filled with 0x00.
 void spi_execute_transaction(
   spi_message_element_t *response,
+  int response_beginning_index, 
   int section_count,
   ...
 );

@@ -17,7 +17,6 @@
 #include "trx.h"
 
 #include "spi.h"
-#include "uart.h"
 
 #define F_CPU 1000000
 #include <util/delay.h>
@@ -189,6 +188,10 @@ void write_register(
   spi_message_element_t value
 );
 
+spi_message_element_t read_register(
+  spi_message_element_t address
+);
+
 void write_address(
   spi_message_element_t register_address,
   trx_address_t         address
@@ -228,7 +231,6 @@ void trx_initialize(
   spi_initialize();
 
   write_register(TRX_REGISTER_ADDRESS_CONFIG,     TRX_CONFIG_RX       );
-  /*
   write_register(TRX_REGISTER_ADDRESS_EN_AA,      TRX_EN_AA           );
   write_register(TRX_REGISTER_ADDRESS_EN_RXADDR,  TRX_EN_RXADDR       );
   write_register(TRX_REGISTER_ADDRESS_SETUP_AW,   TRX_SETUP_AW        );
@@ -238,10 +240,6 @@ void trx_initialize(
   write_register(TRX_REGISTER_ADDRESS_RX_PW_P0,   TRX_RX_PW_P0        );
   write_register(TRX_REGISTER_ADDRESS_DYNPD,      TRX_DYNPD           );
   write_register(TRX_REGISTER_ADDRESS_FEATURE,    TRX_FEATURE         );
-  */
-
-  uart_transmit_formatted_message("SPI initialization complete!\n\r");
-  UART_WAIT_UNTIL_DONE();
   
 }
 
@@ -251,13 +249,9 @@ trx_transmission_outcome_t trx_transmit_payload(
   int payload_length
 ) {
 
-  uart_transmit_formatted_message("Attempting Transmission.\r\n");
-  UART_WAIT_UNTIL_DONE();
-
   // Configure the transceiver as a primary transmitter.
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_TX);
-  _delay_ms(100);
 
   // Set the TX address.
   write_address(TRX_REGISTER_ADDRESS_TX_ADDR, address);
@@ -269,7 +263,6 @@ trx_transmission_outcome_t trx_transmit_payload(
   write_tx_payload(payload);
 
   // Set the CE pin high to begin the transmission.
-  _delay_ms(1);
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
   _delay_us(10);
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
@@ -282,22 +275,15 @@ trx_transmission_outcome_t trx_transmit_payload(
   switch (interrupt_request)
   {
   case TRX_INTERRUPT_REQUEST_DATA_SENT:
-    uart_transmit_formatted_message("Successfully transmitted message.\n\r");
-    outcome = TRX_TRANSMISSION_SUCCESS;
+    return TRX_TRANSMISSION_SUCCESS;
     break;
 
   case TRX_INTERRUPT_REQUEST_MAX_RETRANSMISSIONS:
-    uart_transmit_formatted_message("Failed to transmit message.\n\r");
-    outcome = TRX_TRANSMISSION_FAILURE;
+    return TRX_TRANSMISSION_FAILURE;
   
   default:
-    uart_transmit_formatted_message("Program reached impossible state.\n\r");
-    outcome = TRX_TRANSMISSION_FAILURE;
+    return TRX_TRANSMISSION_FAILURE;
   }
-  
-  UART_WAIT_UNTIL_DONE();
-
-  return outcome;
 
 }
 
@@ -308,15 +294,12 @@ int trx_receive_payload(
 
   // Move back into receive mode.
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_RX);
-  _delay_ms(100);
 
   // Restore the rx address
   write_address(TRX_REGISTER_ADDRESS_RX_ADDR_P0, trx_this_rx_address);
 
   // Enable active RX mode.
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
-
-  _delay_us(160);
 
   TRX_WAIT_FOR_IRQ();
 
@@ -325,16 +308,11 @@ int trx_receive_payload(
 
   trx_interrupt_request_t interrupt_request;
   interrupt_request = wait_for_interrupt_request();
-  uart_transmit_formatted_message("\nI got something!!\n\r");
-  UART_WAIT_UNTIL_DONE();
 
   if (interrupt_request == TRX_INTERRUPT_REQUEST_DATA_RECEIVED) {
     read_rx_payload(payload_buffer);
     return TRX_PAYLOAD_LENGTH;
   }
-  
-  uart_transmit_formatted_message("Hit unexpected interrupt while receiving transmission.\n\r");
-  UART_WAIT_UNTIL_DONE();
 
   return TRX_PAYLOAD_LENGTH;
 
@@ -353,48 +331,39 @@ void write_register(
   spi_message_element_t address,
   spi_message_element_t value
 ) {
-  uart_transmit_formatted_message("Writing register. Address:\t%02X\tValue:\t%02X\n\r", address, value);
-  UART_WAIT_UNTIL_DONE();
-  uart_transmit_formatted_message("Value pointer:\t%X", &value);
-  UART_WAIT_UNTIL_DONE();
-  spi_message_element_t dummy_response[TRX_WRITE_REGISTER_TRANSACTION_LENGTH];
   spi_message_element_t instruction = TRX_WRITE_REGISTER_INSTRUCTION | (address & TRX_WRITE_REGISTER_ADDRESS_MASK);
-  spi_execute_transaction(dummy_response, 2, &instruction, 1, &value, 1);
+  spi_execute_transaction(NULL, 0, 2, &instruction, 1, &value, 1);
 }
 
 spi_message_element_t read_register(
   spi_message_element_t address
 ) {
-  spi_message_element_t response[TRX_READ_ADDRESS_TRANSACTION_LENGTH];
+  spi_message_element_t response;
   spi_message_element_t instruction = TRX_READ_REGISTER_INSTRUCTION | (address & TRX_READ_REGISTER_ADDRESS_MASK);
-  spi_message_element_t dummy_data;
-  spi_execute_transaction(response, 2, &instruction, 1, &dummy_data, 1);
-  return response[1];
+  spi_execute_transaction(&response, 1, 2, &instruction, 1, NULL, 1);
+  return response;
 }
 
 void write_address(
   spi_message_element_t register_address,
   trx_address_t         address
 ) {
-  spi_message_element_t dummy_response[TRX_WRITE_ADDRESS_TRANSACTION_LENGTH];
   spi_message_element_t instruction = TRX_WRITE_REGISTER_INSTRUCTION | (register_address & TRX_WRITE_REGISTER_ADDRESS_MASK);
-  spi_execute_transaction(dummy_response, 2, &instruction, 1, &address, 4);
+  spi_execute_transaction(NULL, 0, 2, &instruction, 1, &address, 4);
 }
 
 void write_tx_payload(
   const spi_message_element_t *payload
 ) {
-  spi_message_element_t dummy_response[TRX_WRITE_TX_PAYLOAD_TRANSACTION_LENGTH];
   spi_message_element_t instruction = TRX_WRITE_TX_PAYLOAD_INSTRUCTION;
-  spi_execute_transaction(dummy_response, 2, &instruction, 1, payload, TRX_PAYLOAD_LENGTH);
+  spi_execute_transaction(NULL, 0, 2, &instruction, 1, payload, TRX_PAYLOAD_LENGTH);
 }
 
 void read_rx_payload(
   spi_message_element_t *buffer
 ) {
   spi_message_element_t instruction = TRX_READ_RX_PAYLOAD_INSTRUCTION;
-  spi_message_element_t dummy_data[TRX_PAYLOAD_LENGTH];
-  spi_execute_transaction(buffer, 2, &instruction, 1, dummy_data, TRX_PAYLOAD_LENGTH);
+  spi_execute_transaction(buffer, 1, 2, &instruction, 1, NULL, TRX_PAYLOAD_LENGTH);
 }
 
 trx_interrupt_request_t wait_for_interrupt_request() {
@@ -408,14 +377,14 @@ trx_interrupt_request_t wait_for_interrupt_request() {
   // Clear the interrupt flags.
   write_register(TRX_REGISTER_ADDRESS_STATUS, IRQ_FLAGS);
 
-  if ((status_register & _BV(TX_DS)) != 0) {
-    return TRX_INTERRUPT_REQUEST_DATA_SENT;
+  if ((status_register & _BV(RX_DR)) != 0) {
+    return TRX_INTERRUPT_REQUEST_DATA_RECEIVED;
   }
   else if ((status_register & _BV(MAX_RT)) != 0) {
     return TRX_INTERRUPT_REQUEST_MAX_RETRANSMISSIONS;
   }
-  else if ((status_register & _BV(RX_DR)) != 0) {
-    return TRX_INTERRUPT_REQUEST_DATA_RECEIVED;
+  else if ((status_register & _BV(TX_DS)) != 0) {
+    return TRX_INTERRUPT_REQUEST_DATA_SENT;
   }
 
   return 0;

@@ -23,7 +23,7 @@ static char* received_message_format 	= "Received message:\t%s\n\r";
 static trx_payload_element_t *example_payload1 = "This better work, cuz if not...";
 static trx_payload_element_t *example_payload2 = "I swear I'll shit yourself!!!\n\r";
 
-static trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
+static trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH + 1];
 
 int main() {
 
@@ -36,9 +36,28 @@ int main() {
 
 	
 	trx_initialize(THIS_CUBE_RX_ADDRESS);
-	/*
-	trx_transmit_payload(TARGET_RX_ADDRESS, example_payload1, TRX_PAYLOAD_LENGTH);
-	trx_transmit_payload(TARGET_RX_ADDRESS, example_payload2, TRX_PAYLOAD_LENGTH);
+
+	trx_transmission_outcome_t outcome;
+
+	uart_transmit_formatted_message("Attempting to transmit payload 1.\n\r");
+	UART_WAIT_UNTIL_DONE();
+	if (trx_transmit_payload(TARGET_RX_ADDRESS, example_payload1, TRX_PAYLOAD_LENGTH) == TRX_TRANSMISSION_SUCCESS) {
+		uart_transmit_formatted_message("Successfully transmitted payload 1.\n\r");
+	} else {
+		uart_transmit_formatted_message("Failed to transmit payload 1.\n\r");
+	}
+	UART_WAIT_UNTIL_DONE();
+
+	_delay_ms(1000);
+	
+	uart_transmit_formatted_message("Attempting to transmit payload 2.\n\r");
+	UART_WAIT_UNTIL_DONE();
+	if (trx_transmit_payload(TARGET_RX_ADDRESS, example_payload2, TRX_PAYLOAD_LENGTH) == TRX_TRANSMISSION_SUCCESS) {
+		uart_transmit_formatted_message("Successfully transmitted payload 2.\n\r");
+	} else {
+		uart_transmit_formatted_message("Failed to transmit payload 2.\n\r");
+	}
+	UART_WAIT_UNTIL_DONE();
 
 	while (1) {
 
@@ -47,7 +66,6 @@ int main() {
 		UART_WAIT_UNTIL_DONE();
 
 	}
-	*/
 
 	while(1);
 

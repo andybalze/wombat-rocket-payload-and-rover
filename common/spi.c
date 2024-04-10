@@ -132,16 +132,19 @@ void spi_initialize(void) {
 }
 
 // Transmits a message over the SPI. The response of the slave is placed in the
-// buffer passed in as the first argument. The message to transmit is composed
-// of a number of "sections." Each section consists of a buffer, containing the
-// data to transmit, and an integer, respresenting the number of bytes in the
-// section. For example,
+// buffer passed in as the first argument, beginning with given beginning index.
+// Any elements before that index are discarded. The message to transmit is 
+// composed of a number of "sections." Each section consists of a buffer, 
+// containing the data to transmit, and an integer, respresenting the number of 
+// bytes in the section. For example,
 //
-// spi_execute_transaction(response, section1, section1_length, section2, section2_length);
+// spi_execute_transaction(response, 1, 2, section1, section1_length, section2, section2_length);
 //
-// The second argument gives the number of sections that compose the message.
+// The third argument gives the number of sections that compose the message. If
+// a section is given as "NULL", that section is filled with 0x00.
 void spi_execute_transaction(
   spi_message_element_t *response,
+  int response_beginning_index,
   int section_count,
   ...
 ) {
@@ -153,58 +156,59 @@ void spi_execute_transaction(
   int section_length = va_arg(args, int);
   int section_index = 0;
 
-  spi_message_element_t next_element_index = 0;
-  char previous_element_was_last = 0;
+  int next_element_index = 0;
+  spi_message_element_t next_element;
+  spi_message_element_t received_element;
 
   // Select the device.
-  SPI_PORT |= _BV(SPI_SS_INDEX);
+  SPI_PORT &= ~_BV(SPI_SS_INDEX);
 
   // The transaction will run no longer than the maximum length defined in the
   // header. However, in normal operation, this loop will be broken as soon as
   // the full message has been sent.
   for (int i = 0; i < SPI_TRANSACTION_MAX_LENGTH; i++) {
 
-    if (previous_element_was_last) {
-      break;
-    }
-
-    // Send the next character to the SPI and start the SPI running.
-    SPDR = *(section + next_element_index);
-    next_element_index = next_element_index + 1;
-
-    // While the SPI is running, determine what the next character is.
-    // If that was the last element of the section,
+    // If that was the last character of the section,
     if (next_element_index == section_length) {
 
+      // If that was the last section,
       section_index = section_index + 1;
       if (section_index == section_count) {
 
-        // If that was the last section, the message is finished.
-        previous_element_was_last = 1;
+        // The transaction is over.
+        break;
 
       } else {
 
-        // The next element is the first element of the next section.
+        // Move on to the next section.
         section = va_arg(args, spi_message_element_t*);
-        section_count = va_arg(args, int);
+        section_length = va_arg(args, int);
         next_element_index = 0;
-      
-      } 
 
+      }
     }
-    // Otherwise, just continue through that section.
 
-    // Wait until the element has finished sending (the SPI flag goes high).
+    if (section == NULL) {
+      next_element = 0;
+    } else {
+      next_element = *(section + next_element_index);
+    }
+
+    SPDR = next_element;
+
+    next_element_index = next_element_index + 1;
+
     while ((SPSR & _BV(SPIF)) == 0);
 
-    // Read out the response element.
-    *(response + i) = SPDR;
-    // This read will clear the SPIF flag.
+    received_element = SPDR;
+    if ((response != NULL) && (i >= response_beginning_index)) {
+      *(response + i - response_beginning_index) = received_element;
+    }
 
   }
 
   // Release the device.
-  SPI_PORT &= ~_BV(SPI_SS_INDEX);
+  SPI_PORT |= _BV(SPI_SS_INDEX);
 
   va_end(args);
 
