@@ -15,3 +15,5 @@
 
 // Requests and returns a distance from the IR sensor in centemeters.
 int16_t ir_distance_read(void);
+
+#endif
