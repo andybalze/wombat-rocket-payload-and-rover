@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "adc.h"
+#include "ir.h"
 
 ///////////////////// Public Function Prototypes ///////////////////////////////
 
