@@ -21,7 +21,7 @@
 int16_t ir_distance_read(void) {
 
     // Define output type
-    int16_t ir_distance_cm;
+    int16_t ir_distance_cm, ir_distance_adc;
 
     // Request ADC value of IR distance sensor
     ir_distance_adc = adc_get_channel_result(ADC_CHANNEL_ADC0);
