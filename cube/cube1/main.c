@@ -1,58 +1,52 @@
-/* * * * * * * * * * * * * * *
-      Data Cube Software
- * * * * * * * * * * * * * * */
+////////////////////////////////////////////////////////////////////////////////
+//
+// Reliability Test: Receiver
+//
+// This main function is one half of a setup for testing the reliability of data
+// links under different conditions. This program attempts to receive an
+// unlimited number of transmissions. The cumulative number of transmissions it
+// has received is reported after each transmission.
+//
+////////////////////////////////////////////////////////////////////////////////
 
+#include <stddef.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+
+#include "address.h"
 
 #include "uart.h"
 #include "spi.h"
 #include "trx.h"
-#include "application.h"
 
-#include "cube_parameters.h"
+#define F_CPU 1000000
 #include <util/delay.h>
 
+#define STARTUP_DELAY_MS 			(100)
 
-#include "address.h"
-#define TARGET_ADDRESS	0x0A0A0A0A
-
-static uart_message_element_t received_data;
-
-static char* restart_message_format = "\n\rHello World.\n\r";
-static char* status_message_format = "Transceiver has a status of %02x.\n\r";
-static char* received_payload_format = "Received wireless message:\n\r%s\n\r";
-
-static trx_payload_element_t *example_payload = "I hope this works, cuz if not...";
+static char* restart_message_format 		= "\n\rHello World.\n\r";
+static char* begin_test_message_format	= "Listening for transmissions.\n\r";
+static char* report_message_format			= "Received transmission. Cumulative transmission count: %u\n\r";
 
 int main() {
 
 	// Let's wait for all of our hardware to turn on.
-	_delay_ms(1000);
+	_delay_ms(STARTUP_DELAY_MS);
 
 	uart_initialize();
 	uart_transmit_formatted_message(restart_message_format);
 	UART_WAIT_UNTIL_DONE();
 
-	_delay_ms(100);
 	trx_initialize(MY_DATA_LINK_ADDR);
-	_delay_ms(100);
-	trx_transmit_payload(
-		TARGET_ADDRESS, 
-		example_payload, 
-		TRX_PAYLOAD_LENGTH
-	);
+	uart_transmit_formatted_message(begin_test_message_format);
+	UART_WAIT_UNTIL_DONE();
 
+	int transmission_count = 0;
 	while(1) {
-
-		_delay_ms(100);
-		trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
-		trx_receive_payload(received_payload);
-		uart_transmit_formatted_message(
-			received_payload_format,
-			received_payload
-		);
-
+		trx_receive_payload(NULL);
+		transmission_count = transmission_count + 1;
+		uart_transmit_formatted_message(report_message_format, transmission_count);
+		UART_WAIT_UNTIL_DONE();
 	}
 
 }
