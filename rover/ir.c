@@ -27,7 +27,7 @@ int16_t ir_distance_read(void) {
     ir_distance_adc = adc_get_channel_result(ADC_CHANNEL_ADC0);
 
     // ADC value to centimeters equation (Value will be truncated )
-    ir_distance_cm = -(ir_distance_adc/12)+61;
+    ir_distance_cm = ir_distance_adc;//-(ir_distance_adc/12)+61;
 
     // Return distance in centimeters
     return ir_distance_cm;
