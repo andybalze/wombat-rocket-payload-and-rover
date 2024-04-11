@@ -26,8 +26,7 @@
 #define SW4_RD      PIND
 #define SW4_INDEX   PIN7
 
-void digital_io_initialize(void)
-{
+void digital_io_initialize(void) {
     // Configure the LED pins as outputs
     RED_DDR   |= _BV(RED_INDEX);
     GREEN_DDR |= _BV(GREEN_INDEX);
@@ -47,8 +46,7 @@ void digital_io_initialize(void)
     SW4_PORT &= ~_BV(SW4_INDEX);    // Turn off pull-up resistor
 }
 
-void LED_set(LED_color_t color, LED_state_t state)
-{
+void LED_set(LED_color_t color, LED_state_t state) {
     switch (color) {
         case RED: {
             switch (state) {
@@ -96,8 +94,7 @@ void LED_set(LED_color_t color, LED_state_t state)
 
 
 
-char SW_read(SW_name_t sw)
-{
+char SW_read(SW_name_t sw) {
     char return_val;
 
     switch (sw) {
