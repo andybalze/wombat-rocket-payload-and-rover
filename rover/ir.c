@@ -20,19 +20,25 @@
 // Requests and returns a distance from the IR sensor in centemeters.
 int16_t ir_distance_read(void) {
 
-    // Define output type
-    signed int ir_distance_adc, distance;
-    int16_t ir_distance_cm;
+    // Define variable types
+    int16_t ir_distance_cm_comp;                                        // Final deadband compensated distance in centimeters
+    int16_t offset = 61;                                                // Equation offset (b)
+    int16_t conversion = adc_get_channel_result(ADC_CHANNEL_ADC0)/12;   // Equation linear coefficent (m)
 
-    // Request ADC value of IR distance sensor
-    ir_distance_adc = (signed int) adc_get_channel_result(ADC_CHANNEL_ADC0);
+    // Compute distance equation (y=mx+b)
+    int16_t ir_distance_cm_uncomp = offset - conversion;
 
-    distance = 61 - (ir_distance_adc/12);
-
-    // ADC value to centimeters equation (Value will be truncated )
-    ir_distance_cm = (int16_t) distance;  // Verified division works properly, when negative is added it sets to 2's complement, when added the adc read value goes to zero...
+    // Deadband compensation
+    if (ir_distance_cm_uncomp >= offset-2)              // If measured distance is within deadband or out of range
+    {
+        ir_distance_cm_comp = 0;                        // Return compensated value of 0
+    }
+    else                                                // Else 
+    {   
+        ir_distance_cm_comp = ir_distance_cm_uncomp;    // Return uncompensated value
+    }
 
     // Return distance in centimeters
-    return ir_distance_cm;
+    return ir_distance_cm_comp;
 
 }
