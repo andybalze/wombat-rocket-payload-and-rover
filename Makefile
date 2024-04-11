@@ -1,7 +1,7 @@
 .PHONY: all rover_all rover_compile rover_size rover_fuse rover_flash cube_all cube_compile cube_size cube_fuse cube_flash trx_all trx_compile trx_size trx_fuse trx_flash
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
-rover_dependencies = rover/main.c rover/motors.c rover/motors.h rover/test.c rover/test.h
+rover_dependencies = rover/main.c rover/digital_io.c rover/digital_io.h rover/motors.c rover/motors.h rover/test.c rover/test.h
 cube_dependencies = cube/standalone/main.c common/uart.c common/uart.h common/spi.h common/spi.c
 trx_dependencies = cube/rover_trx/main.c
 

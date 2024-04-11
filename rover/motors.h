@@ -18,7 +18,6 @@ enum motor_name_enum {
 typedef enum motor_name_enum motor_name_t;
 
 void motors_initialize(void);
-void motor(motor_name_t motor_name, motor_direction_t direction, char speed);   // for dispenser motor: FORWARD = dispense, REVERSE = load
-void change_motor_speed(motor_name_t motor_name); // !!STOP!!                   // This function is only meant to be called from the soft start interrupt handler
+void motor(motor_name_t motor_name, motor_direction_t direction, char speed);
 
 #endif //MOTORS_H
