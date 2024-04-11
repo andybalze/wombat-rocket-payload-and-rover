@@ -1,71 +1,73 @@
-////////////////////////////////////////////////////////////////////////////////
-//
-// Main
-//
-// All the code necessary for a program that simply toggles an LED on and off
-// at a rate of 1 Hz. Intended as a "Hello World" program to provide a starting
-// point for more sophisticated projects.
-//
-// This project assumes the anode (+) of an LED connected to Pin PB0.
-//
-////////////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * *
+      Data Cube Software
+ * * * * * * * * * * * * * * */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define LED_DDR   DDRD
-#define LED_PORT  PORTD
-#define LED_INDEX PIN6
+#include "uart.h"
+#include "spi.h"
 
-int main(void) {
+static uart_message_element_t received_data;
 
-  // Configure the chosen pin as an output.
-  LED_DDR |= _BV(LED_INDEX);
+static char* restart_message_format 					= "\n\rHello World.\n\r";
+static char* spi_initialized_message_format 	= "SPI perhipheral initialized.\n\r";
+static char* spi_echo_message_format 					= "Received message over SPI: %02x%02x%02x%02x\n\r";
 
-  // Configure Timer1 to generate interrupts.
-  
-  // Selects the 1/1024 prescaler.
-  TCCR1B |= _BV(CS10);
-  TCCR1B |= _BV(CS12);
+// "DEADBEEF", an easily recognizeable hex number.
+static spi_message_element_t spi_message[] = {0xDE, 0xAD, 0xBE, 0xEF};
+static int spi_message_length = 4;
 
-  // Sets the timer into CTC mode.
-  TCCR1B |= _BV(WGM12);
+void echo_spi_received(
+	const spi_message_element_t *received_message,
+	int received_message_length
+);
 
-  // Sets the output compare value for turning off the LED.
-  OCR1A = 975; // 1,000,000/1024 - 1 = 975
+int main() {
 
-  // Sets the output compare value for turning on the LED.
-  // The LED turns on halfway through the counter cycle.
-  OCR1B = 487;
+	uart_initialize();
+	uart_transmit_formatted_message(restart_message_format);
+	
+	// Wait until the message is done being transmitted.
+	while((UCSR0B & _BV(UDRIE0)) != 0);
+	// TODO: Make a macro or function to replace this?
 
-  // Enables the output compare A and B interrupts
-  TIMSK1 |= _BV(OCIE1A);
-  TIMSK1 |= _BV(OCIE1B);
+	spi_initialize();
+	uart_transmit_formatted_message(spi_initialized_message_format);
 
-  // Enables global interrupts.
-  SREG |= _BV(SREG_I);
+	// Wait until the message is done being transmitted.
+	while((UCSR0B & _BV(UDRIE0)) != 0);
+	// TODO: Make a macro or function to replace this?
 
-  // Loops forever at the end of main.
-  while(1);
+	// SPDR = 0xAA;
+
+	
+	spi_begin_transaction(
+		spi_message,
+		spi_message_length,
+		echo_spi_received
+	);
+	
+
+	while(1);
 
 }
 
-// Handles the interrupt generated whenever the count register of Timer 1
-// equals the value in register OCR1B. In this case, that means turning the
-// LED on.
-ISR(TIMER1_COMPB_vect) {
+void echo_spi_received(
+	const spi_message_element_t *received_message,
+	int received_message_length
+) {
 
-  // Turns on the LED.
-  LED_PORT |= _BV(LED_INDEX);
+	uart_transmit_formatted_message(
+		spi_echo_message_format,
+		received_message[0],
+		received_message[1],
+		received_message[2],
+		received_message[3]
+	);
 
-}
-
-// Handles the interrupt generated whenever the count register of Timer 1
-// equals the value in register OCR1A. In this case, that means turning the
-// LED off.
-ISR(TIMER1_COMPA_vect) {
-
-  // Turns off the LED.
-  LED_PORT &= ~_BV(LED_INDEX);
+	// Wait until the message is done being transmitted.
+	//while((UCSR0B & _BV(UDRIE0)) != 0);
+	// TODO: Make a macro or function to replace this?
 
 }
