@@ -123,7 +123,7 @@
 #define TRX_SETUP_RETR (0xFF)
 
 // Leaves the frequency channel at default.
-#define TRX_RF_CH (0x02)
+#define TRX_RF_CH (0x3F)
 
 // No continuous carrier, 250kbps, no PLL lock, 0dBm output power.
 #define TRX_RF_SETUP (0x26) // binary 0010 0110
