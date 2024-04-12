@@ -17,8 +17,15 @@
 
 #include "uart.h"
 #include "adc.h"
+#include "current_sensor.h"
 
 //////////////// Private Defines ///////////////////////////////////////////////
+
+// Output Motor Port
+#define MTR_DDR		DDRD
+#define MTR_PORT	PORTD
+#define MTR_P		PIN5
+#define MTR_N		PIN6
 
 // UART keystrokes that correspond to each ADC channel.
 #define KEYSTROKE_ADC0 	('0')
@@ -50,8 +57,8 @@ static char* channel_name_adc2 = "ADC2";
 static char* channel_name_adc3 = "ADC3";
 static char* channel_name_adc4 = "ADC4";
 static char* channel_name_adc5 = "ADC5";
-static char* channel_name_adc6 = "ADC6";
-static char* channel_name_adc7 = "ADC7";
+static char* channel_name_adc6 = "Left Motor Current (mA)";
+static char* channel_name_adc7 = "Right Motor Current (mA)";
 static char* channel_name_temp = "Temperature";
 static char* channel_name_ref = "Analog Reference";
 static char* channel_name_gnd = "Ground Plane";
@@ -77,6 +84,20 @@ int main() {
 
 	// Initialize ADC
 	adc_initialize();
+
+	// Configure the chosen pin as an output.
+    MTR_DDR |= _BV(MTR_P);
+    MTR_DDR |= _BV(MTR_N);
+
+	// The following enables the Right motor for load testing (DO NOT USE WITH REAL DRIVE MOTOR)
+
+	// Initialize motor_negative as low
+    MTR_PORT |= _BV(MTR_N);
+	//MTR_PORT |= _BV(MTR_P);
+
+	// Initialize motor_positive as high
+	//MTR_PORT &= ~_BV(MTR_N);
+    MTR_PORT &= ~_BV(MTR_P);
 
 	while(1);
 
@@ -113,11 +134,11 @@ ISR(USART_RX_vect) {
 		channel_name  = channel_name_adc5;
 		break;
 	case KEYSTROKE_ADC6:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC6);
+		channel_value = motor_current_read(LEFT_CHANNEL);	//Edited to return mA
 		channel_name  = channel_name_adc6;
 		break;
 	case KEYSTROKE_ADC7:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC7);
+		channel_value = motor_current_read(RIGHT_CHANNEL);	//Edited to return mA
 		channel_name  = channel_name_adc7;
 		break;
 	case KEYSTROKE_TEMP:
