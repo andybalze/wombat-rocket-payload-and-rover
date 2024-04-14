@@ -14,7 +14,7 @@ cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/si
 cube0_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube0/main.c cube/cube0/address.h cube/cube0/routing_table.h cube/cube0/routing_table.c
 cube1_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube1/main.c cube/cube1/address.h cube/cube1/routing_table.h cube/cube1/routing_table.c
 cube2_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube2/main.c cube/cube2/address.h cube/cube2/routing_table.h cube/cube2/routing_table.c
-cubetrx_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/rover_trx/main.c cube/rover_trx/address.h cube/rover_trx/routing_table.h cube/rover_trx/routing_table.c
+rover_trx_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/rover_trx/main.c cube/rover_trx/address.h cube/rover_trx/routing_table.h cube/rover_trx/routing_table.c
 
 
 
@@ -137,13 +137,19 @@ trx_flash: build/trx.hex
 
 # =============== Simulation =====================
 
-sim: build/sim_cube0 build/sim_cube1
+sim: build/sim_cube0 build/sim_cube1 build/sim_cube2 build/sim_rover_trx
 
 build/sim_cube0: $(cube0_sim_dependencies)
 	gcc -DSIMULATION -Icube/sim/cube0 -Icube/cube0 -Icube/common -Icube/sim $(cube0_sim_dependencies) -o build/sim_cube0
 
 build/sim_cube1: $(cube1_sim_dependencies)
 	gcc -DSIMULATION -Icube/sim/cube1 -Icube/cube1 -Icube/common -Icube/sim $(cube1_sim_dependencies) -o build/sim_cube1
+
+build/sim_cube2: $(cube2_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/cube2 -Icube/cube2 -Icube/common -Icube/sim $(cube2_sim_dependencies) -o build/sim_cube2
+
+build/sim_rover_trx: $(rover_trx_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/rover_trx -Icube/rover_trx -Icube/common -Icube/sim $(rover_trx_sim_dependencies) -o build/sim_rover_trx
 
 # =============== General ========================
 	

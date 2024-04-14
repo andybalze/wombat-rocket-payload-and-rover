@@ -13,8 +13,8 @@ uint32_t resolve_data_link_addr(byte network_addr) {
     case 0x0C:
         data_link_addr = 0x0C0C0C0C;
         break;
-    case 0x0D:
-        data_link_addr = 0x0D0D0D0D;
+    case 0x0F:
+        data_link_addr = 0x0F0F0F0F;
         break;
     }
     return data_link_addr;

@@ -10,10 +10,10 @@ byte routing_table(byte final_addr) {
         next_hop_addr = 0x0B;
         break;
     case 0x0C:
-        next_hop_addr = 0x0B;
+        next_hop_addr = 0x0C;
         break;
-    case 0x0D:
-        next_hop_addr = 0x0B;
+    case 0x0F:
+        next_hop_addr = 0x0F;
         break;
     }
     return next_hop_addr;

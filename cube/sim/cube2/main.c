@@ -20,7 +20,7 @@ int main() {
         received_payload[i] = 0;
     }
 
-    printf("Cube 1 Powering on...\n");
+    printf("Cube 2 Powering on...\n");
 
 	trx_initialize(MY_DATA_LINK_ADDR);
 	_delay_ms(300);
