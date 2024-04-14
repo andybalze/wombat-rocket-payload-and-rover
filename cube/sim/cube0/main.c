@@ -10,6 +10,7 @@
 
 #include "sim_trx.h"
 #include "sim_delay.h"
+#include "data_link.h"
 #include <stdio.h>
 
 #define THIS_CUBE_RX_ADDRESS 0x0A0A0A0A
@@ -33,11 +34,7 @@ int main() {
 
     while(1) {
         printf("Attempting to transmit payload 1.\n");
-        if (trx_transmit_payload(TARGET_RX_ADDRESS, example_payload1, TRX_PAYLOAD_LENGTH) == TRX_TRANSMISSION_SUCCESS) {
-            printf("Successfully transmitted payload 1.\n");
-        } else {
-            printf("Failed to transmit payload 1.\n");
-        }
+        data_link_tx(example_payload1, 12, TARGET_RX_ADDRESS);
         _delay_ms(1000);
     }
 

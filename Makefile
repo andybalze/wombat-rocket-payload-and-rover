@@ -10,11 +10,11 @@ cube0_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cub
 cube1_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube1/address.h cube/cube1/application.c cube/cube1/application.h cube/cube1/main.c cube/cube1/routing_table.c cube/cube1/routing_table.h
 cube2_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube2/address.h cube/cube2/application.c cube/cube2/application.h cube/cube2/main.c cube/cube2/routing_table.c cube/cube2/routing_table.h
 
-cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/sim/sim_trx.c cube/sim/sim_trx.h
-cube0_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube0/main.c 
-cube1_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube1/main.c 
-cube2_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube2/main.c 
-cubetrx_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/rover_trx/main.c 
+cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/sim/sim_trx.c cube/sim/sim_trx.h cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h
+cube0_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube0/main.c cube/cube0/address.h cube/cube0/routing_table.h cube/cube0/routing_table.c
+cube1_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube1/main.c cube/cube1/address.h cube/cube1/routing_table.h cube/cube1/routing_table.c
+cube2_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube2/main.c cube/cube2/address.h cube/cube2/routing_table.h cube/cube2/routing_table.c
+cubetrx_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/rover_trx/main.c cube/rover_trx/address.h cube/rover_trx/routing_table.h cube/rover_trx/routing_table.c
 
 
 
@@ -140,10 +140,10 @@ trx_flash: build/trx.hex
 sim: build/sim_cube0 build/sim_cube1
 
 build/sim_cube0: $(cube0_sim_dependencies)
-	gcc -DSIMULATION -Icube/sim/cube0 -Icube/common -Icube/sim $(cube0_sim_dependencies) -o build/sim_cube0
+	gcc -DSIMULATION -Icube/sim/cube0 -Icube/cube0 -Icube/common -Icube/sim $(cube0_sim_dependencies) -o build/sim_cube0
 
 build/sim_cube1: $(cube1_sim_dependencies)
-	gcc -DSIMULATION -Icube/sim/cube1 -Icube/common -Icube/sim $(cube1_sim_dependencies) -o build/sim_cube1
+	gcc -DSIMULATION -Icube/sim/cube1 -Icube/cube1 -Icube/common -Icube/sim $(cube1_sim_dependencies) -o build/sim_cube1
 
 # =============== General ========================
 	

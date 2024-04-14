@@ -10,6 +10,7 @@
 
 #include "sim_trx.h"
 #include "sim_delay.h"
+#include "data_link.h"
 #include <stdio.h>
 
 #define THIS_CUBE_RX_ADDRESS 0x0B0B0B0B
@@ -33,7 +34,7 @@ int main() {
 
     while(1) {
         printf("Attempting to receive payload.\n");
-        trx_receive_payload(received_payload);
+        data_link_rx(received_payload, TRX_PAYLOAD_LENGTH);
         printf("Got a payload: %s\n", received_payload);
         _delay_ms(100);
     }
