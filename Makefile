@@ -1,4 +1,4 @@
-.PHONY: all rover_all rover_compile rover_size rover_fuse rover_flash cube_all cube_compile cube_size cube_fuse cube_flash trx_all trx_compile trx_size trx_fuse trx_flash
+.PHONY: all rover_all rover_compile rover_size rover_fuse rover_flash cube_all cube_compile cube_size cube_fuse cube_flash trx_all trx_compile trx_size trx_fuse trx_flash sim
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 common_dependencies = common/spi.c common/spi.h common/uart.c common/uart.h
@@ -10,6 +10,11 @@ cube0_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cub
 cube1_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube1/address.h cube/cube1/application.c cube/cube1/application.h cube/cube1/main.c cube/cube1/routing_table.c cube/cube1/routing_table.h
 cube2_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube2/address.h cube/cube2/application.c cube/cube2/application.h cube/cube2/main.c cube/cube2/routing_table.c cube/cube2/routing_table.h
 
+cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/sim/sim_trx.c cube/sim/sim_trx.h
+cube0_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube0/main.c 
+cube1_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube1/main.c 
+cube2_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube2/main.c 
+cubetrx_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/rover_trx/main.c 
 
 
 
@@ -66,7 +71,7 @@ cube0_fuse:
 cube0_flash: build/cube0.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/cube0.hex:i
 
-# ============ Cube 0 (standalone) =============
+# ============ Cube 1 (standalone) =============
 
 cube1_all: cube1_compile cube1_fuse cube1_flash
 
@@ -130,6 +135,16 @@ trx_fuse:
 trx_flash: build/trx.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/trx.hex:i
 
+# =============== Simulation =====================
+
+sim: build/sim_cube0 build/sim_cube1
+
+build/sim_cube0: $(cube0_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/cube0 -Icube/common -Icube/sim $(cube0_sim_dependencies) -o build/sim_cube0
+
+build/sim_cube1: $(cube1_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/cube1 -Icube/common -Icube/sim $(cube1_sim_dependencies) -o build/sim_cube1
+
 # =============== General ========================
 	
 clean:
@@ -139,3 +154,4 @@ clean:
 	rm -f build/cube.out
 	rm -f build/trx.hex
 	rm -f build/trx.out
+	rm -f build/sim_cube0

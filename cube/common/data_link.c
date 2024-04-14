@@ -1,6 +1,13 @@
 #include "data_link.h"
 #include "address.h"
 
+
+#ifndef SIMULATION
+#include "trx.h"
+#else
+#include "sim_trx.h"
+#endif
+
 #define FIFO_DEPTH (4)
 
 // frame[0] = frame length

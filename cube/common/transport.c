@@ -17,7 +17,12 @@
 // a network from being overwhelmed by throttling its own output!
 
 #include "cube_parameters.h"
+
+#ifndef SIMULATION
 #include <util/delay.h>
+#else
+#include "sim_delay.h"
+#endif
 
 #define TRANSPORT_DELAY_MS (100)
 
