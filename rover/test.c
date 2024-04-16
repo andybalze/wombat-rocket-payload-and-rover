@@ -11,13 +11,13 @@ void test(void)
 
     while(1) {
         if (SW_read(LOAD_BTN)) {
-            motor(LEFT_MOTOR, FORWARD, 255);
+            motor(RIGHT_MOTOR, REVERSE, 255);
         }
         else if (SW_read(UNLOAD_BTN)) {
-            motor(LEFT_MOTOR, REVERSE, 255);
+            motor(RIGHT_MOTOR, FORWARD, 255);
         }
         else {
-            motor(LEFT_MOTOR, FORWARD, 0);
+            motor(RIGHT_MOTOR, REVERSE, 0);
         }
     }
 }

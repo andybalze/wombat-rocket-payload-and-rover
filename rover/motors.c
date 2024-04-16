@@ -156,37 +156,37 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         case LEFT_MOTOR: {
             if (speed != 0) {
                 if (direction == FORWARD) {
-                    LEFT1_OCR = 255;
-                    LEFT2_OCR = 0;
+                    LEFT1_OCR = -speed + SPEED_MAX;
+                    LEFT2_OCR = SPEED_MAX;
                 }
                 else {  // (direction == REVERSE)
 
-                    LEFT1_OCR = 0;
-                    LEFT2_OCR = 255;
+                    LEFT1_OCR = SPEED_MAX;
+                    LEFT2_OCR = -speed + SPEED_MAX;
                 }
             }
             else {      // (speed == 0)
-                LEFT1_OCR = 0;
-                LEFT2_OCR = 0;
+                LEFT1_OCR = SPEED_MAX;
+                LEFT2_OCR = SPEED_MAX;
             }
             break;
         }
 
-            case RIGHT_MOTOR: {
+        case RIGHT_MOTOR: {
             if (speed != 0) {
                 if (direction == FORWARD) {
-                    RIGHT1_OCR = 255;
-                    RIGHT2_OCR = 0;
+                    RIGHT1_OCR = -speed + SPEED_MAX;
+                    RIGHT2_OCR = SPEED_MAX;
                 }
                 else {  // (direction == REVERSE)
 
-                    RIGHT1_OCR = 0;
-                    RIGHT2_OCR = 255;
+                    RIGHT1_OCR = SPEED_MAX;
+                    RIGHT2_OCR = -speed + SPEED_MAX;
                 }
             }
             else {      // (speed == 0)
-                RIGHT1_OCR = 0;
-                RIGHT2_OCR = 0;
+                RIGHT1_OCR = SPEED_MAX;
+                RIGHT2_OCR = SPEED_MAX;
             }
             break;
         }
