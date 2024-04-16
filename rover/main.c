@@ -13,6 +13,7 @@
 
 int main(void) {
 
+    uart_initialize();
     digital_io_initialize();
     motors_initialize();
     test();
