@@ -38,8 +38,10 @@ rover_size: build/rover.out
 	avr-size build/rover.out --format=avr --mcu=atmega328p -C
 
 rover_fuse:
-# to be determined by the fuses we need (avrdude command)
-# example: avrdude -p m328p -c usbtiny -U lfuse:w:0xFF:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+# 1 MHz clock:
+# avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+# 8 MHz clock:
+	avrdude -p m328p -c usbtiny -U lfuse:w:0xE2:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
 
 rover_flash: build/rover.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/rover.hex:i
