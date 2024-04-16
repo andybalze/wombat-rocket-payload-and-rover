@@ -1,4 +1,5 @@
 #include "motors.h"
+#include "test.h"
 
 
 //////////////////// Macros for Accessing Registers ////////////////////
@@ -117,9 +118,11 @@ void motors_initialize(void) {
 
 
     ///////////// Configure Soft Start Interrupt /////////////
-    TCCR1B          |= _BV(CS10);                       // Select no prescaler
+    // TCCR1B          |= _BV(CS10);                       // Select no prescaler
+    TCCR1B          |= _BV(CS12) | _BV(CS10);           // Select 1024 prescaler                                            // DEBUG
     TCCR1B          |= _BV(WGM12);                      // Set timer to CTC mode
-    SOFT_START_OCR  |= 255;                             // Set the output compare value (1 MHz / (255 + 1) = 3.9 kHz)
+    // SOFT_START_OCR  |= 255;                             // Set the output compare value (1 MHz / (255 + 1) = 3.9 kHz)
+    SOFT_START_OCR  |= 99;                              // Set the output compare value (977 MHz / (99+1) = 9.8 Hz)         // DEBUG
     SREG            |= _BV(SREG_I);                     // Enable global interrupts
     ///////////// Configure Soft Start Interrupt /////////////
 }
@@ -153,12 +156,13 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         case DISPENSER_MOTOR: {
             if (speed != 0) {
                 if (direction == FORWARD) {
-                    DISPENSER1_PORT |=  _BV(DISPENSER1_INDEX);
-                    DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
-                }
-                else {  // (direction == REVERSE)
                     DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
                     DISPENSER2_PORT |=  _BV(DISPENSER2_INDEX);
+                }
+                else {  // (direction == REVERSE)
+
+                    DISPENSER1_PORT |=  _BV(DISPENSER1_INDEX);
+                    DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
                 }
             }
             else {      // (speed == 0)
@@ -182,6 +186,11 @@ ISR(TIMER1_COMPA_vect) {
     char rover_orientation = 1;     // This will come from the accelerometer in final code
     char current_limit = 0;         // This will come from the motor current limit code
     ///// TEST /////
+
+
+    ///// DEBUG /////
+    static LED_state_t LED_state = OFF;
+    ///// DEBUG /////
 
     motor_direction_t left_direction_actual, right_direction_actual;
     char left_speed_actual, right_speed_actual;
@@ -297,9 +306,10 @@ ISR(TIMER1_COMPA_vect) {
             }
         }
 
-//////////////////// TEST ////////////////////
-        uart_transmit_formatted_message("Right speed: %d\r\nLeft speed: %d\r\n\r\n", right_speed_actual, left_speed_actual);
-        UART_WAIT_UNTIL_DONE();
-//////////////////// TEST ////////////////////
+        LED_state = !LED_state;
+        // LED_set(GREEN, LED_state);
+        // print_motor_info = 1;
+        // print_motor_speed_left = left_speed_actual;
+        // print_motor_speed_right = right_speed_actual;
     }
 }
