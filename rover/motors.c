@@ -40,20 +40,13 @@
 #define DISPENSER2_DDR       DDRB
 #define DISPENSER2_PORT      PORTB
 #define DISPENSER2_INDEX     PIN2
-
-
-#define SOFT_START_OCR      OCR1A       // timer1 channel A (connected to Dispenser motor pin 1)
-#define SOFT_START_COM_0    COM1A0
-#define SOFT_START_COM_1    COM1A1
-#define SOFT_START_OCIE     OCIE1A
 //////////////////// Macros for Accessing Registers ////////////////////
 
 
 
-//////////////////// Macros for Soft Start ////////////////////
+//////////////////// Macros for Motor OCR Values ////////////////////
 #define SPEED_MAX 255
-#define SPEED_CHANGE 1
-//////////////////// Macros for Soft Start ////////////////////
+//////////////////// Macros for Motor OCR Values ////////////////////
 
 
 
@@ -93,13 +86,9 @@ void motors_initialize(void) {
     DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
     DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
 
-    // Select no prescaler
-    TCCR2B |= _BV(CS20);    //timer2 (LEFT1 and LEFT2)
-    TCCR0B |= _BV(CS00);    //timer0 (RIGHT1 and RIGHT2)
-
-    // // Select 1024 prescaler (for testing)
-    // TCCR2B |= _BV(CS22) | _BV(CS21) | _BV(CS20);    //timer2 (LEFT1 and LEFT2)
-    // TCCR0B |= _BV(CS02) | _BV(CS00);                //timer0 (RIGHT1 and RIGHT2)
+    // Select 1024 prescaler (for testing)
+    TCCR2B |= _BV(CS22) | _BV(CS21) | _BV(CS20);    //timer2 (LEFT1 and LEFT2)
+    TCCR0B |= _BV(CS02) | _BV(CS00);                //timer0 (RIGHT1 and RIGHT2)
 
     // Set compare output mode
     TCCR2A |= _BV(LEFT1_COM_1)  | _BV(LEFT1_COM_0)  | _BV(LEFT2_COM_1)  | _BV(LEFT2_COM_0);     //Clear OC2A/B on Compare Match, set OC2A/B at BOTTOM (inverting mode) for LEFT1 and LEFT2
@@ -115,44 +104,12 @@ void motors_initialize(void) {
     RIGHT1_OCR = 255;
     RIGHT2_OCR = 255;
     //////////////////// Configure Motors ////////////////////
-
-
-    ///////////// Configure Soft Start Interrupt /////////////
-    // TCCR1B          |= _BV(CS10);                       // Select no prescaler
-    TCCR1B          |= _BV(CS12) | _BV(CS10);           // Select 1024 prescaler                                            // DEBUG
-    TCCR1B          |= _BV(WGM12);                      // Set timer to CTC mode
-    // SOFT_START_OCR  |= 255;                             // Set the output compare value (1 MHz / (255 + 1) = 3.9 kHz)
-    SOFT_START_OCR  |= 99;                              // Set the output compare value (977 MHz / (99+1) = 9.8 Hz)         // DEBUG
-    SREG            |= _BV(SREG_I);                     // Enable global interrupts
-    ///////////// Configure Soft Start Interrupt /////////////
-}
-
-
-
-void enable_soft_start(void) {
-    TIMSK1 |=  _BV(SOFT_START_OCIE);            // Enable the output compare interrupt
-}
-
-void disable_soft_start(void) {
-    TIMSK1 &= ~_BV(SOFT_START_OCIE);            // Disable the output compare interrupt
 }
 
 
 
 void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
     switch (motor_name) {
-        // case LEFT_MOTOR: {          // Handled by the soft-start interrupt
-        //     left_direction = direction;
-        //     left_speed = speed;
-        //     break;
-        // }
-
-        // case RIGHT_MOTOR: {         // Handled by the soft-start interrupt
-        //     left_direction = direction;
-        //     left_speed = speed;
-        //     break;
-        // }
-
         case LEFT_MOTOR: {
             if (speed != 0) {
                 if (direction == FORWARD) {
@@ -216,138 +173,3 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         }
     }
 }
-
-
-////////// Soft Start Interrupt Handler //////////
-// ISR(TIMER1_COMPA_vect) {
-//     ///// TEST /////
-//     char rover_orientation = 1;     // This will come from the accelerometer in final code
-//     char current_limit = 0;         // This will come from the motor current limit code
-//     ///// TEST /////
-
-
-//     ///// DEBUG /////
-//     static LED_state_t LED_state = OFF;
-//     ///// DEBUG /////
-
-//     motor_direction_t left_direction_actual, right_direction_actual;
-//     char left_speed_actual, right_speed_actual;
-
-
-//     if (!current_limit) {
-//         // Read actual direction and speed
-//         if (LEFT2_OCR == SPEED_MAX) {                                        // if (actual direction is FORWARD)
-//             left_direction_actual = FORWARD;
-//             left_speed_actual = -LEFT1_OCR + SPEED_MAX;
-//         }
-//         else {                                                         // else if (actual direction is REVERSE)
-//             left_direction_actual = REVERSE;
-//             left_speed_actual = -LEFT2_OCR + SPEED_MAX;
-//         }
-
-//         if (RIGHT2_OCR == SPEED_MAX) {                                        // if (actual direction is FORWARD)
-//             right_direction_actual = FORWARD;
-//             right_speed_actual = -RIGHT1_OCR + SPEED_MAX;
-//         }
-//         else {                                                         // else if (actual direction is REVERSE)
-//             right_direction_actual = REVERSE;
-//             right_speed_actual = -RIGHT2_OCR + SPEED_MAX;
-//         }
-
-
-//         // Set left_speed_actual and left_direction_actual variables
-//         if (left_direction == left_direction_actual) {
-//             if (left_speed_actual < left_speed) {         // if desired direction but want faster
-//                 left_speed_actual += SPEED_CHANGE;
-//             }
-//             else if (left_speed_actual > left_speed) {    // if desired direciton but want slower
-//                 left_speed_actual -= SPEED_CHANGE;
-//             }
-//             else {                                          // if at desired direction and speed
-//                 // do nothing
-//             }
-//         }
-//         else if (left_speed_actual != 0) {                  // if (left_direction != left_direction_actual && left_speed_actual != 0)
-//             left_speed_actual -= SPEED_CHANGE;
-//         }
-//         else if (left_speed != 0) {                         // if (left_direction != left_direction_actual && left_speed_actual == 0 && left_speed != 0)
-//             left_direction_actual = !left_direction_actual;
-//             left_speed_actual += SPEED_CHANGE;
-//         }
-//         else {                                              // if not desired direction but desired and actual speed are zero
-//             // do nothing
-//         }
-
-
-//         // Set right_speed_actual and right_direction_actual variables
-//         if (right_direction == right_direction_actual) {
-//             if (right_speed_actual < right_speed) {         // if desired direction but want faster
-//                 right_speed_actual += SPEED_CHANGE;
-//             }
-//             else if (right_speed_actual > right_speed) {    // if desired direciton but want slower
-//                 right_speed_actual -= SPEED_CHANGE;
-//             }
-//             else {                                          // if at desired direction and speed
-//                 // do nothing
-//             }
-//         }
-//         else if (right_speed_actual != 0) {                 // if (right_direction != right_direction_actual && right_speed_actual != 0)
-//             right_speed_actual -= SPEED_CHANGE;
-//         }
-//         else if (right_speed != 0) {                        // if (right_direction != right_direction_actual && right_speed_actual == 0 && right_speed != 0)
-//             right_direction_actual = !right_direction_actual;
-//             right_speed_actual += SPEED_CHANGE;
-//         }
-//         else {                                              // if not desired direction but desired and actual speed are zero
-//             // do nothing
-//         }
-
-
-
-//         // Set left actual direction/speed
-//         switch (left_direction_actual) {
-//             case FORWARD: {
-//                 LEFT1_OCR = -left_speed_actual + SPEED_MAX;
-//                 LEFT2_OCR = SPEED_MAX;
-//                 break;
-//             }
-
-//             case REVERSE: {
-//                 LEFT1_OCR = SPEED_MAX;
-//                 LEFT2_OCR = -left_speed_actual + SPEED_MAX;
-//                 break;
-//             }
-
-//             default: {
-//                 rover_failure_state();
-//                 break;
-//             }
-//         }
-
-//         // Set right actual direction/speed
-//         switch (right_direction_actual) {
-//             case FORWARD: {
-//                 RIGHT1_OCR = -right_speed_actual + SPEED_MAX;
-//                 RIGHT2_OCR = SPEED_MAX;
-//                 break;
-//             }
-
-//             case REVERSE: {
-//                 RIGHT1_OCR = SPEED_MAX;
-//                 RIGHT2_OCR = -right_speed_actual + SPEED_MAX;
-//                 break;
-//             }
-
-//             default: {
-//                 rover_failure_state();
-//                 break;
-//             }
-//         }
-
-//         LED_state = !LED_state;
-//         // LED_set(GREEN, LED_state);
-//         // print_motor_info = 1;
-//         // print_motor_speed_left = left_speed_actual;
-//         // print_motor_speed_right = right_speed_actual;
-//     }
-// }
