@@ -15,6 +15,7 @@
 #include <avr/interrupt.h>
 #include <stdio.h>
 
+#include "digital_io.h"
 #include "uart.h"
 #include "adc.h"
 
@@ -68,6 +69,8 @@ void transmit_output_message(
 );
 
 int main() {
+
+	digital_io_initialize();
 
 	// Initialized UART.
 	uart_initialize();

@@ -5,6 +5,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include "digital_io.h"
 #include "uart.h"
 #include "spi.h"
 
@@ -25,6 +26,7 @@ void echo_spi_received(
 
 int main() {
 
+	digital_io_initialize();
 	uart_initialize();
 	uart_transmit_formatted_message(restart_message_format);
 	
