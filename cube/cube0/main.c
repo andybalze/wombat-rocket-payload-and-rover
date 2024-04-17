@@ -10,13 +10,17 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdlib.h>
 
+#include "address.h"
 #include "digital_io.h"
 #include "uart.h"
 #include "spi.h"
 #include "trx.h"
 
 /////////////////// Private Defines ///////////////////////////////////////////
+
+#define ADDRESS_TARGET 0x0b0b0b0b
 
 // If this macro is defined, UART functionality will be included.
 #define DEBUG_MODE
@@ -86,14 +90,15 @@ typedef enum data_cube_state_enum data_cube_state_t;
 /////////////////// Private Global Variables ///////////////////////////////////
 
 // The current state of this data cube.
-volatile data_cube_state_t current_state = STARTUP;
+volatile static data_cube_state_t current_state = STARTUP;
+
+static trx_payload_element_t *payload = "You will not go to space today.";
 
 /////////////////// Private Function Prototypes ///////////////////////////////
 
 // The code that's run each time around the state machine loop, depending on
 // the state machine's current state. These functions handle any behavior of
 // their states, as well as transitions to any other states.
-void state_code_reset(void);
 void state_code_startup(void);
 void state_code_ready_to_load(void);
 void state_code_loading(void);
@@ -213,6 +218,7 @@ void state_code_loaded(void) {
 	if (!SW_read(SW1)) {
 		start_timer(DISPENSING_DURATION_MS);
 		current_state = DISPENSING;
+		trx_initialize(MY_DATA_LINK_ADDR);
 		LED_set(LED_COLOR_DISPENSING);
 	}
 
@@ -230,7 +236,11 @@ void state_code_dispensing(void) {
 
 void state_code_operational(void) {
 
+	static int received_message_count;
 
+	trx_receive_payload(NULL);
+	received_message_count = received_message_count + 1;
+	LED_set(received_message_count & 7);
 
 }
 
