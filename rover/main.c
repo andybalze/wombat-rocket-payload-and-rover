@@ -12,6 +12,9 @@
 #include "uart.h"
 #include "adc.h"
 #include "motors.h"
+#include "timer.h"
+
+#include "test.h"
 
 
 int main() {
@@ -20,7 +23,10 @@ int main() {
 	uart_initialize();
 	adc_initialize();
 	motors_initialize();
+	timer_initialize();
 
-    while(1);
+	test();
+
+	while(1);
 
 }
