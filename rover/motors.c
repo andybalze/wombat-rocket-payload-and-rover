@@ -18,28 +18,28 @@
 #define LEFT2_COM_1     COM2A1
 
 
-#define RIGHT1_DDR       DDRD
-#define RIGHT1_PORT      PORTD
-#define RIGHT1_INDEX     PIN6
-#define RIGHT1_OCR       OCR0A
-#define RIGHT1_COM_0     COM0A0
-#define RIGHT1_COM_1     COM0A1
+#define RIGHT1_DDR       DDRB
+#define RIGHT1_PORT      PORTB
+#define RIGHT1_INDEX     PIN1
+#define RIGHT1_OCR       OCR1A
+#define RIGHT1_COM_0     COM1A0
+#define RIGHT1_COM_1     COM1A1
 
-#define RIGHT2_DDR       DDRD
-#define RIGHT2_PORT      PORTD
-#define RIGHT2_INDEX     PIN5
-#define RIGHT2_OCR       OCR0B
-#define RIGHT2_COM_0     COM0B0
-#define RIGHT2_COM_1     COM0B1
+#define RIGHT2_DDR       DDRB
+#define RIGHT2_PORT      PORTB
+#define RIGHT2_INDEX     PIN2
+#define RIGHT2_OCR       OCR1B
+#define RIGHT2_COM_0     COM1B0
+#define RIGHT2_COM_1     COM1B1
 
 
-#define DISPENSER1_DDR       DDRB
-#define DISPENSER1_PORT      PORTB
-#define DISPENSER1_INDEX     PIN1
+#define DISPENSER1_DDR       DDRD
+#define DISPENSER1_PORT      PORTD
+#define DISPENSER1_INDEX     PIN6
 
-#define DISPENSER2_DDR       DDRB
-#define DISPENSER2_PORT      PORTB
-#define DISPENSER2_INDEX     PIN2
+#define DISPENSER2_DDR       DDRD
+#define DISPENSER2_PORT      PORTD
+#define DISPENSER2_INDEX     PIN5
 //////////////////// Macros for Accessing Registers ////////////////////
 
 
@@ -50,17 +50,7 @@
 
 
 
-//////////////////// Configure Motors ////////////////////
-volatile motor_direction_t left_direction = FORWARD;
-volatile motor_direction_t right_direction = FORWARD;
-volatile char left_speed = 0;
-volatile char right_speed = 0;
-//////////////////// Configure Motors ////////////////////
-
-
-
 _Noreturn void rover_failure_state(void) {      // For DEBUG. Make this less harsh for flight...
-    disable_soft_start();
     LED_set(RED, ON);
     LED_set(GREEN, OFF);
     while(1);
@@ -88,15 +78,16 @@ void motors_initialize(void) {
 
     // Select 1024 prescaler (for testing)
     TCCR2B |= _BV(CS22) | _BV(CS21) | _BV(CS20);    //timer2 (LEFT1 and LEFT2)
-    TCCR0B |= _BV(CS02) | _BV(CS00);                //timer0 (RIGHT1 and RIGHT2)
-
-    // Set compare output mode
-    TCCR2A |= _BV(LEFT1_COM_1)  | _BV(LEFT1_COM_0)  | _BV(LEFT2_COM_1)  | _BV(LEFT2_COM_0);     //Clear OC2A/B on Compare Match, set OC2A/B at BOTTOM (inverting mode) for LEFT1 and LEFT2
-    TCCR0A |= _BV(RIGHT1_COM_1) | _BV(RIGHT1_COM_0) | _BV(RIGHT2_COM_1) |_BV(RIGHT2_COM_0);     //Clear OC0A/B on Compare Match, set OC0A/B at BOTTOM (inverting mode) for RIGHT1 and RIGHT2
+    TCCR1B |= _BV(CS02) | _BV(CS00);                //timer0 (RIGHT1 and RIGHT2)
 
     // Set waveform generation mode
     TCCR2A |= _BV(WGM21) | _BV(WGM20);  //Fast PWM for LEFT1 and LEFT2
-    TCCR0A |= _BV(WGM01) | _BV(WGM00);  //Fast PWM for RIGHT1 and RIGHT2
+    TCCR1A |= _BV(WGM10);               //Fast PWM for RIGHT1 and RIGHT2
+    TCCR1B |= _BV(WGM12);               //also fast PWM for RIGHT1 and RIGHT2
+
+    // Set compare output mode
+    TCCR2A |= _BV(LEFT1_COM_1)  | _BV(LEFT1_COM_0)  | _BV(LEFT2_COM_1)  | _BV(LEFT2_COM_0);     //Clear OC2A/B on Compare Match, clear OC2A/B at BOTTOM (inverting mode) for LEFT1 and LEFT2
+    TCCR1A |= _BV(RIGHT1_COM_1) | _BV(RIGHT1_COM_0) | _BV(RIGHT2_COM_1) |_BV(RIGHT2_COM_0);     //Clear OC1A/B on Compare Match, clear OC1A/B at BOTTOM (inverting mode) for RIGHT1 and RIGHT2
 
     // Set output compare register
     LEFT1_OCR  = 255;
@@ -113,13 +104,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         case LEFT_MOTOR: {
             if (speed != 0) {
                 if (direction == FORWARD) {
-                    LEFT1_OCR = -speed + SPEED_MAX;
-                    LEFT2_OCR = SPEED_MAX;
-                }
-                else {  // (direction == REVERSE)
-
                     LEFT1_OCR = SPEED_MAX;
                     LEFT2_OCR = -speed + SPEED_MAX;
+                }
+                else {  // (direction == REVERSE)
+                    LEFT1_OCR = -speed + SPEED_MAX;
+                    LEFT2_OCR = SPEED_MAX;
                 }
             }
             else {      // (speed == 0)
