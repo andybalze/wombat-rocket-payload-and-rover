@@ -20,8 +20,6 @@
 
 /////////////////// Private Defines ///////////////////////////////////////////
 
-#define ADDRESS_TARGET 0x0b0b0b0b
-
 // If this macro is defined, UART functionality will be included.
 #define DEBUG_MODE
 
@@ -91,8 +89,6 @@ typedef enum data_cube_state_enum data_cube_state_t;
 
 // The current state of this data cube.
 volatile static data_cube_state_t current_state = STARTUP;
-
-static trx_payload_element_t *payload = "You will not go to space today.";
 
 /////////////////// Private Function Prototypes ///////////////////////////////
 
