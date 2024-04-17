@@ -10,6 +10,23 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
+///////////////////// Type Definitions /////////////////////////////////////////
+
+enum axis_enum {
+    X_AXIS,
+    Y_AXIS,
+    Z_AXIS
+};
+
+///////////////////// Public Function Prototypes ///////////////////////////////
+
+// Requests and returns acceleration of axis in (1/2)*m/(s^2)
+signed int accelerometer_read(char axis);
+
+// Returns magnitude of agragate vector in (1/2)*m/(s^2)
+signed int acceleration_agg_mag(void);
 
 #endif

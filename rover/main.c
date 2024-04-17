@@ -17,6 +17,7 @@
 
 #include "uart.h"
 #include "adc.h"
+#include "accelerometer.h"
 
 //////////////// Private Defines ///////////////////////////////////////////////
 
@@ -32,6 +33,7 @@
 #define KEYSTROKE_TEMP 	('t')
 #define KEYSTROKE_REF 	('r')
 #define KEYSTROKE_GND 	('g')
+#define KEYSTROKE_MAG 	('m')
 
 //////////////// Static Variable Definitions ///////////////////////////////////
 
@@ -55,6 +57,7 @@ static char* channel_name_adc7 = "ADC7";
 static char* channel_name_temp = "Temperature";
 static char* channel_name_ref = "Analog Reference";
 static char* channel_name_gnd = "Ground Plane";
+static char* channel_name_mag = "Acceleration Magnitude";
 
 // The format string for the UART output message.
 static char* output_message_format = "%s channel has a value of %u\n\r";
@@ -93,15 +96,15 @@ ISR(USART_RX_vect) {
 		channel_name  = channel_name_adc0;
 		break;
 	case KEYSTROKE_ADC1:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC1);
+		channel_value = accelerometer_read(X_AXIS);//adc_get_channel_result(ADC_CHANNEL_ADC1);
 		channel_name  = channel_name_adc1;
 		break;
 	case KEYSTROKE_ADC2:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC2);
+		channel_value = accelerometer_read(Y_AXIS);//adc_get_channel_result(ADC_CHANNEL_ADC2);
 		channel_name  = channel_name_adc2;
 		break;
 	case KEYSTROKE_ADC3:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC3);
+		channel_value = accelerometer_read(Z_AXIS);//adc_get_channel_result(ADC_CHANNEL_ADC3);
 		channel_name  = channel_name_adc3;
 		break;
 	case KEYSTROKE_ADC4:
@@ -131,6 +134,10 @@ ISR(USART_RX_vect) {
 	case KEYSTROKE_GND:
 		channel_value = adc_get_channel_result(ADC_CHANNEL_GND);
 		channel_name  = channel_name_gnd;
+		break;
+	case KEYSTROKE_MAG:
+		channel_value = acceleration_agg_mag();
+		channel_name = channel_name_mag;
 		break;
 	default:
 		return;
