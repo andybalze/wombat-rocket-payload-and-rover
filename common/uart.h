@@ -17,6 +17,11 @@
 
 #define UART_MESSAGE_MAX_LENGTH (256)
 
+/////////////////// SPI macros /////////////////////////////////////////////////
+
+// Waits until the UART message currently being transmitted has finished.
+#define UART_WAIT_UNTIL_DONE() while((UCSR0B & _BV(UDRIE0)) != 0)
+
 ///////////////////// Type Definitions /////////////////////////////////////////
 
 // An element of a UART message.
