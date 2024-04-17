@@ -1,22 +1,25 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Main
+// Rover Main
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 
 #include "digital_io.h"
+#include "uart.h"
+#include "adc.h"
 #include "motors.h"
-#include "test.h"
 
-int main(void) {
 
-    uart_initialize();
-    digital_io_initialize();
-    motors_initialize();
-    test();
+int main() {
+
+	digital_io_initialize();
+	uart_initialize();
+	adc_initialize();
+	motors_initialize();
 
     while(1);
 
