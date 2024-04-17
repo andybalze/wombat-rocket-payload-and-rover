@@ -46,7 +46,7 @@
 
 //////////////////// Macros for Motor OCR Values ////////////////////
 #define OCR_MAX 255     // OCR is in inverting mode so setting to OCR_MAX turns outputs off
-#define SPEED_MAX 200
+#define SPEED_MAX 199
 //////////////////// Macros for Motor OCR Values ////////////////////
 
 
