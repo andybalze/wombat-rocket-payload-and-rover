@@ -177,4 +177,7 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
             break;
         }
     }
+
+    uart_transmit_formatted_message("Speed: %d    OCR: %d\r\n", speed, ocr_val);
+    UART_WAIT_UNTIL_DONE();
 }
