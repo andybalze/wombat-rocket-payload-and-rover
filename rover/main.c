@@ -13,6 +13,8 @@
 #include "adc.h"
 #include "motors.h"
 
+#include "test.h"
+
 
 int main() {
 
@@ -21,6 +23,8 @@ int main() {
 	adc_initialize();
 	motors_initialize();
 
-    while(1);
+	test();
+
+	while(1);
 
 }
