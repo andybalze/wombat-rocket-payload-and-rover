@@ -21,6 +21,12 @@ all: rover_compile cube0_compile cube1_compile cube2_compile trx_compile
 
 reset: 
 	avrdude -p m328p -c usbtiny
+all: rover_compile cube0_compile cube1_compile cube2_compile trx_compile
+
+# ============ Reset the ATMega without writing anything ============
+
+reset: 
+	avrdude -p m328p -c usbtiny
 
 # ============ Rover =============
 
@@ -36,24 +42,56 @@ build/rover.out: $(rover_dependencies)
 
 rover_size: build/rover.out
 	avr-size build/rover.out --format=avr --mcu=atmega328p -C
+rover_size: build/rover.out
+	avr-size build/rover.out --format=avr --mcu=atmega328p -C
 
 rover_fuse:
-# to be determined by the fuses we need (avrdude command)
-# example: avrdude -p m328p -c usbtiny -U lfuse:w:0xFF:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+# 1 MHz clock:
+# avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+# 8 MHz clock:
+	avrdude -p m328p -c usbtiny -U lfuse:w:0xE2:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
 
 rover_flash: build/rover.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/rover.hex:i
 
 
 # ============ Cube 0 (standalone) =============
+# ============ Cube 0 (standalone) =============
 
 cube0_all: cube0_compile cube0_fuse cube0_flash
+cube0_all: cube0_compile cube0_fuse cube0_flash
 
+cube0_compile: build/cube0.hex cube0_size
 cube0_compile: build/cube0.hex cube0_size
 
 build/cube0.hex: build/cube0.out
 	avr-objcopy -j .text -j .data -O ihex build/cube0.out build/cube0.hex
+build/cube0.hex: build/cube0.out
+	avr-objcopy -j .text -j .data -O ihex build/cube0.out build/cube0.hex
 
+build/cube0.out: $(cube0_dependencies)
+	avr-gcc -Icube/cube0 -Icube/common -Icommon $(cube0_dependencies) -mmcu=atmega328p -Os -o build/cube0.out
+
+cube0_size: build/cube0.out
+	avr-size build/cube0.out --format=avr --mcu=atmega328p -C
+
+cube0_fuse:
+	avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+
+cube0_flash: build/cube0.hex
+	avrdude -p m328p -c usbtiny -U flash:w:build/cube0.hex:i
+
+# ============ Cube 0 (standalone) =============
+
+cube1_all: cube1_compile cube1_fuse cube1_flash
+
+cube1_compile: build/cube1.hex cube1_size
+
+build/cube1.hex: build/cube1.out
+	avr-objcopy -j .text -j .data -O ihex build/cube1.out build/cube1.hex
+
+build/cube1.out: $(cube1_dependencies)
+	avr-gcc -Icube/cube1 -Icube/common -Icommon $(cube1_dependencies) -mmcu=atmega328p -Os -o build/cube1.out
 build/cube0.out: $(cube0_dependencies)
 	avr-gcc -Icube/cube0 -Icube/common -Icommon $(cube0_dependencies) -mmcu=atmega328p -Os -o build/cube0.out
 
@@ -103,8 +141,35 @@ cube2_size: build/cube2.out
 	avr-size build/cube2.out --format=avr --mcu=atmega328p -C
 
 cube2_fuse:
+cube1_size: build/cube1.out
+	avr-size build/cube1.out --format=avr --mcu=atmega328p -C
+
+cube1_fuse:
 	avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
 
+cube1_flash: build/cube1.hex
+	avrdude -p m328p -c usbtiny -U flash:w:build/cube1.hex:i
+
+# ============ Cube 2 (standalone) =============
+
+cube2_all: cube2_compile cube2_fuse cube2_flash
+
+cube2_compile: build/cube2.hex cube2_size
+
+build/cube2.hex: build/cube2.out
+	avr-objcopy -j .text -j .data -O ihex build/cube2.out build/cube2.hex
+
+build/cube2.out: $(cube2_dependencies)
+	avr-gcc -Icube/cube2 -Icube/common -Icommon $(cube2_dependencies) -mmcu=atmega328p -Os -o build/cube2.out
+
+cube2_size: build/cube2.out
+	avr-size build/cube2.out --format=avr --mcu=atmega328p -C
+
+cube2_fuse:
+	avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+
+cube2_flash: build/cube2.hex
+	avrdude -p m328p -c usbtiny -U flash:w:build/cube2.hex:i
 cube2_flash: build/cube2.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/cube2.hex:i
 
@@ -119,7 +184,10 @@ build/trx.hex: build/trx.out
 
 build/trx.out: $(trx_dependencies)
 	avr-gcc -Icube/rover_trx -Icube/common -Icommon $(trx_dependencies) -mmcu=atmega328p -Os -o build/trx.out
+	avr-gcc -Icube/rover_trx -Icube/common -Icommon $(trx_dependencies) -mmcu=atmega328p -Os -o build/trx.out
 
+trx_size: build/trx.out
+	avr-size build/trx.out --format=avr --mcu=atmega328p -C
 trx_size: build/trx.out
 	avr-size build/trx.out --format=avr --mcu=atmega328p -C
 

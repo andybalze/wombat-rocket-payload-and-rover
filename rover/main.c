@@ -21,6 +21,6 @@ int main() {
 	adc_initialize();
 	motors_initialize();
 
-	while(1);
+    while(1);
 
 }
