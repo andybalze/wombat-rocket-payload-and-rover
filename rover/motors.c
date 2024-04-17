@@ -45,8 +45,7 @@
 
 
 //////////////////// Macros for Motor OCR Values ////////////////////
-#define OCR_MAX 255     // OCR is in inverting mode so setting to OCR_MAX turns outputs off
-#define SPEED_MAX 200
+#define SPEED_MAX 255
 //////////////////// Macros for Motor OCR Values ////////////////////
 
 
@@ -101,60 +100,46 @@ void motors_initialize(void) {
 
 
 void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
-    char ocr_val;
-
-    if (speed < 0) {                // Account for if the control code doesn't like directions
-        direction = !direction;
-        speed = -speed;
-    }
-
-    if (speed > SPEED_MAX) {        // Apply the limit to the motors
-        ocr_val = SPEED_MAX;
-    }
-    else {                          // The function was used correctly
-        ocr_val = -speed + OCR_MAX;
-    }
-
     switch (motor_name) {
         case LEFT_MOTOR: {
-            if (ocr_val != OCR_MAX) {
+            if (speed != 0) {
                 if (direction == FORWARD) {
-                    LEFT1_OCR = OCR_MAX;
-                    LEFT2_OCR = ocr_val;
+                    LEFT1_OCR = SPEED_MAX;
+                    LEFT2_OCR = -speed + SPEED_MAX;
                 }
                 else {  // (direction == REVERSE)
-                    LEFT1_OCR = ocr_val;
-                    LEFT2_OCR = OCR_MAX;
+                    LEFT1_OCR = -speed + SPEED_MAX;
+                    LEFT2_OCR = SPEED_MAX;
                 }
             }
-            else {      // (ocr_val == OCR_MAX)
-                LEFT1_OCR = OCR_MAX;
-                LEFT2_OCR = OCR_MAX;
+            else {      // (speed == 0)
+                LEFT1_OCR = SPEED_MAX;
+                LEFT2_OCR = SPEED_MAX;
             }
             break;
         }
 
         case RIGHT_MOTOR: {
-            if (ocr_val != OCR_MAX) {
+            if (speed != 0) {
                 if (direction == FORWARD) {
-                    RIGHT1_OCR = ocr_val;
-                    RIGHT2_OCR = OCR_MAX;
+                    RIGHT1_OCR = -speed + SPEED_MAX;
+                    RIGHT2_OCR = SPEED_MAX;
                 }
                 else {  // (direction == REVERSE)
 
-                    RIGHT1_OCR = OCR_MAX;
-                    RIGHT2_OCR = ocr_val;
+                    RIGHT1_OCR = SPEED_MAX;
+                    RIGHT2_OCR = -speed + SPEED_MAX;
                 }
             }
-            else {      // (ocr_val == OCR_MAX)
-                RIGHT1_OCR = OCR_MAX;
-                RIGHT2_OCR = OCR_MAX;
+            else {      // (speed == 0)
+                RIGHT1_OCR = SPEED_MAX;
+                RIGHT2_OCR = SPEED_MAX;
             }
             break;
         }
 
         case DISPENSER_MOTOR: {
-            if (ocr_val != OCR_MAX) {
+            if (speed != 0) {
                 if (direction == FORWARD) {
                     DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
                     DISPENSER2_PORT |=  _BV(DISPENSER2_INDEX);
@@ -165,7 +150,7 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
                     DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
                 }
             }
-            else {      // (ocr_val == OCR_MAX)
+            else {      // (speed == 0)
                 DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
                 DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
             }
