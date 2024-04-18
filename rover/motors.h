@@ -24,6 +24,6 @@ typedef enum motor_name_enum motor_name_t;
 _Noreturn void rover_failure_state(void);
 
 void motors_initialize(void);
-void motor(motor_name_t motor_name, motor_direction_t direction, int speed);
+void motor(motor_name_t motor_name, motor_direction_t direction, uint8_t speed);
 
 #endif //MOTORS_H

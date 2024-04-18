@@ -98,8 +98,8 @@ void motors_initialize(void) {
 
 
 
-void motor(motor_name_t motor_name, motor_direction_t direction, int speed) {
-    int ocr_val;
+void motor(motor_name_t motor_name, motor_direction_t direction, uint8_t speed) {
+    uint8_t ocr_val;
 
     if (speed < 0) {                // Account for if the control code doesn't like directions
         direction = !direction;

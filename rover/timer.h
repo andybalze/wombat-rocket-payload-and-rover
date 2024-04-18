@@ -3,18 +3,21 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdint.h>
 
 #include "digital_io.h"
 #include "uart.h"
 
+#define SECONDS 1000
+
 enum timer_name_enum {
-    timerA,
-    timerB
+    timer_alpha,
+    timer_beta
 };
 typedef enum timer_name_enum timer_name_t;
 
 void timer_initialize(void);
 void reset_timer(timer_name_t timer);
-unsigned long int get_timer_cnt(timer_name_t timer);
+uint32_t get_timer_cnt(timer_name_t timer);
 
 #endif // TIMER_H

@@ -40,7 +40,7 @@ void digital_io_initialize(void) {
     // Initialize outputs as off
     RED_PORT   |=  _BV(RED_INDEX);      // The LEDs are active-low
     GREEN_PORT |=  _BV(GREEN_INDEX);    // The LEDs are active-low
-    DC_PORT    &= ~_BV(DC_INDEX);
+    DC_PORT    |=  _BV(DC_INDEX);       // The onboard data cube expects an active-low signal
 
     // Configure the switch & pushbuttons as inputs
     SW2_DDR &= ~_BV(SW2_INDEX);
@@ -53,7 +53,7 @@ void digital_io_initialize(void) {
     SW4_PORT &= ~_BV(SW4_INDEX);    // Turn off pull-up resistor
 }
 
-void LED_set(LED_color_t color, LED_state_t state) {
+void LED_set(LED_color_t color, output_state_t state) {
     switch (color) {
         case RED: {
             switch (state) {
@@ -122,11 +122,11 @@ void LED_set(LED_color_t color, LED_state_t state) {
 
 
 
-void signal_data_cube(char on_off) {
-    if (on_off == 0) {
+void signal_data_cube(output_state_t state) {
+    if (state == ON) {
         DC_PORT &= ~_BV(DC_INDEX);
     }
-    else {      // if (on_off == 1)
+    else {      // if (state == OFF)
         DC_PORT |= _BV(DC_INDEX);
     }
 }

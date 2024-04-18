@@ -1,7 +1,7 @@
 #include "timer.h"
 
-unsigned long int timerA_cnt = 0;       // Only timer interrupt allowed to change
-unsigned long int timerB_cnt = 0;       // Only timer interrupt allowed to change
+uint32_t timer_alpha_cnt = 0;       // Only timer interrupt allowed to change
+uint32_t timer_beta_cnt = 0;       // Only timer interrupt allowed to change
 
 void timer_initialize(void) {
     TCCR0B |= _BV(CS02) | _BV(CS00);    // Select the 1024 prescaler
@@ -9,8 +9,8 @@ void timer_initialize(void) {
     TIMSK0 |= _BV(OCIE0A);              // Enable output compare channel A interrupt
     // TIMSK0 |= _BV(OCIE0B);           // Enable output compare channel B interrupt
 
-    OCR0A = 255;                        // 30.6 Hz interrupt frequency
-    OCR0B = 255;                        // 30.6 Hz interrupt frequency
+    OCR0A = 78;                        // 100 Hz interrupt frequency (1 ms)
+    // OCR0B = 255;                    // 30.6 Hz interrupt frequency (slowest we can get)
 
     SREG   |= _BV(SREG_I);              // Enable global interrupts
 }
@@ -19,13 +19,13 @@ void timer_initialize(void) {
 
 void reset_timer(timer_name_t timer) {
     switch (timer) {
-        case timerA: {
-            timerA_cnt = 0;
+        case timer_alpha: {
+            timer_alpha_cnt = 0;
             break;
         }
 
-        case timerB: {
-            timerB_cnt = 0;
+        case timer_beta: {
+            timer_beta_cnt = 0;
             break;
         }
 
@@ -42,17 +42,17 @@ void reset_timer(timer_name_t timer) {
 
 
 
-unsigned long int get_timer_cnt(timer_name_t timer) {
+uint32_t get_timer_cnt(timer_name_t timer) {
     unsigned long int count;
 
     switch (timer) {
-        case timerA: {
-            count = timerA_cnt;
+        case timer_alpha: {
+            count = timer_alpha_cnt;
             break;
         }
 
-        case timerB: {
-            count = timerB_cnt;
+        case timer_beta: {
+            count = timer_beta_cnt;
             break;
         }
 
@@ -72,11 +72,6 @@ unsigned long int get_timer_cnt(timer_name_t timer) {
 
 
 ISR(TIMER0_COMPA_vect) {
-    timerA_cnt++;                    // Overflows after 4,294,967,296. At 30.6 Hz, that gives us 1,624 days...
-}
-
-
-
-ISR(TIMER0_COMPB_vect) {
-    timerB_cnt++;                    // Overflows after 4,294,967,296. At 30.6 Hz, that gives us 1,624 days...
+    timer_alpha_cnt++;                    // Overflows after 4,294,967,296. At 30.6 Hz, that gives us 1,624 days...
+    timer_beta_cnt++;
 }
