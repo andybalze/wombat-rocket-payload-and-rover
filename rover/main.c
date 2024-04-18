@@ -24,14 +24,12 @@
 // #define DRIVE_TIME              3  * ONE_MINUTE
 // #define DISPENSE_TIME           1  * ONE_MINUTE     // 1 minute (actually takes about 35 seconds)
 // #define LED_OFF_DELAY_LAUNCH    10 * ONE_SECOND     // used in WAIT_FOR_LAUNCH state
-// #define LED_OFF_DELAY_LAND      10                  // 10 milliseconds
 
 ////////// TEST //////////
 #define EXIT_TIME               10 * ONE_SECOND
 #define DRIVE_TIME              10 * ONE_SECOND
 #define DISPENSE_TIME           10 * ONE_SECOND
 #define LED_OFF_DELAY_LAUNCH    2  * ONE_SECOND     // used in WAIT_FOR_LAUNCH state
-// #define LED_OFF_DELAY_LAND      10                 // 10 milliseconds
 ////////// TEST //////////
 
 enum rover_mode_enum {
