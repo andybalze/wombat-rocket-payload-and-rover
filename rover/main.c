@@ -31,7 +31,7 @@
 #define DRIVE_TIME              10 * ONE_SECOND
 #define DISPENSE_TIME           10 * ONE_SECOND
 #define LED_OFF_DELAY_LAUNCH    2  * ONE_SECOND     // used in WAIT_FOR_LAUNCH state
-#define LED_OFF_DELAY_LAND      2                   // 10 milliseconds
+// #define LED_OFF_DELAY_LAND      10                 // 10 milliseconds
 ////////// TEST //////////
 
 enum rover_mode_enum {
@@ -241,12 +241,16 @@ int main() {
             case FLIGHT_MODE: {                                                     //         case (FLIGHT_MODE)
                 switch (flight_state) {                                             //             switch (flight state)
                     case WAIT_FOR_LAUNCH: {                                         //                 case (WAIT_FOR_LAUNCH)
-                        //                     is_launched = launch check function
                         if (get_timer_cnt(timer_alpha) == LED_OFF_DELAY_LAUNCH) {
                             LED_set(YELLOW, OFF);
-                            is_launched = true;                 // TEST //
                         }
 
+                        //                     is_launched = launch check function
+                        ////////// TEST //////////
+                        if (get_timer_cnt(timer_alpha) == 10 * ONE_SECOND) {
+                            is_launched = true;
+                        }
+                        ////////// TEST //////////
                         if (is_launched == true) {                                          //                     exit condition if (rocket launched)
                             uart_transmit_formatted_message("WAIT_FOR_LANDING\r\n");
                             UART_WAIT_UNTIL_DONE();
@@ -260,8 +264,6 @@ int main() {
                     }                                                               //                 end case
 
                     case WAIT_FOR_LANDING: {                                        //                 case (WAIT_FOR_LANDING)
-                        while (get_timer_cnt(timer_alpha) < LED_OFF_DELAY_LAND); // TEST // do we want this indicator?
-                        LED_set(YELLOW, OFF);                                    // TEST//
                         //                     wait until landing code (doesn't return until landing)
                         ////////// TEST //////////
                         reset_timer(timer_alpha);
@@ -269,6 +271,7 @@ int main() {
                         ////////// TEST //////////
 
                         {                                                           //                     exit condition (unconditional)
+                            LED_set(YELLOW, OFF);
                             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
                             UART_WAIT_UNTIL_DONE();
                             reset_timer(timer_alpha);                                    //                         reset timer counter
