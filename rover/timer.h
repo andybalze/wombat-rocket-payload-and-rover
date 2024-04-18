@@ -8,7 +8,8 @@
 #include "digital_io.h"
 #include "uart.h"
 
-#define SECONDS 1000
+#define ONE_SECOND 1000
+#define ONE_MINUTE 60000
 
 enum timer_name_enum {
     timer_alpha,

@@ -4,13 +4,13 @@ uint32_t timer_alpha_cnt = 0;       // Only timer interrupt allowed to change
 uint32_t timer_beta_cnt = 0;       // Only timer interrupt allowed to change
 
 void timer_initialize(void) {
-    TCCR0B |= _BV(CS02) | _BV(CS00);    // Select the 1024 prescaler
+    TCCR0B |= _BV(CS02);                // Select the 256 prescaler
     TCCR0A |= _BV(WGM01);               // Set timer to CTC mode
     TIMSK0 |= _BV(OCIE0A);              // Enable output compare channel A interrupt
     // TIMSK0 |= _BV(OCIE0B);           // Enable output compare channel B interrupt
 
-    OCR0A = 78;                        // 100 Hz interrupt frequency (1 ms)
-    // OCR0B = 255;                    // 30.6 Hz interrupt frequency (slowest we can get)
+    OCR0A = 31;                        // 1000 Hz interrupt frequency (1 ms)
+    // OCR0B = 31;
 
     SREG   |= _BV(SREG_I);              // Enable global interrupts
 }
