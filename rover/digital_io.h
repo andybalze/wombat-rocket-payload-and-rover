@@ -4,15 +4,16 @@
 #include <avr/io.h>
 
 enum LED_color_enum {
-    RED = 0,
-    GREEN = 1,
-    BLUE = 2    // No BLUE on the rover
+    RED,
+    GREEN,
+    YELLOW
 };
 typedef enum LED_color_enum LED_color_t;
 
 enum LED_state_enum {
-    ON  = 0,  // The LEDs are active-low
-    OFF = 1
+    ON  = 1,  // The LEDs are active-low
+    OFF = 0,
+    BLINK                                                       // !!!!WRITE CODE TO HANDLE THIS!!!! //
 };
 typedef enum LED_state_enum LED_state_t;
 
@@ -28,6 +29,7 @@ typedef enum SW_name_enum SW_name_t;
 
 void digital_io_initialize(void);
 void LED_set(LED_color_t color, LED_state_t state);
+void signal_data_cube(char on_off);
 char SW_read(SW_name_t sw);
 
 #endif //DIGITAL_IO_H
