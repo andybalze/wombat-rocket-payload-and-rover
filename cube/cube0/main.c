@@ -30,7 +30,7 @@
 
 // The number of milliseconds that the data cube's limit switch must be
 // depressed for before the cube enters the LOADED state.
-#define LOADING_DURATION_MS	2000
+#define LOADING_DURATION_MS	5000
 // Wait two full seconds (too short?).
 
 // The number of seconds the data cube waits until it turns off its LED.
