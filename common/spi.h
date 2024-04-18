@@ -54,7 +54,11 @@
 
 /////////////////// SPI Type Definitions ///////////////////////////////////////
 
-typedef unsigned char spi_message_element_t;
+typedef uint8_t spi_message_element_t;
+
+typedef uint16_t spi_transaction_index_t;
+
+typedef uint16_t spi_transaction_length_t;
 
 /////////////////// Public Function Prototypes /////////////////////////////////
 
@@ -74,8 +78,8 @@ void spi_initialize(void);
 // a section is given as "NULL", that section is filled with 0x00.
 void spi_execute_transaction(
   spi_message_element_t *response,
-  int response_beginning_index, 
-  int section_count,
+  spi_transaction_index_t response_beginning_index, 
+  uint8_t section_count,
   ...
 );
 

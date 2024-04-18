@@ -82,15 +82,15 @@ static spi_message_element_t receive_message_buffer[SPI_TRANSACTION_MAX_LENGTH];
 static spi_message_element_t transmit_message_buffer[SPI_TRANSACTION_MAX_LENGTH];
 
 // The index of the transaction bit that is currently being transmitted and received.
-static int transaction_index;
+static spi_transaction_index_t transaction_index;
 
 // The length of the current transaction.
-static int current_transaction_length;
+static spi_transaction_length_t current_transaction_length;
 
 // The callback that will be executed once the current transaction finishes.
 static void (*current_transaction_complete_callback)(
   const spi_message_element_t *received_message,
-  int received_message_length
+  spi_transaction_length_t received_message_length
 );
 
 //////////////////// Public Function Bodies ////////////////////////////////////
@@ -144,8 +144,8 @@ void spi_initialize(void) {
 // a section is given as "NULL", that section is filled with 0x00.
 void spi_execute_transaction(
   spi_message_element_t *response,
-  int response_beginning_index,
-  int section_count,
+  spi_transaction_index_t response_beginning_index,
+  uint8_t section_count,
   ...
 ) {
 
@@ -156,7 +156,7 @@ void spi_execute_transaction(
   int section_length = va_arg(args, int);
   int section_index = 0;
 
-  int next_element_index = 0;
+  spi_transaction_index_t next_element_index = 0;
   spi_message_element_t next_element;
   spi_message_element_t received_element;
 
@@ -166,7 +166,7 @@ void spi_execute_transaction(
   // The transaction will run no longer than the maximum length defined in the
   // header. However, in normal operation, this loop will be broken as soon as
   // the full message has been sent.
-  for (int i = 0; i < SPI_TRANSACTION_MAX_LENGTH; i++) {
+  for (spi_transaction_index_t i = 0; i < SPI_TRANSACTION_MAX_LENGTH; i++) {
 
     // If that was the last character of the section,
     if (next_element_index == section_length) {
