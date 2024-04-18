@@ -6,6 +6,8 @@
 #include "digital_io.h"
 #include "../common/uart.h"
 
+#define SPEED_MAX 249
+
 enum motor_direction_enum {
     REVERSE = 0,
     FORWARD = 1

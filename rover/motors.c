@@ -46,7 +46,6 @@
 
 //////////////////// Macros for Motor OCR Values ////////////////////
 #define OCR_MAX 255     // OCR is in inverting mode so setting to OCR_MAX turns outputs off
-#define SPEED_MAX 200
 //////////////////// Macros for Motor OCR Values ////////////////////
 
 
@@ -100,8 +99,8 @@ void motors_initialize(void) {
 
 
 
-void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
-    char ocr_val;
+void motor(motor_name_t motor_name, motor_direction_t direction, int speed) {
+    int ocr_val;
 
     if (speed < 0) {                // Account for if the control code doesn't like directions
         direction = !direction;
@@ -109,7 +108,7 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
     }
 
     if (speed > SPEED_MAX) {        // Apply the limit to the motors
-        ocr_val = SPEED_MAX;
+        ocr_val = -SPEED_MAX + OCR_MAX;
     }
     else {                          // The function was used correctly
         ocr_val = -speed + OCR_MAX;
@@ -177,4 +176,7 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
             break;
         }
     }
+
+    uart_transmit_formatted_message("Speed: %d    OCR: %d\r\n", speed, ocr_val);
+    UART_WAIT_UNTIL_DONE();
 }
