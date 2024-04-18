@@ -21,7 +21,7 @@ int main() {
 	LED_set(0);
 
 	// Wait until the rover instructs the cube to start transmitting.
-	while(!SW_read(SW1));
+	while(SW_read(SW1));
 
 	trx_initialize(MY_DATA_LINK_ADDR);
 
