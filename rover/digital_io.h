@@ -13,7 +13,6 @@ typedef enum LED_color_enum LED_color_t;
 enum LED_state_enum {
     ON  = 1,  // The LEDs are active-low
     OFF = 0,
-    BLINK                                                       // !!!!WRITE CODE TO HANDLE THIS!!!! //
 };
 typedef enum LED_state_enum LED_state_t;
 
