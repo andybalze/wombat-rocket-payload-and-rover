@@ -4,7 +4,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "digital_io.h"
-#include "../common/uart.h"
+#include "uart.h"
 
 #define SPEED_MAX 249
 
@@ -24,6 +24,6 @@ typedef enum motor_name_enum motor_name_t;
 _Noreturn void rover_failure_state(void);
 
 void motors_initialize(void);
-void motor(motor_name_t motor_name, motor_direction_t direction, char speed);
+void motor(motor_name_t motor_name, motor_direction_t direction, int speed);
 
 #endif //MOTORS_H

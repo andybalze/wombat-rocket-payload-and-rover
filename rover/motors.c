@@ -1,5 +1,4 @@
 #include "motors.h"
-#include "test.h"
 
 
 //////////////////// Macros for Accessing Registers ////////////////////
@@ -155,13 +154,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, int speed) {
         case DISPENSER_MOTOR: {
             if (ocr_val != OCR_MAX) {
                 if (direction == FORWARD) {
-                    DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
-                    DISPENSER2_PORT |=  _BV(DISPENSER2_INDEX);
-                }
-                else {  // (direction == REVERSE)
-
                     DISPENSER1_PORT |=  _BV(DISPENSER1_INDEX);
                     DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
+                }
+                else {  // (direction == REVERSE)
+                    DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
+                    DISPENSER2_PORT |=  _BV(DISPENSER2_INDEX);
                 }
             }
             else {      // (ocr_val == OCR_MAX)
@@ -172,11 +170,10 @@ void motor(motor_name_t motor_name, motor_direction_t direction, int speed) {
         }
 
         default: {
+            uart_transmit_formatted_message("ERROR 734: unknown motor identifier\r\n");    // TEST //
+            UART_WAIT_UNTIL_DONE();     // TEST //
             rover_failure_state();
             break;
         }
     }
-
-    uart_transmit_formatted_message("Speed: %d    OCR: %d\r\n", speed, ocr_val);
-    UART_WAIT_UNTIL_DONE();
 }
