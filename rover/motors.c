@@ -117,12 +117,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, uint8_t speed) 
         case LEFT_MOTOR: {
             if (ocr_val != OCR_MAX) {
                 if (direction == FORWARD) {
-                    LEFT1_OCR = OCR_MAX;
-                    LEFT2_OCR = ocr_val;
-                }
-                else {  // (direction == REVERSE)
                     LEFT1_OCR = ocr_val;
                     LEFT2_OCR = OCR_MAX;
+                }
+                else {  // (direction == REVERSE)
+                    LEFT1_OCR = OCR_MAX;
+                    LEFT2_OCR = ocr_val;
                 }
             }
             else {      // (ocr_val == OCR_MAX)
@@ -135,13 +135,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, uint8_t speed) 
         case RIGHT_MOTOR: {
             if (ocr_val != OCR_MAX) {
                 if (direction == FORWARD) {
-                    RIGHT1_OCR = ocr_val;
-                    RIGHT2_OCR = OCR_MAX;
-                }
-                else {  // (direction == REVERSE)
-
                     RIGHT1_OCR = OCR_MAX;
                     RIGHT2_OCR = ocr_val;
+                }
+                else {  // (direction == REVERSE)
+                    RIGHT1_OCR = ocr_val;
+                    RIGHT2_OCR = OCR_MAX;
                 }
             }
             else {      // (ocr_val == OCR_MAX)
