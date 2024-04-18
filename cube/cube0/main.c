@@ -21,7 +21,7 @@
 /////////////////// Private Defines ///////////////////////////////////////////
 
 // If this macro is defined, UART functionality will be included.
-#define DEBUG_MODE
+// #define DEBUG_MODE
 
 // The number of milliseconds to wait after the cube is turned on to enter the 
 // LOADING state.
@@ -34,20 +34,20 @@
 // Wait two full seconds (too short?).
 
 // The number of seconds the data cube waits until it turns off its LED.
-#define LOADED_1_DURATION_S	60
+#define LOADED_1_DURATION_S	10
 
 // The number of milliseconds that the data cube waits after it is dispensed
 // from the rover (its limit switch is released) before beginning its RF
 // operations. During this time, the data cube's RF hardware is brough online.
-#define DISPENSING_DURATION_MS 100
+#define DISPENSING_DURATION_MS 1000
 // Wait 1/10 seconds for the trx to start up.
 
 #define LED_COLOR_STARTUP 				0	// Off
 #define LED_COLOR_READY_TO_LOAD		2 // Green
 #define LED_COLOR_LOADING					2	// Green
-#define LED_COLOR_LOADED_1				1	// Red
+#define LED_COLOR_LOADED_1				4	// Red
 #define LED_COLOR_LOADED_2				0	// Off
-#define LED_COLOR_DISPENSING			4	// Blue
+#define LED_COLOR_DISPENSING			1	// Blue
 
 /////////////////// Private Typedefs ///////////////////////////////////////////
 
@@ -115,6 +115,13 @@ void stop_timer();
 int main() {
 
 	digital_io_initialize();
+#ifdef DEBUG_MODE
+	uart_initialize();
+#endif
+
+#ifdef DEBUG_MODE
+	uart_transmit_formatted_message("\n\rHello World.\n\r");
+#endif
 
 	start_timer(STARTUP_DURATION_MS);
 	current_state = STARTUP;
@@ -163,9 +170,16 @@ int main() {
 void state_code_startup(void) {
 
 	if ((TIFR1 & _BV(OCF1A)) != 0) {
+
+#ifdef DEBUG_MODE
+		uart_transmit_formatted_message("Transitioning to READY_TO_LOAD state.\n\r");
+		UART_WAIT_UNTIL_DONE();
+#endif
+
 		stop_timer();
 		current_state = READY_TO_LOAD;
 		LED_set(LED_COLOR_READY_TO_LOAD);
+
 	}
 
 }
@@ -173,9 +187,16 @@ void state_code_startup(void) {
 void state_code_ready_to_load(void) {
 
 	if (SW_read(SW1)) {
+
+#ifdef DEBUG_MODE
+	uart_transmit_formatted_message("Transitioning to LOADING state.\n\r");
+	UART_WAIT_UNTIL_DONE();
+#endif
+
 		start_timer(LOADING_DURATION_MS);
 		current_state = LOADING;
 		LED_set(LED_COLOR_LOADING);
+
 	}
 
 }
@@ -183,16 +204,30 @@ void state_code_ready_to_load(void) {
 void state_code_loading(void) {
 
 	if (!SW_read(SW1)) {
+
+#ifdef DEBUG_MODE
+		uart_transmit_formatted_message("Transitioning to READY_TO_LOAD state.\n\r");
+		UART_WAIT_UNTIL_DONE();
+#endif
+
 		stop_timer();
 		current_state = READY_TO_LOAD;
 		LED_set(LED_COLOR_READY_TO_LOAD);
+
 	}
 
 	else if ((TIFR1 & _BV(OCF1A)) != 0) {
+
+#ifdef DEBUG_MODE
+		uart_transmit_formatted_message("Transitioning to LOADED state.\n\r");
+		UART_WAIT_UNTIL_DONE();
+#endif
+
 		stop_timer();
 		start_timer(1000);
 		current_state = LOADED;
 		LED_set(LED_COLOR_LOADED_1);
+
 	}
 
 }
@@ -232,12 +267,24 @@ void state_code_dispensing(void) {
 
 void state_code_operational(void) {
 
-	static int received_message_count;
+	int received_message_count = 0;
+	
+#ifdef DEBUG_MODE
+	uart_transmit_formatted_message("Attempting to receive messages.\n\r");
+	UART_WAIT_UNTIL_DONE();
+#endif
 
-	trx_receive_payload(NULL);
-	received_message_count = received_message_count + 1;
-	LED_set(received_message_count & 7);
+	while(1) {
+		trx_receive_payload(NULL);
+		received_message_count = received_message_count + 1;
 
+#ifdef DEBUG_MODE
+		uart_transmit_formatted_message("Received message. Cumulative total: %u\n\r", received_message_count);
+		UART_WAIT_UNTIL_DONE();
+#endif
+
+		LED_set(received_message_count & 7);
+	}
 }
 
 void start_timer(uint16_t milliseconds) {
@@ -246,7 +293,7 @@ void start_timer(uint16_t milliseconds) {
 	TCNT1 = 0;
 
 	// Sets the compare value.
-	OCR1A = milliseconds << 3;
+	OCR1A = milliseconds ;// << 3;
 
 	// Starts running the timer in CTC-OCR1A mode from the 1/1024 prescaler.
 	TCCR1B = (_BV(WGM12) | _BV(CS12) | _BV(CS10));
@@ -254,5 +301,6 @@ void start_timer(uint16_t milliseconds) {
 }
 
 void stop_timer(void) {
+	TIFR1 |= _BV(OCF1A);
 	TCCR1B = 0;
 }

@@ -6,6 +6,9 @@
 #include "digital_io.h"
 #include "trx.h"
 
+#define F_CPU 1000000
+#include <util/delay.h>
+
 #define TOTAL_TRANSMISSION_COUNT (7)
 
 #define TARGET_ADDRESS (0x0a0a0a0a)
@@ -27,6 +30,7 @@ int main() {
 		trx_transmit_payload(TARGET_ADDRESS, payload, 32);
 		transmission_index = transmission_index + 1;
 		LED_set(transmission_index);
+		_delay_ms(1000);
 	}
 
 	while(1);
