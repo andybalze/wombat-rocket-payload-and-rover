@@ -126,8 +126,7 @@ trx_size: build/trx.out
 	avr-size build/trx.out --format=avr --mcu=atmega328p -C
 
 trx_fuse:
-# to be determined by the fuses we need (avrdude command)
-# example: avrdude -p m328p -c usbtiny -U lfuse:w:0xFF:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
+	avrdude -p m328p -c usbtiny -U lfuse:w:0x62:m -U hfuse:w:0xD9:m -U efuse:w:0xFF:m -U lock:w:0xFF:m
 
 trx_flash: build/trx.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/trx.hex:i
