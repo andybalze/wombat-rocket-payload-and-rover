@@ -34,4 +34,8 @@ uint16_t acceleration_agg_mag(void);
 // Determines whether the rover is right-side-up (true) or upside-down (false).
 bool is_up(void);
 
+// Returns false if the rocket has not launched. Returns true if the rocket has launched.
+// Does not enter function for a substantial amount of time if there are high Gs
+bool is_launched(void);
+
 #endif
