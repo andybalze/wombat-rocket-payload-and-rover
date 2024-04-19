@@ -21,14 +21,26 @@
 #define EXIT_SPEED      149
 #define DRIVE_SPEED     149
 
-#define WAIT_FOR_LAUNCH_LED_OFF_TIME    10 * ONE_SECOND
-#define WAIT_FOR_LANDING_LED_OFF_TIME   10 * ONE_SECOND
-#define WAIT_FOR_LANDING_TIME           2  * ONE_MINUTE     // DEBUG // get this value from the mechanical team
-#define EXIT_TIME                       10 * ONE_SECOND     // DEBUG // figure this time out through testing
-#define DRIVE_FORWARD_DELAY             10
-#define DRIVE_TIME                      3  * ONE_MINUTE
-#define DISPENSE_TIME                   1  * ONE_MINUTE     // 1 minute (actually takes about 35 seconds)
-#define SIGNAL_ONBOARD_DATA_CUBE_TIME   10 * ONE_SECOND
+// #define WAIT_FOR_LAUNCH_LED_OFF_TIME    10 * ONE_SECOND
+// #define WAIT_FOR_LANDING_LED_OFF_TIME   10 * ONE_SECOND
+// #define WAIT_FOR_LANDING_TIME           2  * ONE_MINUTE     // DEBUG // get this value from the mechanical team
+// #define EXIT_TIME                       10 * ONE_SECOND     // DEBUG // figure this time out through testing
+#define DRIVE_FORWARD_DELAY             100
+// #define DRIVE_TIME                      3  * ONE_MINUTE
+// #define DISPENSE_TIME                   1  * ONE_MINUTE     // 1 minute (actually takes about 35 seconds)
+// #define SIGNAL_ONBOARD_DATA_CUBE_TIME   10 * ONE_SECOND
+
+
+////////// TEST //////////
+#define WAIT_FOR_LAUNCH_LED_OFF_TIME    1  * ONE_SECOND
+#define WAIT_FOR_LANDING_LED_OFF_TIME   1  * ONE_SECOND
+#define WAIT_FOR_LANDING_TIME           2  * ONE_SECOND
+#define EXIT_TIME                       2  * ONE_SECOND
+
+#define DRIVE_TIME                      2  * ONE_SECOND
+#define DISPENSE_TIME                   2  * ONE_SECOND
+#define SIGNAL_ONBOARD_DATA_CUBE_TIME   2  * ONE_SECOND
+////////// TEST //////////
 
 
 
@@ -59,7 +71,7 @@ int main() {
 
     bool end_operation = false;
     bool is_launched;
-    bool orientation;
+    bool is_upside_down;
 
     digital_io_initialize();                                                        // initialize functions
     uart_initialize();
@@ -147,7 +159,7 @@ int main() {
                         }
 
                         if (get_timer_cnt(timer_alpha) == WAIT_FOR_LANDING_TIME) {  //                     exit condition
-                            orientation = is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
+                            is_upside_down = !is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
                             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
                             UART_WAIT_UNTIL_DONE();
                             reset_timer(timer_alpha);                               //                         reset timer counter
@@ -157,8 +169,8 @@ int main() {
                     }                                                               //                 end case
 
                     case EXIT_CANISTER: {                                           //                 case (EXIT_CANISTER)
-                        motor(LEFT_MOTOR, FORWARD ^ orientation, EXIT_SPEED);                     //                     turn on drive motors
-                        motor(RIGHT_MOTOR, FORWARD ^ orientation, EXIT_SPEED);
+                        motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);                     //                     turn on drive motors
+                        motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
 
                         if (get_timer_cnt(timer_alpha) == EXIT_TIME) {              //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
@@ -173,8 +185,8 @@ int main() {
 
                     case DRIVE_FORWARD: {                                           //                 case (DRIVE_FORWARD)
                         if (get_timer_cnt(timer_alpha) == DRIVE_FORWARD_DELAY) {
-                            motor(LEFT_MOTOR, (FORWARD ^ orientation), DRIVE_SPEED);//                     drive forward
-                            motor(RIGHT_MOTOR, (FORWARD ^ orientation), DRIVE_SPEED);
+                            motor(LEFT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);//                     drive forward
+                            motor(RIGHT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);
                         }
 
                         if (get_timer_cnt(timer_alpha) == DRIVE_TIME) {             //                     exit condition if (time delay reached)
