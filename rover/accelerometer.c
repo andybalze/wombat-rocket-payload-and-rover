@@ -19,7 +19,7 @@
 
 // Requests and returns acceleration of axis in (1/2)*m/(s^2)
 int16_t accelerometer_read(char axis) {
-    signed int accel_returned;
+    int16_t accel_returned;
 
     switch (axis) {
         case X_AXIS:    // If X-axis requested return X-axis value
@@ -43,7 +43,8 @@ int16_t accelerometer_read(char axis) {
 
 // Returns magnitude of agragate vector in (1/2)*m/(s^2)
 uint16_t acceleration_agg_mag(void) {
-    signed int mag_returned, x_comp, y_comp, z_comp;
+    uint16_t x_comp, y_comp, z_comp;
+    int16_t mag_returned;
 
     x_comp = accelerometer_read(X_AXIS);
     y_comp = accelerometer_read(Y_AXIS);
@@ -55,7 +56,7 @@ uint16_t acceleration_agg_mag(void) {
 }
 
 bool is_up(void) {
-    int acceleration_z;
+    int16_t acceleration_z;
     acceleration_z = accelerometer_read(Z_AXIS);
     if (acceleration_z > 0) {
         return true;
