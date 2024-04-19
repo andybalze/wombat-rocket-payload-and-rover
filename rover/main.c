@@ -14,6 +14,7 @@
 #include "adc.h"
 #include "motors.h"
 #include "timer.h"
+#include "accelerometer.h"
 
 
 

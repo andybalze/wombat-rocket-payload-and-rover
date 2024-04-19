@@ -1,10 +1,12 @@
 # Microcontroller GPIO Configurations
 
+The current configuration for the motors does not match what is listed on the rover controller schematic. Changes were decided upon so that the left motor and right motor are driven by different motor drivers.
+
 ## Port B
 
 0. Red LED: Open drain output
-1. Dispenser Motor 1: Push-pull output. Optional PWM.
-2. Dispenser Motor 2: Push-pull output. Optional PWM.
+1. Right Motor 1: Push-pull PWM output.
+2. Right Motor 2: Push-pull PWM output.
 3. Left Motor 2: Push-pull PWM output. (Programmer MOSI)
 4. Dispenser Inventory Sensor 1: Active high input. No internal
 pull-up. (Programmer MISO)
@@ -29,6 +31,6 @@ pull-up. (Programmer MISO)
 2. Dispenser Mode Switch: Active low input. Internal pull-up.
 3. Left Motor 1: Push-pull PWM output.
 4. Dispenser Inventory Sensor 3: Active high input. No internal pull-up.
-5. Right Motor 2: Push-pull PWM output.
-6. Right Motor 1: Push-pull PWM output.
+5. Dispenser Motor 2: Push-pull output. No PWM.
+6. Dispenser Motor 1: Push-pull output. No PWM.
 7. Dispenser Manual Unload Button: Active high input. No internal pull-up.
