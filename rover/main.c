@@ -1,159 +1,249 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// ADC Test Main
-//
-// Provides a minimal complete test of the ADC functionality. Prints a hello
-// world message to an attached UART on reset. Then, responds to incoming UART
-// characters with the digital-count value of each ADC channel.
-//
-// To be a proper test of the ADC, the UART functions must be confirmed to work
-// correctly.
+// Rover Main
 //
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
 
+#include "digital_io.h"
 #include "uart.h"
 #include "adc.h"
+#include "motors.h"
+#include "timer.h"
 #include "accelerometer.h"
 
-//////////////// Private Defines ///////////////////////////////////////////////
 
-// UART keystrokes that correspond to each ADC channel.
-#define KEYSTROKE_ADC0 	('0')
-#define KEYSTROKE_ADC1 	('1')
-#define KEYSTROKE_ADC2 	('2')
-#define KEYSTROKE_ADC3 	('3')
-#define KEYSTROKE_ADC4 	('4')
-#define KEYSTROKE_ADC5 	('5')
-#define KEYSTROKE_ADC6 	('6')
-#define KEYSTROKE_ADC7 	('7')
-#define KEYSTROKE_TEMP 	('t')
-#define KEYSTROKE_REF 	('r')
-#define KEYSTROKE_GND 	('g')
-#define KEYSTROKE_MAG 	('m')
 
-//////////////// Static Variable Definitions ///////////////////////////////////
+#define EXIT_SPEED      149
+#define DRIVE_SPEED     149
 
-// Hello world message that is printed to the UART whenever the device is reset.
-static char* restart_message = "Hello World.\n\r";
-static int restart_message_length = 15;
+#define WAIT_FOR_LAUNCH_LED_OFF_TIME    10 * ONE_SECOND
+#define WAIT_FOR_LANDING_LED_OFF_TIME   10 * ONE_SECOND
+#define WAIT_FOR_LANDING_TIME           2  * ONE_MINUTE     // DEBUG // get this value from the 
+#define EXIT_TIME                       10 * ONE_SECOND     // DEBUG // figure out this through testing
+#define DRIVE_TIME                      3  * ONE_MINUTE
+#define DISPENSE_TIME                   1  * ONE_MINUTE     // 1 minute (actually takes about 35 seconds)
+#define SIGNAL_ONBOARD_DATA_CUBE_TIME   10 * ONE_SECOND
 
-// The most recent keystroke received from the UART.
-static uart_message_element_t received_data;
 
-// The human-readable name of each channel. Used to format the UART output
-// message.
-static char* channel_name_adc0 = "ADC0";
-static char* channel_name_adc1 = "ADC1";
-static char* channel_name_adc2 = "ADC2";
-static char* channel_name_adc3 = "ADC3";
-static char* channel_name_adc4 = "ADC4";
-static char* channel_name_adc5 = "ADC5";
-static char* channel_name_adc6 = "ADC6";
-static char* channel_name_adc7 = "ADC7";
-static char* channel_name_temp = "Temperature";
-static char* channel_name_ref = "Analog Reference";
-static char* channel_name_gnd = "Ground Plane";
-static char* channel_name_mag = "Acceleration Magnitude";
 
-// The format string for the UART output message.
-static char* output_message_format = "%s channel has a value of %u\n\r";
+enum rover_mode_enum {
+    RESET,
+    MANUAL_LOAD_MODE,
+    FLIGHT_MODE
+};
+typedef enum rover_mode_enum rover_mode_t;
 
-//////////////// Private Function Prototypes ///////////////////////////////////
+enum flight_state_enum {
+    WAIT_FOR_LAUNCH,
+    WAIT_FOR_LANDING,
+    EXIT_CANISTER,
+    DRIVE_FORWARD,
+    DISPENSE_DATA_CUBES,
+    SIGNAL_ONBOARD_DATA_CUBE,
+    DEAD_LOOP
+};
+typedef enum flight_state_enum flight_state_t;
 
-// Transmits a formatted output message over the UART.
-void transmit_output_message(
-	char *channel_name,
-	adc_result_t channel_value
-);
+
 
 int main() {
 
-	// Initialized UART.
-	uart_initialize();
+    rover_mode_t   rover_mode = RESET;
+    flight_state_t flight_state;
 
-	// Transmit hello world message.
-	uart_transmit_formatted_message(restart_message);
+    bool end_operation = false;
+    bool is_launched;
+    bool is_upside_down;
 
-	// Initialize ADC
-	adc_initialize();
+    digital_io_initialize();                                                        // initialize functions
+    uart_initialize();
+    adc_initialize();
+    motors_initialize();
+    timer_initialize();
 
-	while(1);
+    while(1) {                                                                      // begin main loop
+        if (end_operation == true) {
+            break;
+        }
 
-}
+        switch (rover_mode) {                                                       //     switch (rover mode)
+            case RESET: {                                                           //         case (RESET)
+                motor(DISPENSER_MOTOR, FORWARD, OFF);                               //             turn off dispenser motor
+                motor(LEFT_MOTOR, FORWARD, OFF);                                    //             turn off drive motors
+                motor(RIGHT_MOTOR, FORWARD, OFF);
+                LED_set(YELLOW, OFF);                                               //             LED off
+                is_launched = false;
 
-ISR(USART_RX_vect) {
-	received_data = UDR0;
-	adc_result_t channel_value;
-	char *channel_name;
-	switch (received_data)
-	{
-	case KEYSTROKE_ADC0:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC0);
-		channel_name  = channel_name_adc0;
-		break;
-	case KEYSTROKE_ADC1:
-		channel_value = accelerometer_read(X_AXIS);//adc_get_channel_result(ADC_CHANNEL_ADC1);
-		channel_name  = channel_name_adc1;
-		break;
-	case KEYSTROKE_ADC2:
-		channel_value = accelerometer_read(Y_AXIS);//adc_get_channel_result(ADC_CHANNEL_ADC2);
-		channel_name  = channel_name_adc2;
-		break;
-	case KEYSTROKE_ADC3:
-		channel_value = accelerometer_read(Z_AXIS);//adc_get_channel_result(ADC_CHANNEL_ADC3);
-		channel_name  = channel_name_adc3;
-		break;
-	case KEYSTROKE_ADC4:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC4);
-		channel_name  = channel_name_adc4;
-		break;
-	case KEYSTROKE_ADC5:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC5);
-		channel_name  = channel_name_adc5;
-		break;
-	case KEYSTROKE_ADC6:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC6);
-		channel_name  = channel_name_adc6;
-		break;
-	case KEYSTROKE_ADC7:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_ADC7);
-		channel_name  = channel_name_adc7;
-		break;
-	case KEYSTROKE_TEMP:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_TEMP);
-		channel_name  = channel_name_temp;
-		break;
-	case KEYSTROKE_REF:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_REF);
-		channel_name  = channel_name_ref;
-		break;
-	case KEYSTROKE_GND:
-		channel_value = adc_get_channel_result(ADC_CHANNEL_GND);
-		channel_name  = channel_name_gnd;
-		break;
-	case KEYSTROKE_MAG:
-		channel_value = acceleration_agg_mag();
-		channel_name = channel_name_mag;
-		break;
-	default:
-		return;
-	}
-	transmit_output_message(channel_name, channel_value);
-}
+                if (SW_read(ROVER_MODE_SW) == 1) {                                  //             exit condition if (rover mode switch is manual load)
+                    uart_transmit_formatted_message("MANUAL_LOAD_MODE\r\n");
+                    UART_WAIT_UNTIL_DONE();
+                    rover_mode = MANUAL_LOAD_MODE;                                  //                 change state to MANUAL_LOAD_MODE
+                }                                                                   //             end if
+                else {                                                              //             else if (rover mode switch is flight)
+                    LED_set(GREEN, ON);                                             //                     LED solid green
+                    uart_transmit_formatted_message("FLIGHT_MODE\r\n");
+                    UART_WAIT_UNTIL_DONE();
+                    uart_transmit_formatted_message("WAIT_FOR_LAUNCH\r\n");
+                    UART_WAIT_UNTIL_DONE();
+                    reset_timer(timer_alpha);
+                    flight_state = WAIT_FOR_LAUNCH;                                 //                 change flight mode state to WAIT_FOR_LAUNCH
+                    rover_mode = FLIGHT_MODE;                                       //                 change state to FLIGHT_MODE
+                }                                                                   //             end exit condition
+                break;
+            }                                                                       //         end case
 
-void transmit_output_message(
-	char *channel_name,
-	adc_result_t channel_value
-) {
+            case MANUAL_LOAD_MODE: {                                                //         case (MANUAL_LOAD_MODE)
+                LED_set(YELLOW, ON);                                                //             LED solid yellow
 
-	uart_transmit_formatted_message(
-		output_message_format,
-		channel_name,
-		channel_value
-	);
+                if (SW_read(LOAD_BTN) == 1) {                                       //             if (load button pressed)
+                    motor(DISPENSER_MOTOR, REVERSE, SPEED_MAX);                     //                 load dispenser
+                }                                                                   //             end if
+                else if (SW_read(UNLOAD_BTN) == 1) {                                //             else if (unload button pressed)
+                    motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                     //                 unload dispenser
+                }                                                                   //             end if
+                else {                                                              //             else if (neither button pressed)
+                    motor(DISPENSER_MOTOR, FORWARD, 0);                             //                 turn off dispenser motor
+                }                                                                   //             end if
+
+                if (SW_read(ROVER_MODE_SW) == 0) {                                  //             exit condition if (rover mode switch is flight)
+                    rover_mode = RESET;                                             //                 change state to RESET
+                }                                                                   //             end exit condition
+                break;
+            }                                                                       //         end case
+
+            case FLIGHT_MODE: {                                                     //         case (FLIGHT_MODE)
+                switch (flight_state) {                                             //             switch (flight state)
+                    case WAIT_FOR_LAUNCH: {                                         //                 case (WAIT_FOR_LAUNCH)
+                        if (get_timer_cnt(timer_alpha) == WAIT_FOR_LAUNCH_LED_OFF_TIME) {
+                            LED_set(YELLOW, OFF);
+                        }
+
+                        //                     is_launched = launch check function
+                        ////////// TEST //////////
+                        if (get_timer_cnt(timer_alpha) == 10 * ONE_SECOND) {
+                            is_launched = true;
+                        }
+                        ////////// TEST //////////
+                        if (is_launched == true) {                                  //                     exit condition if (rocket launched)
+                            LED_set(RED, ON);
+                            LED_set(GREEN, OFF);
+                            uart_transmit_formatted_message("WAIT_FOR_LANDING\r\n");
+                            UART_WAIT_UNTIL_DONE();
+                            reset_timer(timer_alpha);
+                            flight_state = WAIT_FOR_LANDING;                        //                         change state to WAIT_FOR_LANDING
+                        }                                                           //                     end exit condition
+                        break;
+                    }                                                               //                 end case
+
+                    case WAIT_FOR_LANDING: {                                        //                 case (WAIT_FOR_LANDING)
+                        if (get_timer_cnt(timer_alpha) == WAIT_FOR_LANDING_LED_OFF_TIME) {
+                            LED_set(YELLOW, OFF);
+                        }
+
+                        if (get_timer_cnt(timer_alpha) == WAIT_FOR_LANDING_TIME) {  //                     exit condition
+                            uart_transmit_formatted_message("EXIT_CANISTER\r\n");
+                            UART_WAIT_UNTIL_DONE();
+                            reset_timer(timer_alpha);                               //                         reset timer counter
+                            flight_state = EXIT_CANISTER;                           //                         change state to EXIT_CANISTER
+                        }                                                           //                     end exit condition
+                        break;
+                    }                                                               //                 end case
+
+                    case EXIT_CANISTER: {                                           //                 case (EXIT_CANISTER)
+                        motor(LEFT_MOTOR, FORWARD, EXIT_SPEED);                     //                     turn on drive motors
+                        motor(RIGHT_MOTOR, FORWARD, EXIT_SPEED);
+
+                        if (get_timer_cnt(timer_alpha) == EXIT_TIME) {              //                     exit condition if (time delay reached)
+                            motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
+                            motor(RIGHT_MOTOR, FORWARD, 0);
+                            is_upside_down = true;         // TEST //               //                         determine which way up
+                            uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
+                            UART_WAIT_UNTIL_DONE();
+                            reset_timer(timer_alpha);                               //                         reset timer counter
+                            flight_state = DRIVE_FORWARD;                           //                         change state to DRIVE_FORWARD
+                        }                                                           //                     end exit condition
+                        break;
+                    }                                                               //                 end case
+
+                    case DRIVE_FORWARD: {                                           //                 case (DRIVE_FORWARD)
+                        motor(LEFT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED); //                     drive forward
+                        motor(RIGHT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);
+
+                        if (get_timer_cnt(timer_alpha) == DRIVE_TIME) {                  //                     exit condition if (time delay reached)
+                            motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
+                            motor(RIGHT_MOTOR, FORWARD, 0);
+                            uart_transmit_formatted_message("DISPENSE_DATA_CUBE\r\n");
+                            UART_WAIT_UNTIL_DONE();
+                            reset_timer(timer_alpha);                               //                         reset timer counter
+                            flight_state = DISPENSE_DATA_CUBES;                     //                         change state to DISPENSE_DATA_CUBES
+                        }                                                           //                     end exit condition
+                        break;
+                    }                                                               //                 end case
+
+                    case DISPENSE_DATA_CUBES: {                                     //                 case (DISPENSE_DATA_CUBES)
+                        motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 //                     turn on dispenser motor
+
+                        if (get_timer_cnt(timer_alpha) == DISPENSE_TIME) {          //                     exit condition if (time delay reached)
+                            motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
+                            uart_transmit_formatted_message("SIGNAL_ONBOARD_DATA_CUBE\r\n");
+                            UART_WAIT_UNTIL_DONE();
+                            reset_timer(timer_alpha);
+                            flight_state = SIGNAL_ONBOARD_DATA_CUBE;                //                         change state to SIGNAL_ONBOARD_DATA_CUBE
+                        }                                                           //                     end exit condition
+                        break;
+                    }                                                               //                 end case
+
+                    case SIGNAL_ONBOARD_DATA_CUBE: {                                //                 case (SIGNAL_ONBOARD_DATA_CUBE)
+                        if (get_timer_cnt(timer_alpha) == SIGNAL_ONBOARD_DATA_CUBE_TIME) { //                     exit condition
+                            signal_data_cube(ON);                                   //                         signal onboard data cube
+                            LED_set(GREEN, ON);                                     //                     LED solid green
+                            LED_set(RED, OFF);
+                            uart_transmit_formatted_message("DEAD_LOOP\r\n");
+                            UART_WAIT_UNTIL_DONE();
+                            flight_state = DEAD_LOOP;                               //                         change state to DEAD_LOOP
+                        }                                                           //                     end exit condition
+                        break;
+                    }                                                               //                 end case
+
+                    case DEAD_LOOP: {                                               //                 case (DEAD_LOOP)
+                        end_operation = true;                                          //                     dead loop
+                        break;
+                    }                                                               //                 end case
+
+                    default: {                                                      //                 default case
+                        LED_set(RED, ON);                                           //                     LED solid red
+                        LED_set(GREEN, OFF);
+                        uart_transmit_formatted_message("ERROR 1674: flight mode state machine error\r\n");
+                        UART_WAIT_UNTIL_DONE();
+                        end_operation = true;                                          //                     enter rover error state
+                        break;
+                    }                                                               //                 end case
+                }                                                                   //             end switch
+
+                if (SW_read(ROVER_MODE_SW) == 1) {                                  //             exit condition if (rover mode switch is manual load)
+                    rover_mode = RESET;                                             //                 change state to RESET
+                }                                                                   //             end exit condition
+                break;
+            }                                                                       //         end case
+
+            default: {                                                              //         default case
+                LED_set(RED, ON);                                                   //             LED solid red
+                LED_set(GREEN, OFF);                                                //             enter rover error state
+                uart_transmit_formatted_message("ERROR 1650: rover mode switch read error\r\n");
+                UART_WAIT_UNTIL_DONE();
+                break;
+            }                                                                       //         end case
+        }                                                                           //     end switch
+    }                                                                               // end main loop
+
+
+    uart_transmit_formatted_message("End rover operation\r\n");
+    UART_WAIT_UNTIL_DONE();
+    while(1);
 
 }
