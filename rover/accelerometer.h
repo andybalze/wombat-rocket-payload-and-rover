@@ -12,6 +12,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdbool.h>
 
 ///////////////////// Type Definitions /////////////////////////////////////////
 
@@ -28,5 +29,8 @@ signed int accelerometer_read(char axis);
 
 // Returns magnitude of agragate vector in (1/2)*m/(s^2)
 signed int acceleration_agg_mag(void);
+
+// Determines whether the rover is right-side-up (true) or upside-down (false).
+bool is_up(void);
 
 #endif

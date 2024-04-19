@@ -54,3 +54,13 @@ signed int acceleration_agg_mag(void) {
 
     return mag_returned;
 }
+
+bool is_up(void) {
+    int acceleration_x;
+    acceleration_x = accelerometer_read(X_AXIS);
+    if (acceleration_x > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
