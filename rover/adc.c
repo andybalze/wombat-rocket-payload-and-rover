@@ -184,18 +184,18 @@ void adc_initialize(void) {
 
   // Set up ADC registers
 
-  // Selects the reference mode
-  #ifdef SETTINGS_PARANOID_REGISTERS
-    ADMUX &= (ADC_REFS_MASK | ADC_MUX_MASK);
-  #endif
-  ADMUX = (ADC_REFS | adc_mux_sequence[0]);
-
   // Configures ADC Control and Status Register A
   ADCSRA = (
     _BV(ADEN) | // Turns on the ADC.
     _BV(ADIE) | // Enables the conversion complete interrupt.
     ADC_ADPS    // Sets the ADC clock prescaler.
   );
+
+  // Selects the reference mode
+  #ifdef SETTINGS_PARANOID_REGISTERS
+    ADMUX &= (ADC_REFS_MASK | ADC_MUX_MASK);
+  #endif
+  ADMUX = (ADC_REFS | adc_mux_sequence[0]);
 
   // Enable or disable digital inputs for appropriate pins.
   DIDR0 = (
@@ -235,47 +235,47 @@ adc_result_t adc_get_channel_result(adc_channel_t channel) {
     break;
 
   case ADC_CHANNEL_ADC1:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC1];
     break;
 
   case ADC_CHANNEL_ADC2:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC2];
     break;
 
   case ADC_CHANNEL_ADC3:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC3];
     break;
 
   case ADC_CHANNEL_ADC4:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC4];
     break;
 
   case ADC_CHANNEL_ADC5:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC5];
     break;
 
   case ADC_CHANNEL_ADC6:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC6];
     break;
 
   case ADC_CHANNEL_ADC7:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC7];
     break;
 
   case ADC_CHANNEL_TEMP:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_TEMP];
     break;
 
   case ADC_CHANNEL_REF:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_REF];
     break;
 
   case ADC_CHANNEL_GND:
-    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_ADC0];
+    return adc_results_buffer[ADC_RESULTS_BUFFER_INDEX_GND];
     break;
   
   default:
-    return 0;
+    return 69;
     break;
   }
 
@@ -289,15 +289,16 @@ ISR(ADC_vect) {
 
   // Reads out the ADC conversion result.
   adc_result_t result;
-  result = (ADCH << 8 + ADCL);
+  result = ADCL;
+  result = result + (ADCH << 8);
 
   // Stores the result.
   // (Goodness gracious this is an ugly line)
   adc_results_buffer[adc_results_buffer_index_sequence[adc_sequence_index]] = result;
 
   // Moves on to the next channel.
-  if (adc_sequence_index = adc_sequence_length - 1) {
-    adc_sequence_length = 0;
+  if (adc_sequence_index == adc_sequence_length - 1) {
+    adc_sequence_index = 0;
   } else {
     adc_sequence_index = adc_sequence_index + 1;
   }

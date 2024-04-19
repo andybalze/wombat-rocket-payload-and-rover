@@ -27,14 +27,16 @@ Then, from within the repository:
 - run `make reset` to reset the microcontroller without writing anything to it or changing power state
 - run `make clean` to delete the generated files
 
-Where `<target>` is `rover` for the rover program, `cube` for the data cube program, or `trx` for the special data cube on the rover.
+Where `<target>` is `rover` for the rover program, `cube0`, `cube1`, or `cube2` for a data cube program, or `trx` for the special data cube on the rover.
 
 # Code structure
 
 - The directory `rover/` is for the rover code. 
-- The directory `cube/standalone/` is for the regular data cube code.
+- The directories `cube/cube0/` is for the first data cube code.
+- The directories `cube/cube1/` is for the second data cube code.
+- The directories `cube/cube2/` is for the third data cube code.
 - The directory `cube/rover_trx/` is for the special data cube on the rover code.
-- The directory `cube/common/` is for code used in both versions of the data cube.
+- The directory `cube/common/` is for code used in all versions of the data cube.
 - The directory `common/` is for code common to both the rover and the data cubes.
 - The directory `build/` does not contain any code. It is used to store compilation results and can be ignored.
 

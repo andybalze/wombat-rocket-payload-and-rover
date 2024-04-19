@@ -23,7 +23,7 @@
 
 // The prescaler between the system clock and the ADC clock, f_s / f_adc.
 // Must be a power of 2 between 2 and 128, inclusive.
-#define ADC_PRESCALAR (8) // 8 allows the system clock to be 1 MHz or below.
+//#define ADC_PRESCALAR (8) // 8 allows the system clock to be 1 MHz or below.
 
 // Define these macros to configure which channels should be enabled.
 #define ADC_ENABLE_ADC0
