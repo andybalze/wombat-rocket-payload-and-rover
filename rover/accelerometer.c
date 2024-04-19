@@ -56,9 +56,9 @@ signed int acceleration_agg_mag(void) {
 }
 
 bool is_up(void) {
-    int acceleration_x;
-    acceleration_x = accelerometer_read(X_AXIS);
-    if (acceleration_x > 0) {
+    int acceleration_z;
+    acceleration_z = accelerometer_read(Z_AXIS);
+    if (acceleration_z > 0) {
         return true;
     } else {
         return false;
