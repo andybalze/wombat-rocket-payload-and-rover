@@ -19,7 +19,7 @@
 ///////////////////// Public Function Prototypes ///////////////////////////////
 
 // Requests and returns acceleration of axis in (1/2)*m/(s^2)
-signed int accelerometer_read(char axis) {
+int16_t accelerometer_read(char axis) {
     signed int accel_returned;
 
     switch (axis) {
@@ -43,7 +43,7 @@ signed int accelerometer_read(char axis) {
 }
 
 // Returns magnitude of agragate vector in (1/2)*m/(s^2)
-signed int acceleration_agg_mag(void) {
+uint16_t acceleration_agg_mag(void) {
     signed int mag_returned, x_comp, y_comp, z_comp;
 
     x_comp = accelerometer_read(X_AXIS);
