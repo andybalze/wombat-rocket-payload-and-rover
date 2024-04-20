@@ -18,7 +18,11 @@
 
 
 ///////////////////// Global Variables /////////////////////////////////////////
-volatile bool launch_is_a_go = false;
+static volatile bool launch_is_a_go = false;
+
+bool get_launch_is_a_go() {
+    return launch_is_a_go;
+}
 
 
 ///////////////////// Public Function Prototypes ///////////////////////////////

@@ -63,8 +63,6 @@ enum flight_state_enum {
 typedef enum flight_state_enum flight_state_t;
 
 
-///////////////////// Global Variables /////////////////////////////////////////
-extern volatile bool launch_is_a_go;
 
 
 int main() {
@@ -73,7 +71,6 @@ int main() {
     flight_state_t flight_state;
 
     bool end_operation = false;
-    bool is_launched;
     bool is_upside_down;
 
     digital_io_initialize();                                                        // initialize functions
@@ -93,7 +90,6 @@ int main() {
                 motor(LEFT_MOTOR, FORWARD, OFF);                                    //             turn off drive motors
                 motor(RIGHT_MOTOR, FORWARD, OFF);
                 LED_set(YELLOW, OFF);                                               //             LED off
-                is_launched = false;
 
                 if (SW_read(ROVER_MODE_SW) == 1) {                                  //             exit condition if (rover mode switch is manual load)
                     uart_transmit_formatted_message("MANUAL_LOAD_MODE\r\n");
@@ -139,7 +135,7 @@ int main() {
                             LED_set(YELLOW, OFF);
                         }
 
-                        if (launch_is_a_go == true) {                               //                     exit condition if (rocket launched)
+                        if (get_launch_is_a_go() == true) {                               //                     exit condition if (rocket launched)
                             disable_launch_check();
                             LED_set(RED, ON);
                             LED_set(GREEN, OFF);

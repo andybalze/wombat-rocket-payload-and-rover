@@ -43,6 +43,8 @@ enum axis_enum {
 
 ///////////////////// Public Function Prototypes ///////////////////////////////
 
+bool get_launch_is_a_go();
+
 // Requests and returns acceleration of axis in (1/2)*m/(s^2)
 int16_t accelerometer_read(char axis);
 
