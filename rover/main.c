@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Rover Main
+// Rover Main Test
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -65,13 +65,6 @@ typedef enum flight_state_enum flight_state_t;
 
 
 int main() {
-
-    rover_mode_t   rover_mode = RESET;
-    flight_state_t flight_state;
-
-    bool end_operation = false;
-    bool is_launched;
-    bool is_upside_down;
 
     digital_io_initialize();                                                        // initialize functions
     uart_initialize();
