@@ -23,7 +23,7 @@
 
 // #define WAIT_FOR_LAUNCH_LED_OFF_TIME    10 * ONE_SECOND
 // #define WAIT_FOR_LANDING_LED_OFF_TIME   10 * ONE_SECOND
-// #define WAIT_FOR_LANDING_TIME           2  * ONE_MINUTE     // DEBUG // get this value from the mechanical team
+// #define WAIT_FOR_LANDING_TIME           5  * ONE_MINUTE     // DEBUG // get this value from the mechanical team
 // #define EXIT_TIME                       10 * ONE_SECOND     // DEBUG // figure this time out through testing
 #define DRIVE_FORWARD_DELAY             100
 // #define DRIVE_TIME                      3  * ONE_MINUTE
