@@ -9,42 +9,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// gross debug
-#define F_CPU 8000000
-#include <util/delay.h>
 
+#include "config.h"
 #include "digital_io.h"
 #include "uart.h"
 #include "adc.h"
 #include "motors.h"
 #include "timer.h"
 #include "accelerometer.h"
-
-
-
-#define EXIT_SPEED      149
-#define DRIVE_SPEED     149
-
-#define WAIT_FOR_LAUNCH_LED_OFF_TIME    10 * ONE_SECOND
-#define WAIT_FOR_LANDING_LED_OFF_TIME   10 * ONE_SECOND
-#define WAIT_FOR_LANDING_TIME           10 * ONE_MINUTE     // DEBUG // get this value from the mechanical team
-#define EXIT_TIME                       10 * ONE_SECOND     // DEBUG // figure this time out through testing
-#define DRIVE_FORWARD_DELAY             100
-#define DRIVE_TIME                      30 * ONE_SECOND
-#define DISPENSE_TIME                   1  * ONE_MINUTE     // 1 minute (actually takes about 35 seconds)
-#define SIGNAL_ONBOARD_DATA_CUBE_TIME   10 * ONE_SECOND
-
-
-////////// TEST //////////
-//#define WAIT_FOR_LAUNCH_LED_OFF_TIME    2  * ONE_SECOND
-//#define WAIT_FOR_LANDING_LED_OFF_TIME   2  * ONE_SECOND
-//#define WAIT_FOR_LANDING_TIME           10  * ONE_SECOND
-//#define EXIT_TIME                       2  * ONE_SECOND
-
-//#define DRIVE_TIME                      3  * ONE_SECOND
-//#define DISPENSE_TIME                   1  * ONE_MINUTE
-//#define SIGNAL_ONBOARD_DATA_CUBE_TIME   10  * ONE_SECOND
-////////// TEST //////////
 
 
 
@@ -65,16 +37,6 @@ enum flight_state_enum {
     DEAD_LOOP
 };
 typedef enum flight_state_enum flight_state_t;
-
-//gross 2am debug
-int party() {
-    while(1) {
-        LED_set(YELLOW, ON);
-        _delay_ms(300);
-        LED_set(YELLOW, OFF);
-        _delay_ms(300);
-    }
-}
 
 
 

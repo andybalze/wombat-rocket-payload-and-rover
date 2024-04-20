@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "config.h"
+
 
 ///////////////////// Macro Definitions /////////////////////////////////////////
 
@@ -24,14 +26,7 @@
 // #define ONE_G                   20          // Use with caution
 #define ONE_G_SQUARED           385         // Also use with caution
 
-#define LAUNCH_FORCE            3           // Over 3 G at launch. This is the thing you change if you want to adjust rocket launch sensing sensitivity
-#define LAUNCH_FORCE_SQUARED    LAUNCH_FORCE * LAUNCH_FORCE * ONE_G_SQUARED
-//#define LAUNCH_FORCE_SQUARED    420
-
-#define LAUNCH_FORCE_CNT_THRESHOLD 58       // 58 is 90% of 64 samples
-//#define LAUNCH_FORCE_CNT_THRESHOLD 2       // 58 is 90% of 64 samples
-
-
+#define LAUNCH_FORCE_SQUARED    LAUNCH_FORCE * LAUNCH_FORCE * ONE_G_SQUARED     // LAUNCH_FORCE defined in config.h
 
 
 ///////////////////// Type Definitions /////////////////////////////////////////
