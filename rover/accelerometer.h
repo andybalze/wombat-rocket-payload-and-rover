@@ -28,8 +28,8 @@
 #define LAUNCH_FORCE_SQUARED    LAUNCH_FORCE * LAUNCH_FORCE * ONE_G_SQUARED
 //#define LAUNCH_FORCE_SQUARED    420
 
-//#define LAUNCH_FORCE_CNT_THRESHOLD 58       // 58 is 90% of 64 samples
 #define LAUNCH_FORCE_CNT_THRESHOLD 58       // 58 is 90% of 64 samples
+//#define LAUNCH_FORCE_CNT_THRESHOLD 2       // 58 is 90% of 64 samples
 
 
 
