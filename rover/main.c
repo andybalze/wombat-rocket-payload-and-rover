@@ -63,6 +63,9 @@ enum flight_state_enum {
 typedef enum flight_state_enum flight_state_t;
 
 
+///////////////////// Global Variables /////////////////////////////////////////
+extern volatile bool launch_is_a_go;
+
 
 int main() {
 
@@ -103,7 +106,7 @@ int main() {
                     UART_WAIT_UNTIL_DONE();
                     uart_transmit_formatted_message("WAIT_FOR_LAUNCH\r\n");
                     UART_WAIT_UNTIL_DONE();
-                    reset_timer(timer_alpha);
+                    enable_launch_check();
                     flight_state = WAIT_FOR_LAUNCH;                                 //                 change flight mode state to WAIT_FOR_LAUNCH
                     rover_mode = FLIGHT_MODE;                                       //                 change state to FLIGHT_MODE
                 }                                                                   //             end exit condition
@@ -136,13 +139,8 @@ int main() {
                             LED_set(YELLOW, OFF);
                         }
 
-                        //                     is_launched = launch check function
-                        ////////// TEST //////////
-                        if (get_timer_cnt(timer_alpha) == 10 * ONE_SECOND) {
-                            is_launched = true;
-                        }
-                        ////////// TEST //////////
-                        if (is_launched == true) {                                  //                     exit condition if (rocket launched)
+                        if (launch_is_a_go == true) {                               //                     exit condition if (rocket launched)
+                            disable_launch_check();
                             LED_set(RED, ON);
                             LED_set(GREEN, OFF);
                             uart_transmit_formatted_message("WAIT_FOR_LANDING\r\n");
