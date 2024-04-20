@@ -38,7 +38,7 @@
 #define EXIT_TIME                       2  * ONE_SECOND
 
 #define DRIVE_TIME                      3  * ONE_SECOND
-#define DISPENSE_TIME                   60  * ONE_SECOND
+#define DISPENSE_TIME                   1  * ONE_MINUTE
 #define SIGNAL_ONBOARD_DATA_CUBE_TIME   10  * ONE_SECOND
 ////////// TEST //////////
 
