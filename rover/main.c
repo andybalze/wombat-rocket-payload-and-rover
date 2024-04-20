@@ -9,6 +9,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// gross debug
+#define F_CPU 8000000
+#include <util/delay.h>
+
 #include "digital_io.h"
 #include "uart.h"
 #include "adc.h"
@@ -62,6 +66,15 @@ enum flight_state_enum {
 };
 typedef enum flight_state_enum flight_state_t;
 
+//gross 2am debug
+int party() {
+    while(1) {
+        LED_set(YELLOW, ON);
+        _delay_ms(300);
+        LED_set(YELLOW, OFF);
+        _delay_ms(300);
+    }
+}
 
 
 

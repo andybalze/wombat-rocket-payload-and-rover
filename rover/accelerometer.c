@@ -94,7 +94,7 @@ void is_launched(uint64_t samples) {
         check_vector = check_vector << 1;
     }
 
-    if (check_vector >= LAUNCH_FORCE_CNT_THRESHOLD) {
+    if (high_G_cnt >= LAUNCH_FORCE_CNT_THRESHOLD) {
         launch_is_a_go = true;
     }
 }
