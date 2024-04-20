@@ -131,7 +131,7 @@ int main() {
             case FLIGHT_MODE: {                                                     //         case (FLIGHT_MODE)
                 switch (flight_state) {                                             //             switch (flight state)
                     case WAIT_FOR_LAUNCH: {                                         //                 case (WAIT_FOR_LAUNCH)
-                        if (get_timer_cnt(timer_alpha) == WAIT_FOR_LAUNCH_LED_OFF_TIME) {
+                        if (get_timer_cnt(timer_alpha) >= WAIT_FOR_LAUNCH_LED_OFF_TIME) {
                             LED_set(YELLOW, OFF);
                         }
 
@@ -148,11 +148,11 @@ int main() {
                     }                                                               //                 end case
 
                     case WAIT_FOR_LANDING: {                                        //                 case (WAIT_FOR_LANDING)
-                        if (get_timer_cnt(timer_alpha) == WAIT_FOR_LANDING_LED_OFF_TIME) {
+                        if (get_timer_cnt(timer_alpha) >= WAIT_FOR_LANDING_LED_OFF_TIME) {
                             LED_set(YELLOW, OFF);
                         }
 
-                        if (get_timer_cnt(timer_alpha) == WAIT_FOR_LANDING_TIME) {  //                     exit condition
+                        if (get_timer_cnt(timer_alpha) >= WAIT_FOR_LANDING_TIME) {  //                     exit condition
                             is_upside_down = !is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
                             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
                             UART_WAIT_UNTIL_DONE();
@@ -166,7 +166,7 @@ int main() {
                         motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);                     //                     turn on drive motors
                         motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
 
-                        if (get_timer_cnt(timer_alpha) == EXIT_TIME) {              //                     exit condition if (time delay reached)
+                        if (get_timer_cnt(timer_alpha) >= EXIT_TIME) {              //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
@@ -178,12 +178,12 @@ int main() {
                     }                                                               //                 end case
 
                     case DRIVE_FORWARD: {                                           //                 case (DRIVE_FORWARD)
-                        if (get_timer_cnt(timer_alpha) == DRIVE_FORWARD_DELAY) {
+                        if (get_timer_cnt(timer_alpha) >= DRIVE_FORWARD_DELAY) {
                             motor(LEFT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);//                     drive forward
                             motor(RIGHT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);
                         }
 
-                        if (get_timer_cnt(timer_alpha) == DRIVE_TIME) {             //                     exit condition if (time delay reached)
+                        if (get_timer_cnt(timer_alpha) >= DRIVE_TIME) {             //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             uart_transmit_formatted_message("DISPENSE_DATA_CUBE\r\n");
@@ -197,7 +197,7 @@ int main() {
                     case DISPENSE_DATA_CUBES: {                                     //                 case (DISPENSE_DATA_CUBES)
                         motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 //                     turn on dispenser motor
 
-                        if (get_timer_cnt(timer_alpha) == DISPENSE_TIME) {          //                     exit condition if (time delay reached)
+                        if (get_timer_cnt(timer_alpha) >= DISPENSE_TIME) {          //                     exit condition if (time delay reached)
                             motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
                             uart_transmit_formatted_message("SIGNAL_ONBOARD_DATA_CUBE\r\n");
                             UART_WAIT_UNTIL_DONE();
@@ -208,7 +208,7 @@ int main() {
                     }                                                               //                 end case
 
                     case SIGNAL_ONBOARD_DATA_CUBE: {                                //                 case (SIGNAL_ONBOARD_DATA_CUBE)
-                        if (get_timer_cnt(timer_alpha) == SIGNAL_ONBOARD_DATA_CUBE_TIME) { //                     exit condition
+                        if (get_timer_cnt(timer_alpha) >= SIGNAL_ONBOARD_DATA_CUBE_TIME) { //                     exit condition
                             signal_data_cube(ON);                                   //                         signal onboard data cube
                             LED_set(GREEN, ON);                                     //                     LED solid green
                             LED_set(RED, OFF);
