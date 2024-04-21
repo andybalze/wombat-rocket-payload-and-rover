@@ -1,7 +1,7 @@
 #include "timer.h"
 
-uint32_t timer_alpha_cnt = 0;       // Only timer interrupt allowed to change
-uint32_t timer_beta_cnt = 0;       // Only timer interrupt allowed to change
+uint32_t counter_alpha_cnt = 0;         // Only timer interrupt allowed to change
+uint32_t counter_beta_cnt = 0;          // Only timer interrupt allowed to change
 
 
 
@@ -9,7 +9,6 @@ void timer_initialize(void) {
     TCCR0B |= _BV(CS02);                // Select the 256 prescaler
     TCCR0A |= _BV(WGM01);               // Set timer to CTC mode
     TIMSK0 |= _BV(OCIE0A);              // Enable output compare channel A interrupt
-    TIMSK0 |= _BV(OCIE0B);           // Enable output compare channel B interrupt
     // Channel B interrupt enabled/disabled in (en/dis)able_launch_check() functions
 
     OCR0A = 31;                         // 1000 Hz interrupt frequency (1 ms)
@@ -23,24 +22,23 @@ void timer_initialize(void) {
 
 
 
-void reset_timer(timer_name_t timer) {
-    switch (timer) {
-        case timer_alpha: {
-            timer_alpha_cnt = 0;
+void reset_timer_counter(counter_name_t counter) {
+    switch (counter) {
+        case counter_alpha: {
+            counter_alpha_cnt = 0;
             break;
         }
 
-        case timer_beta: {
-            timer_beta_cnt = 0;
+        case counter_beta: {
+            counter_beta_cnt = 0;
             break;
         }
 
         default: {
             LED_set(RED, ON);
             LED_set(GREEN, OFF);
-            uart_transmit_formatted_message("ERROR 158: error reseting timer\r\n");    // TEST //
-            UART_WAIT_UNTIL_DONE();     // TEST //
-            while(1);               // DEBUG //
+            uart_transmit_formatted_message("ERROR 158: error resetting timer counter\r\n");
+            UART_WAIT_UNTIL_DONE();
             break;
         }
     }
@@ -48,17 +46,17 @@ void reset_timer(timer_name_t timer) {
 
 
 
-uint32_t get_timer_cnt(timer_name_t timer) {
+uint32_t get_timer_counter(counter_name_t counter) {
     unsigned long int count;
 
-    switch (timer) {
-        case timer_alpha: {
-            count = timer_alpha_cnt;
+    switch (counter) {
+        case counter_alpha: {
+            count = counter_alpha_cnt;
             break;
         }
 
-        case timer_beta: {
-            count = timer_beta_cnt;
+        case counter_beta: {
+            count = counter_beta_cnt;
             break;
         }
 
@@ -77,21 +75,22 @@ uint32_t get_timer_cnt(timer_name_t timer) {
 
 
 
-// Enables t imer0 channel b interrupt
+// Enables timer0 channel b interrupt
 void enable_launch_check(void) {
+    TIMSK0 |= _BV(OCIE0B);           // Enable output compare channel B interrupt
 }
 
 
 // Disables timer0 channel b interrupt
 void disable_launch_check(void) {
-    //TIMSK0 &= ~_BV(OCIE0B);           // Disable output compare channel B interrupt
+    TIMSK0 &= ~_BV(OCIE0B);           // Disable output compare channel B interrupt
 }
 
 
 
 ISR(TIMER0_COMPA_vect) {
-    timer_alpha_cnt++;                    // Overflows after 4,294,967,296
-    timer_beta_cnt++;
+    counter_alpha_cnt++;                    // Overflows after 4,294,967,296
+    counter_beta_cnt++;
 }
 
 ISR(TIMER0_COMPB_vect) {
@@ -102,7 +101,7 @@ ISR(TIMER0_COMPB_vect) {
     
     if (bad_name >= 7) {
 
-        static uint64_t G_force_samples = 0;        // Don't let it's appearance fool you, this is a bool array[128]
+        static uint64_t G_force_samples = 0;        // Don't let it's appearance fool you, this is a bool array[64]
         uint32_t gamma;                             // acceleration aggragate magnitude squared
 
         gamma = acceleration_agg_mag();             // remember, this is magnitude squared

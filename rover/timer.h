@@ -13,17 +13,19 @@
 #define ONE_SECOND 1000
 #define ONE_MINUTE 60000
 
-enum timer_name_enum {
-    timer_alpha,
-    timer_beta
+
+enum counter_name_enum {
+    counter_alpha,
+    counter_beta
 };
-typedef enum timer_name_enum timer_name_t;
+typedef enum counter_name_enum counter_name_t;
+
 
 void timer_initialize(void);
-void reset_timer(timer_name_t timer);
-uint32_t get_timer_cnt(timer_name_t timer);
+void reset_timer_counter(counter_name_t counter);
+uint32_t get_timer_counter(counter_name_t counter);
 
-// Enables t imer0 channel b interrupt
+// Enables timer0 channel b interrupt
 void enable_launch_check(void);
 
 
