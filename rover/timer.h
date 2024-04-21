@@ -21,15 +21,15 @@ enum counter_name_enum {
 typedef enum counter_name_enum counter_name_t;
 
 
-void timer_initialize(void);
+// Initializes TIMER0 which is used for two seperate counters. Can be used at the same time as Left and Right motor PWM
+void timer_counter_initialize(void);
 void reset_timer_counter(counter_name_t counter);
 uint32_t get_timer_counter(counter_name_t counter);
 
-// Enables timer0 channel b interrupt
-void enable_launch_check(void);
+// Enables timer2 channel a interrupt. Cannot function if PWM_enable (from motors.c) is called
+void launch_check_enable(void);
 
-
-// Disables timer0 channel b interrupt
-void disable_launch_check(void);
+// Disables timer2 channel a interrupt
+void launch_check_disable(void);
 
 #endif // TIMER_H

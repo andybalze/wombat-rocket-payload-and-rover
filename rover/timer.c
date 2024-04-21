@@ -4,18 +4,13 @@ uint32_t counter_alpha_cnt = 0;         // Only timer interrupt allowed to chang
 uint32_t counter_beta_cnt = 0;          // Only timer interrupt allowed to change
 
 
-
-void timer_initialize(void) {
+// Initializes TIMER0 which is used for two seperate counters. Can be used at the same time as Left and Right motor PWM
+void timer_counter_initialize(void) {
     TCCR0B |= _BV(CS02);                // Select the 256 prescaler
     TCCR0A |= _BV(WGM01);               // Set timer to CTC mode
     TIMSK0 |= _BV(OCIE0A);              // Enable output compare channel A interrupt
-    // Channel B interrupt enabled/disabled in (en/dis)able_launch_check() functions
 
     OCR0A = 31;                         // 1000 Hz interrupt frequency (1 ms)
-    //OCR0B = 244;                        // 128 Hz interrupt frequency (64 samples in 0.5 s)
-    OCR0B = 31;                        // 128 Hz interrupt frequency (64 samples in 0.5 s)
-    // DEBUG -- WHen OCRB > OCRA, the interrupt never triggers because the timer never exceeds OCR0A
-    // Look into mode other than CTC?
 
     SREG   |= _BV(SREG_I);              // Enable global interrupts
 }
@@ -75,51 +70,46 @@ uint32_t get_timer_counter(counter_name_t counter) {
 
 
 
-// Enables timer0 channel b interrupt
-void enable_launch_check(void) {
-    TIMSK0 |= _BV(OCIE0B);           // Enable output compare channel B interrupt
+// Enables timer2 channel A interrupt used to sample acceleration in is_launched() (accelerometer.c)
+void launch_check_enable(void) {
+    TCCR2B |= _BV(CS22) | _BV(CS21);    // Select the 256 prescaler
+    TCCR2A |= _BV(WGM21);               // Set timer to CTC mode
+    TIMSK2 |= _BV(OCIE2A);              // Enable output compare channel A interrupt
+
+    OCR0A = 244;                         // 128 Hz interrupt frequency (approx. 64 samples in 0.5 s)
+
+    SREG   |= _BV(SREG_I);              // Enable global interrupts
 }
 
 
-// Disables timer0 channel b interrupt
-void disable_launch_check(void) {
-    TIMSK0 &= ~_BV(OCIE0B);           // Disable output compare channel B interrupt
+// Disables timer2 channel A interrupt
+void launch_check_disable(void) {
+    // Disable output compare interrupt
 }
 
 
 
+// Interrupt service routine used for 1 ms counters
 ISR(TIMER0_COMPA_vect) {
-    counter_alpha_cnt++;                    // Overflows after 4,294,967,296
+    counter_alpha_cnt++;                    // Overflows after 4,294,967,296 ms which is about 50 days
     counter_beta_cnt++;
 }
 
-ISR(TIMER0_COMPB_vect) {
 
-    // This is some perfect code, written at 1:57 AM. Enjoy
-    // Bandaid to make the interrupt only happen at 128 Hz instead of 1 KHz
-    static uint16_t bad_name = 0;
-    
-    if (bad_name >= 7) {
+// Interrupt service routine used for launch check
+ISR(TIMER2_COMPA_vect) {
+    static uint64_t G_force_samples = 0;        // Don't let it's appearance fool you, this is a bool array[64]
+    uint32_t gamma;                             // acceleration aggragate magnitude squared
 
-        static uint64_t G_force_samples = 0;        // Don't let it's appearance fool you, this is a bool array[64]
-        uint32_t gamma;                             // acceleration aggragate magnitude squared
+    gamma = acceleration_agg_mag();             // remember, this is magnitude squared
 
-        gamma = acceleration_agg_mag();             // remember, this is magnitude squared
-
-        G_force_samples = G_force_samples << 1;         // shift bottom half of array
-        if (gamma >= LAUNCH_FORCE_SQUARED) {
-            G_force_samples += 1;                     // insert a 1 into the LSB of bottom half
-        }
-        else {
-            // insert a zero (happens by definition)
-        }
-
-        is_launched(G_force_samples);                                // check array to see if we've launched
-
-        bad_name = 0;
-
+    G_force_samples = G_force_samples << 1;         // shift bottom half of array
+    if (gamma >= LAUNCH_FORCE_SQUARED) {
+        G_force_samples += 1;                     // insert a 1 into the LSB of bottom half
     }
     else {
-        bad_name++;
+        // insert a zero (happens by definition)
     }
+
+    is_launched(G_force_samples);                                // check array to see if we've launched
 }

@@ -21,9 +21,14 @@ enum motor_name_enum {
 };
 typedef enum motor_name_enum motor_name_t;
 
-_Noreturn void rover_failure_state(void);
 
+// Initializes motor IO pins. PWM must be initialized seperately
 void motors_initialize(void);
+
+// Enables PWM for left and right (but not dispenser) motors. Cannot function if PWM_enable (from motors.c) is called
+void PWM_enable(void);
+
+// Sets the speed and direction of a specified motor. Dispenser to dispense is forward
 void motor(motor_name_t motor_name, motor_direction_t direction, uint8_t speed);
 
 #endif //MOTORS_H

@@ -51,8 +51,9 @@ int main() {
     digital_io_initialize();                                                        // initialize functions
     uart_initialize();
     adc_initialize();
-    motors_initialize();
-    timer_initialize();
+    motors_initialize();            // PWM must be initialized seperately
+
+    timer_counter_initialize();
 
     while(1) {                                                                      // begin main loop
         if (end_operation == true) {
@@ -77,7 +78,7 @@ int main() {
                     UART_WAIT_UNTIL_DONE();
                     uart_transmit_formatted_message("WAIT_FOR_LAUNCH\r\n");
                     UART_WAIT_UNTIL_DONE();
-                    enable_launch_check();
+                    launch_check_enable();
                     flight_state = WAIT_FOR_LAUNCH;                                 //                 change flight mode state to WAIT_FOR_LAUNCH
                     rover_mode = FLIGHT_MODE;                                       //                 change state to FLIGHT_MODE
                 }                                                                   //             end exit condition
@@ -111,7 +112,7 @@ int main() {
                         }
 
                         if (get_launch_is_a_go() == true) {                               //                     exit condition if (rocket launched)
-                            disable_launch_check();
+                            launch_check_disable();
                             LED_set(RED, ON);
                             LED_set(GREEN, OFF);
                             uart_transmit_formatted_message("WAIT_FOR_LANDING\r\n");
@@ -129,6 +130,7 @@ int main() {
 
                         if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_TIME) {  //                     exit condition
                             is_upside_down = !is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
+                            PWM_enable();
                             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
                             UART_WAIT_UNTIL_DONE();
                             reset_timer_counter(counter_alpha);                               //                         reset timer counter
