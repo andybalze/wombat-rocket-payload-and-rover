@@ -60,7 +60,6 @@ uint32_t get_timer_counter(counter_name_t counter) {
             LED_set(GREEN, OFF);
             uart_transmit_formatted_message("ERROR 159: error getting timer count\r\n");    // TEST //
             UART_WAIT_UNTIL_DONE();     // TEST //
-            while(1);               // DEBUG //
             break;
         }
     }

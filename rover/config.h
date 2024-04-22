@@ -43,12 +43,12 @@ Instead, commment out the flight section and uncomment the test section
 ////////// TEST //////////
 #define WAIT_FOR_LAUNCH_LED_OFF_TIME    2  * ONE_SECOND
 #define WAIT_FOR_LANDING_LED_OFF_TIME   2  * ONE_SECOND
-#define WAIT_FOR_LANDING_TIME           10  * ONE_SECOND
+#define WAIT_FOR_LANDING_TIME           5  * ONE_SECOND
 #define EXIT_TIME                       2  * ONE_SECOND
 #define DRIVE_FORWARD_DELAY             100
 #define DRIVE_TIME                      3  * ONE_SECOND
 #define DISPENSE_TIME                   1  * ONE_MINUTE
-#define SIGNAL_ONBOARD_DATA_CUBE_TIME   10  * ONE_SECOND
+#define SIGNAL_ONBOARD_DATA_CUBE_TIME   5  * ONE_SECOND
 ////////// TEST //////////
 
 ////////// Timing for different states of the rover's main state machine ///////////////////
@@ -65,5 +65,28 @@ Instead, commment out the flight section and uncomment the test section
 #define LAUNCH_FORCE_CNT_THRESHOLD 2                      // TEST //
 
 ////////// Launch detection settings ///////////////////////////////////////////////////////
+
+
+
+////////// Accelerometer Callibration //////////////////////////////////////////////////////
+/*
+Uncomment the section for the rover controller serial number you are using.
+Please comment both sections out when you push so we get an error if we forget to configure this.
+*/
+
+////////// Rover Controller SN1 //////////
+// #define X_AXIS_ERROR ?
+// #define Y_AXIS_ERROR ?
+// #define Z_AXIS_ERROR ?
+////////// Rover Controller SN1 //////////
+
+
+////////// Rover Controller SN2 //////////
+#define X_AXIS_ERROR -3
+#define Y_AXIS_ERROR -2
+#define Z_AXIS_ERROR 0
+////////// Rover Controller SN2 //////////
+
+////////// Accelerometer Callibration //////////////////////////////////////////////////////
 
 #endif // CONFIG_H

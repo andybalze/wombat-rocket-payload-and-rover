@@ -54,6 +54,9 @@ int main() {
     motors_initialize();            // PWM must be initialized seperately
 
     timer_counter_initialize();
+    reset_timer_counter(counter_alpha);
+
+    while(true);        // DEBUG //
 
     while(1) {                                                                      // begin main loop
         if (end_operation == true) {

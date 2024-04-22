@@ -12,6 +12,7 @@
 
 #include <math.h>
 
+#include "config.h"
 #include "accelerometer.h"
 #include "adc.h"
 #include "timer.h"
@@ -33,15 +34,15 @@ int16_t accelerometer_read(char axis) {
 
     switch (axis) {
         case X_AXIS:    // If X-axis requested return X-axis value
-        accel_returned = adc_get_channel_result(ADC_CHANNEL_ADC2) - 509;
+        accel_returned = adc_get_channel_result(ADC_CHANNEL_ADC2) - 512 + X_AXIS_ERROR;
         break;
 
         case Y_AXIS:    // If Y-axis requested return Y-axis value
-        accel_returned = adc_get_channel_result(ADC_CHANNEL_ADC1) - 510;
+        accel_returned = adc_get_channel_result(ADC_CHANNEL_ADC1) - 512 + Y_AXIS_ERROR;
         break;
 
         case Z_AXIS:    // If Z-axis requested return Z-axis value
-        accel_returned = adc_get_channel_result(ADC_CHANNEL_ADC3) - 512;
+        accel_returned = adc_get_channel_result(ADC_CHANNEL_ADC3) - 512 + Z_AXIS_ERROR;
         break;
 
         default:        // Its broken...
