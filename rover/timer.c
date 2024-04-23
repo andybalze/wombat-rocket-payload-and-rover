@@ -82,13 +82,39 @@ void launch_check_enable(void) {
 }
 
 
+
 // Disables timer2 channel A interrupt
 void launch_check_disable(void) {
-    TIMSK2 &= ~_BV(OCIE2A);              // Enable output compare channel A interrupt
+    TIMSK2 &= ~_BV(OCIE2A);              // Disable output compare channel A interrupt
     timer_counter_initialize();
 }
 
 
+
+// Enables timer2 channel B interrupt. Cannot function if either PWM_enable (from motors.c) or launch_check_enable are called
+void no_motion_check_enable(void) {
+    TCCR2B |= _BV(CS22) | _BV(CS21);    // Select the 256 prescaler
+    TCCR2A |= _BV(WGM21);               // Set timer to CTC mode
+    TIMSK2 |= _BV(OCIE2B);              // Enable output compare channel B interrupt
+
+    OCR0A = 244;                         // 128 Hz interrupt frequency (approx. 64 samples in 0.5 s)
+
+    SREG   |= _BV(SREG_I);              // Enable global interrupts
+}
+
+
+
+// Disables timer2 channel B interrupt
+void no_motion_check_disable(void) {
+    TIMSK2 &= ~_BV(OCIE2B);              // Disable output compare channel A interrupt
+    timer_counter_initialize();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+////////// Interrupt Service Routines //////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
 
 // Interrupt service routine used for 1 ms counters
 ISR(TIMER0_COMPA_vect) {
@@ -97,9 +123,10 @@ ISR(TIMER0_COMPA_vect) {
 }
 
 
+
 // Interrupt service routine used for launch check
 ISR(TIMER2_COMPA_vect) {
-    static uint64_t G_force_samples = 0;        // Don't let it's appearance fool you, this is a bool array[64]
+    static logic_vector G_force_samples = 0;        // Don't let it's appearance fool you, this is a bool array[64]
     uint32_t gamma;                             // acceleration aggragate magnitude squared
 
     gamma = acceleration_agg_mag();             // remember, this is magnitude squared
@@ -114,3 +141,25 @@ ISR(TIMER2_COMPA_vect) {
 
     is_launched(G_force_samples);                                // check array to see if we've launched
 }
+
+
+
+// Interrupt service routine used for launch check
+ISR(TIMER2_COMPB_vect) {
+    static logic_vector G_force_samples = 0;    // Don't let it's appearance fool you, this is a bool array[64]
+    uint32_t gamma;                             // acceleration aggragate magnitude squared
+
+    gamma = acceleration_agg_mag();             // remember, this is magnitude squared
+
+    G_force_samples = G_force_samples << 1;         // shift bottom half of array
+    if (gamma >= (ONE_G_SQUARED - NO_MOVEMENT_TOLERANCE_SQUARED) && gamma <= (ONE_G_SQUARED + NO_MOVEMENT_TOLERANCE_SQUARED)) {
+        G_force_samples += 1;                     // insert a 1 into the LSB of bottom half
+    }
+    else {
+        // insert a zero (happens by definition)
+    }
+
+    is_no_motion(G_force_samples);                                // check array to see if we've launched
+}
+
+////////// Interrupt Service Routines //////////////////////////////////////////////////////

@@ -20,9 +20,22 @@
 
 ///////////////////// Global Variables /////////////////////////////////////////
 static volatile bool launch_is_a_go = false;
+static volatile bool no_motion = false;
+
+void reset_launch_is_a_go() {
+    launch_is_a_go = false;
+}
 
 bool get_launch_is_a_go() {
     return launch_is_a_go;
+}
+
+void reset_no_motion() {
+    no_motion = false;
+}
+
+bool get_no_motion() {
+    return no_motion;
 }
 
 
@@ -83,8 +96,8 @@ bool is_up(void) {
 }
 
 // Called by timer2 channel A interrupt. Changes launch_is_a_go global variable
-void is_launched(uint64_t samples) {
-    uint64_t check_vector = 0x1;
+void is_launched(logic_vector samples) {
+    logic_vector check_vector = 0x1;
     uint8_t high_G_cnt = 0;
     
     for (int i = 0; i < 64; i++) {
@@ -97,5 +110,23 @@ void is_launched(uint64_t samples) {
 
     if (high_G_cnt >= LAUNCH_FORCE_CNT_THRESHOLD) {
         launch_is_a_go = true;
+    }
+}
+
+// Called by timer2 channel B interrupt. Changes no_motion global variable
+void is_no_motion(uint64_t samples) {
+    logic_vector check_vector = 0x1;
+    uint8_t no_motion_cnt = 0;
+    
+    for (int i = 0; i < 64; i++) {
+        if (samples & check_vector) {
+            no_motion_cnt++;
+        }
+
+        check_vector = check_vector << 1;
+    }
+
+    if (no_motion_cnt >= LAUNCH_FORCE_CNT_THRESHOLD) {
+        no_motion = true;
     }
 }

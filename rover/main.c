@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// #include <math.h>   // DEBUG //
+
 
 #include "config.h"
 #include "digital_io.h"
@@ -55,6 +57,13 @@ int main() {
 
     timer_counter_initialize();
 
+    ////////// DEBUG //////////
+    // while (!false) {
+    //     uart_transmit_formatted_message("x: %d    y: %d    z: %d    agg_mag: %d    sqrt(agg_mag): %d\r\n", accelerometer_read(X_AXIS), accelerometer_read(Y_AXIS), accelerometer_read(Z_AXIS), acceleration_agg_mag(), (uint32_t)sqrt(acceleration_agg_mag()));
+    //     UART_WAIT_UNTIL_DONE();
+    // }
+    ////////// DEBUG //////////
+
     while(1) {                                                                      // begin main loop
         if (end_operation == true) {
             break;
@@ -78,6 +87,8 @@ int main() {
                     UART_WAIT_UNTIL_DONE();
                     uart_transmit_formatted_message("WAIT_FOR_LAUNCH\r\n");
                     UART_WAIT_UNTIL_DONE();
+                    reset_launch_is_a_go();
+                    reset_no_motion();
                     reset_timer_counter(counter_alpha);
                     flight_state = WAIT_FOR_LAUNCH;                                 //                 change flight mode state to WAIT_FOR_LAUNCH
                     rover_mode = FLIGHT_MODE;                                       //                 change state to FLIGHT_MODE
@@ -130,13 +141,17 @@ int main() {
                         }
 
                         if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_TIME) {  //                     exit condition
-                            LED_set(YELLOW, OFF);
-                            is_upside_down = !is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
-                            PWM_enable();
-                            uart_transmit_formatted_message("EXIT_CANISTER\r\n");
-                            UART_WAIT_UNTIL_DONE();
-                            reset_timer_counter(counter_alpha);                               //                         reset timer counter
-                            flight_state = EXIT_CANISTER;                           //                         change state to EXIT_CANISTER
+                            no_motion_check_enable();   // TEST //          // Has to be in here b.c. counter can't work during motion check
+                            if (get_no_motion() == true) {  // TEST //
+                                no_motion_check_disable();  // TEST //
+                                LED_set(YELLOW, OFF);
+                                is_upside_down = !is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
+                                PWM_enable();
+                                uart_transmit_formatted_message("EXIT_CANISTER\r\n");
+                                UART_WAIT_UNTIL_DONE();
+                                reset_timer_counter(counter_alpha);                               //                         reset timer counter
+                                flight_state = EXIT_CANISTER;                           //                         change state to EXIT_CANISTER
+                            }
                         }                                                           //                     end exit condition
                         break;
                     }                                                               //                 end case
@@ -218,6 +233,9 @@ int main() {
                 }                                                                   //             end switch
 
                 if (SW_read(ROVER_MODE_SW) == 1) {                                  //             exit condition if (rover mode switch is manual load)
+                    motor(LEFT_MOTOR, FORWARD, 0);
+                    motor(RIGHT_MOTOR, FORWARD, 0);
+                    motor(DISPENSER_MOTOR, FORWARD, 0);
                     rover_mode = RESET;                                             //                 change state to RESET
                 }                                                                   //             end exit condition
                 break;
