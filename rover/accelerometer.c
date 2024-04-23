@@ -82,7 +82,7 @@ bool is_up(void) {
     return return_val;
 }
 
-// Called by timer0 channel B interrupt. Changes launch_is_a_go global variable
+// Called by timer2 channel A interrupt. Changes launch_is_a_go global variable
 void is_launched(uint64_t samples) {
     uint64_t check_vector = 0x1;
     uint8_t high_G_cnt = 0;

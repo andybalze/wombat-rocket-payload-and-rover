@@ -26,7 +26,8 @@ void timer_counter_initialize(void);
 void reset_timer_counter(counter_name_t counter);
 uint32_t get_timer_counter(counter_name_t counter);
 
-// Enables timer2 channel a interrupt. Cannot function if PWM_enable (from motors.c) is called
+// Enables timer2 channel a interrupt. Cannot function if PWM_enable (from motors.c) is called\
+// Cannot use the timer counter while launch check is enabled
 void launch_check_enable(void);
 
 // Disables timer2 channel a interrupt

@@ -58,8 +58,8 @@ uint32_t get_timer_counter(counter_name_t counter) {
         default: {
             LED_set(RED, ON);
             LED_set(GREEN, OFF);
-            uart_transmit_formatted_message("ERROR 159: error getting timer count\r\n");    // TEST //
-            UART_WAIT_UNTIL_DONE();     // TEST //
+            uart_transmit_formatted_message("ERROR 159: error getting timer count\r\n");
+            UART_WAIT_UNTIL_DONE();
             break;
         }
     }
@@ -70,6 +70,7 @@ uint32_t get_timer_counter(counter_name_t counter) {
 
 
 // Enables timer2 channel A interrupt used to sample acceleration in is_launched() (accelerometer.c)
+// Cannot use the timer counter while launch check is enabled
 void launch_check_enable(void) {
     TCCR2B |= _BV(CS22) | _BV(CS21);    // Select the 256 prescaler
     TCCR2A |= _BV(WGM21);               // Set timer to CTC mode
@@ -83,7 +84,8 @@ void launch_check_enable(void) {
 
 // Disables timer2 channel A interrupt
 void launch_check_disable(void) {
-    // Disable output compare interrupt
+    TIMSK2 &= ~_BV(OCIE2A);              // Enable output compare channel A interrupt
+    timer_counter_initialize();
 }
 
 

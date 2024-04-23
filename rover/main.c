@@ -54,9 +54,6 @@ int main() {
     motors_initialize();            // PWM must be initialized seperately
 
     timer_counter_initialize();
-    reset_timer_counter(counter_alpha);
-
-    while(true);        // DEBUG //
 
     while(1) {                                                                      // begin main loop
         if (end_operation == true) {
@@ -81,7 +78,7 @@ int main() {
                     UART_WAIT_UNTIL_DONE();
                     uart_transmit_formatted_message("WAIT_FOR_LAUNCH\r\n");
                     UART_WAIT_UNTIL_DONE();
-                    launch_check_enable();
+                    reset_timer_counter(counter_alpha);
                     flight_state = WAIT_FOR_LAUNCH;                                 //                 change flight mode state to WAIT_FOR_LAUNCH
                     rover_mode = FLIGHT_MODE;                                       //                 change state to FLIGHT_MODE
                 }                                                                   //             end exit condition
@@ -112,6 +109,7 @@ int main() {
                     case WAIT_FOR_LAUNCH: {                                         //                 case (WAIT_FOR_LAUNCH)
                         if (get_timer_counter(counter_alpha) >= WAIT_FOR_LAUNCH_LED_OFF_TIME) {
                             LED_set(YELLOW, OFF);
+                            launch_check_enable();
                         }
 
                         if (get_launch_is_a_go() == true) {                               //                     exit condition if (rocket launched)
@@ -132,6 +130,7 @@ int main() {
                         }
 
                         if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_TIME) {  //                     exit condition
+                            LED_set(YELLOW, OFF);
                             is_upside_down = !is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
                             PWM_enable();
                             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
@@ -168,7 +167,7 @@ int main() {
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             uart_transmit_formatted_message("DISPENSE_DATA_CUBE\r\n");
                             UART_WAIT_UNTIL_DONE();
-                            reset_timer_counter(counter_alpha);                               //                         reset timer counter
+                            reset_timer_counter(counter_alpha);                     //                         reset timer counter
                             flight_state = DISPENSE_DATA_CUBES;                     //                         change state to DISPENSE_DATA_CUBES
                         }                                                           //                     end exit condition
                         break;
@@ -177,8 +176,10 @@ int main() {
                     case DISPENSE_DATA_CUBES: {                                     //                 case (DISPENSE_DATA_CUBES)
                         motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 //                     turn on dispenser motor
 
-                        if (get_timer_counter(counter_alpha) >= DISPENSE_TIME) {          //                     exit condition if (time delay reached)
+                        if (get_timer_counter(counter_alpha) >= DISPENSE_TIME) {    //                     exit condition if (time delay reached)
                             motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
+                            motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
+                            motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
                             uart_transmit_formatted_message("SIGNAL_ONBOARD_DATA_CUBE\r\n");
                             UART_WAIT_UNTIL_DONE();
                             reset_timer_counter(counter_alpha);
@@ -189,6 +190,8 @@ int main() {
 
                     case SIGNAL_ONBOARD_DATA_CUBE: {                                //                 case (SIGNAL_ONBOARD_DATA_CUBE)
                         if (get_timer_counter(counter_alpha) >= SIGNAL_ONBOARD_DATA_CUBE_TIME) { //                     exit condition
+                            motor(LEFT_MOTOR, FORWARD, 0);
+                            motor(RIGHT_MOTOR, FORWARD, 0);
                             signal_data_cube(ON);                                   //                         signal onboard data cube
                             LED_set(GREEN, ON);                                     //                     LED solid green
                             LED_set(RED, OFF);
