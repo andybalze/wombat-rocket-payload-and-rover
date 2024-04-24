@@ -20,11 +20,17 @@ int main() {
 	digital_io_initialize();
 	uart_initialize();
 	adc_initialize();
+	PWM_enable();
 	motors_initialize();
+
+	motor(RIGHT_MOTOR, FORWARD, 249);
+	motor(LEFT_MOTOR, FORWARD, 120);
 
 	while(1);
 
 }
+
+/*
 
 ISR(USART_RX_vect) {
 	received_data = UDR0;
@@ -94,3 +100,5 @@ void transmit_output_message(
 	);
 
 }
+
+*/

@@ -1,6 +1,3 @@
-#include <avr/io.h>
-#include <avr/interrupt.h>
-
 #include "motors.h"
 
 
@@ -48,21 +45,11 @@
 
 //////////////////// Macros for Motor OCR Values ////////////////////
 #define OCR_MAX 255     // OCR is in inverting mode so setting to OCR_MAX turns outputs off
-#define SPEED_MAX 200
 //////////////////// Macros for Motor OCR Values ////////////////////
 
 
 
-_Noreturn void rover_failure_state(void) {      // For DEBUG. Make this less harsh for flight...
-    LED_set(RED, ON);
-    LED_set(GREEN, OFF);
-    while(1);
-}
-
-
-
 void motors_initialize(void) {
-    //////////////////// Configure Motors ////////////////////
     // Configure as an outputs
     LEFT1_DDR       |= _BV(LEFT1_INDEX);
     LEFT2_DDR       |= _BV(LEFT2_INDEX);
@@ -78,8 +65,12 @@ void motors_initialize(void) {
     RIGHT2_PORT     &= ~_BV(RIGHT2_INDEX);
     DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
     DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
+}
 
-    // Select 1024 prescaler (for testing)
+
+
+void PWM_enable(void) {
+    // Select 1024 prescaler
     TCCR2B |= _BV(CS22) | _BV(CS21) | _BV(CS20);    //timer2 (LEFT1 and LEFT2)
     TCCR1B |= _BV(CS02) | _BV(CS00);                //timer0 (RIGHT1 and RIGHT2)
 
@@ -97,13 +88,12 @@ void motors_initialize(void) {
     LEFT2_OCR  = 255;
     RIGHT1_OCR = 255;
     RIGHT2_OCR = 255;
-    //////////////////// Configure Motors ////////////////////
 }
 
 
 
-void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
-    char ocr_val;
+void motor(motor_name_t motor_name, motor_direction_t direction, uint8_t speed) {
+    uint8_t ocr_val;
 
     if (speed < 0) {                // Account for if the control code doesn't like directions
         direction = !direction;
@@ -111,7 +101,7 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
     }
 
     if (speed > SPEED_MAX) {        // Apply the limit to the motors
-        ocr_val = SPEED_MAX;
+        ocr_val = -SPEED_MAX + OCR_MAX;
     }
     else {                          // The function was used correctly
         ocr_val = -speed + OCR_MAX;
@@ -121,12 +111,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         case LEFT_MOTOR: {
             if (ocr_val != OCR_MAX) {
                 if (direction == FORWARD) {
-                    LEFT1_OCR = OCR_MAX;
-                    LEFT2_OCR = ocr_val;
-                }
-                else {  // (direction == REVERSE)
                     LEFT1_OCR = ocr_val;
                     LEFT2_OCR = OCR_MAX;
+                }
+                else {  // (direction == REVERSE)
+                    LEFT1_OCR = OCR_MAX;
+                    LEFT2_OCR = ocr_val;
                 }
             }
             else {      // (ocr_val == OCR_MAX)
@@ -139,13 +129,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         case RIGHT_MOTOR: {
             if (ocr_val != OCR_MAX) {
                 if (direction == FORWARD) {
-                    RIGHT1_OCR = ocr_val;
-                    RIGHT2_OCR = OCR_MAX;
-                }
-                else {  // (direction == REVERSE)
-
                     RIGHT1_OCR = OCR_MAX;
                     RIGHT2_OCR = ocr_val;
+                }
+                else {  // (direction == REVERSE)
+                    RIGHT1_OCR = ocr_val;
+                    RIGHT2_OCR = OCR_MAX;
                 }
             }
             else {      // (ocr_val == OCR_MAX)
@@ -158,13 +147,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         case DISPENSER_MOTOR: {
             if (ocr_val != OCR_MAX) {
                 if (direction == FORWARD) {
-                    DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
-                    DISPENSER2_PORT |=  _BV(DISPENSER2_INDEX);
-                }
-                else {  // (direction == REVERSE)
-
                     DISPENSER1_PORT |=  _BV(DISPENSER1_INDEX);
                     DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
+                }
+                else {  // (direction == REVERSE)
+                    DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
+                    DISPENSER2_PORT |=  _BV(DISPENSER2_INDEX);
                 }
             }
             else {      // (ocr_val == OCR_MAX)
@@ -175,7 +163,10 @@ void motor(motor_name_t motor_name, motor_direction_t direction, char speed) {
         }
 
         default: {
-            rover_failure_state();
+            uart_transmit_formatted_message("ERROR 734: unknown motor identifier\r\n");
+            UART_WAIT_UNTIL_DONE();
+            LED_set(RED, ON);
+            LED_set(GREEN, OFF);
             break;
         }
     }
