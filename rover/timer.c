@@ -146,20 +146,24 @@ ISR(TIMER2_COMPA_vect) {
 
 // Interrupt service routine used for launch check
 ISR(TIMER2_COMPB_vect) {
-    static logic_vector G_force_samples = 0;    // Don't let it's appearance fool you, this is a bool array[64]
-    uint32_t gamma;                             // acceleration aggragate magnitude squared
+    static int16_t sample_diff[64] = {1000};     // Initialize to 1000 because lower number is better
+    static uint8_t i = 0;                        // Iterator
+    static uint32_t prev_sample;
+    uint32_t current_sample;
 
-    gamma = acceleration_agg_mag();             // remember, this is magnitude squared
+    current_sample = acceleration_agg_mag();             // remember, this is magnitude squared
 
-    G_force_samples = G_force_samples << 1;         // shift bottom half of array
-    if (gamma >= (ONE_G_SQUARED - NO_MOVEMENT_TOLERANCE_SQUARED) && gamma <= (ONE_G_SQUARED + NO_MOVEMENT_TOLERANCE_SQUARED)) {
-        G_force_samples += 1;                     // insert a 1 into the LSB of bottom half
+    sample_diff[i] = current_sample - prev_sample;
+
+    is_no_motion(sample_diff);                                // check array to see if we've launched
+    
+    prev_sample = current_sample;
+    if (i < 64-1) {
+        i++;
     }
     else {
-        // insert a zero (happens by definition)
+        i = 0;
     }
-
-    is_no_motion(G_force_samples);                                // check array to see if we've launched
 }
 
 ////////// Interrupt Service Routines //////////////////////////////////////////////////////
