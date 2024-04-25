@@ -1,9 +1,8 @@
-#ifndef DIGITAL_IO_H
-#define DIGITAL_IO_H
+#ifndef TEST_H
+#define TEST_H
 
 #include <avr/io.h>
 
-void digital_io_initialize(void);
-void LED_set(char state);
+void test(void);
 
-#endif //DIGITAL_IO_H
+#endif //TEST_H

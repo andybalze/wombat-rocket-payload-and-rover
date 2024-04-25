@@ -10,6 +10,11 @@
 #define GREEN_INDEX PIN5
 
 
+// Macros for onboard data cube
+#define DC_DDR   DDRC
+#define DC_PORT  PORTC
+#define DC_INDEX PIN4
+
 // Macros for switch & pushbuttons
 #define SW2_DDR     DDRD
 #define SW2_PORT    PORTD   //config pull-up
@@ -27,13 +32,15 @@
 #define SW4_INDEX   PIN7
 
 void digital_io_initialize(void) {
-    // Configure the LED pins as outputs
+    // Configure the LED and data cube switch pins as outputs
     RED_DDR   |= _BV(RED_INDEX);
     GREEN_DDR |= _BV(GREEN_INDEX);
+    DC_DDR    |= _BV(DC_INDEX);
 
-    // Initialize both LEDs as off
-    RED_PORT   |= _BV(RED_INDEX);
-    GREEN_PORT |= _BV(GREEN_INDEX);
+    // Initialize outputs as off
+    RED_PORT   |=  _BV(RED_INDEX);      // The LEDs are active-low
+    GREEN_PORT |=  _BV(GREEN_INDEX);    // The LEDs are active-low
+    DC_PORT    |=  _BV(DC_INDEX);       // The onboard data cube expects an active-low signal
 
     // Configure the switch & pushbuttons as inputs
     SW2_DDR &= ~_BV(SW2_INDEX);
@@ -46,7 +53,7 @@ void digital_io_initialize(void) {
     SW4_PORT &= ~_BV(SW4_INDEX);    // Turn off pull-up resistor
 }
 
-void LED_set(LED_color_t color, LED_state_t state) {
+void LED_set(LED_color_t color, output_state_t state) {
     switch (color) {
         case RED: {
             switch (state) {
@@ -86,9 +93,41 @@ void LED_set(LED_color_t color, LED_state_t state) {
             break;
         }
 
+        case YELLOW: {
+            switch (state) {
+                case ON: {
+                    RED_PORT &= ~_BV(RED_INDEX);
+                    GREEN_PORT &= ~_BV(GREEN_INDEX);
+                    break;
+                }
+
+                case OFF: {
+                    RED_PORT |= _BV(RED_INDEX);
+                    GREEN_PORT |= _BV(GREEN_INDEX);
+                    break;
+                }
+
+                default: {
+                    break;
+                }
+            }
+            break;
+        }
+
         default: {
             break;
         }
+    }
+}
+
+
+
+void signal_data_cube(output_state_t state) {
+    if (state == ON) {
+        DC_PORT &= ~_BV(DC_INDEX);
+    }
+    else {      // if (state == OFF)
+        DC_PORT |= _BV(DC_INDEX);
     }
 }
 
