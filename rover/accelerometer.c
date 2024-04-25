@@ -114,19 +114,16 @@ void is_launched(logic_vector samples) {
 }
 
 // Called by timer2 channel B interrupt. Changes no_motion global variable
-void is_no_motion(uint64_t samples) {
-    logic_vector check_vector = 0x1;
+void is_no_motion(int16_t sample_diff) {
     uint8_t no_motion_cnt = 0;
     
     for (int i = 0; i < 64; i++) {
-        if (samples & check_vector) {
+        if (-NO_MOTION_TOLERANCE <= sample_diff[i] && sample_diff[i] <= NO_MOTION_TOLERANCE) {
             no_motion_cnt++;
         }
-
-        check_vector = check_vector << 1;
     }
 
-    if (no_motion_cnt >= LAUNCH_FORCE_CNT_THRESHOLD) {
+    if (no_motion_cnt >= NO_MOTION_CNT_THRESHOLD) {
         no_motion = true;
     }
 }
