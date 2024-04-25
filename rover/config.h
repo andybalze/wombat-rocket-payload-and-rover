@@ -103,9 +103,9 @@ Please comment both sections out when you push so we get an error if we forget t
 
 
 ////////// Rover Controller SN2 //////////
-// #define X_AXIS_ERROR 2
-// #define Y_AXIS_ERROR 2
-// #define Z_AXIS_ERROR 0
+#define X_AXIS_ERROR 2
+#define Y_AXIS_ERROR 2
+#define Z_AXIS_ERROR 0
 ////////// Rover Controller SN2 //////////
 
 ////////// Accelerometer Callibration //////////////////////////////////////////////////////

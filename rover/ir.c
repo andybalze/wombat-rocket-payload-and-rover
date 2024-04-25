@@ -31,7 +31,7 @@ int16_t ir_distance_read(void) {
     // Deadband compensation
     if (ir_distance_cm_uncomp >= offset-2)              // If measured distance is within deadband or out of range
     {
-        ir_distance_cm_comp = 0;                        // Return compensated value of 0
+        ir_distance_cm_comp = 50;                        // Return compensated value of 0
     }
     else                                                // Else 
     {   
