@@ -71,6 +71,8 @@ Instead, commment out the flight section and uncomment the test section
 
 #define LAUNCH_FORCE_CNT_THRESHOLD 2                      // TEST //
 
+#define NO_MOTION_CNT_THRESHOLD 58                        // Number of samples out of 64 that must be within no_motion() tolerance to trigger no_motion
+
 ////////// Launch detection settings ///////////////////////////////////////////////////////
 
 
@@ -81,7 +83,7 @@ Instead, commment out the flight section and uncomment the test section
 
 // Upper and lower threshold of acceleration in (1/2) m/s/s the accelerometer watches for to detect that the rover is not moving
 // No motion is 19.6 (1/2) m/s/s
-#define NO_MOVEMENT_TOLERANCE 5
+#define NO_MOTION_TOLERANCE 5
 
 ////////// No movement detection settings //////////////////////////////////////////////////
 
