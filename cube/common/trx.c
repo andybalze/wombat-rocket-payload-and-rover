@@ -313,9 +313,6 @@ trx_reception_outcome_t trx_receive_payload(
   while(!TIMER_DONE && !TRX_IRQ);
   // While loop exits either when the timer times out or an interrupt is requested.
 
-  //uart_transmit_formatted_message("While-wait exited.\r\n");
-  //UART_WAIT_UNTIL_DONE();
-
   timer_stop();
 
   if (TIMER_DONE) {
