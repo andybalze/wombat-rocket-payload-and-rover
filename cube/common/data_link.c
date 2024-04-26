@@ -16,17 +16,17 @@
 // This blocking function gets a payload from the data link layer
 // and writes it to the buffer.
 // It returns if it was successful (false if timed out).
-bool data_link_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
+bool data_link_rx(byte* buffer, byte buf_len, timer_delay_ms_t timeout_ms) {
 
     byte rxframe[TRX_PAYLOAD_LENGTH];
-    bool success = trx_receive_payload(rxframe, timeout_ms);
-    if (success) {
+    trx_reception_outcome_t outcome = trx_receive_payload(rxframe, timeout_ms);
+    if (outcome == TRX_RECEPTION_SUCCESS) {
         for (int i = 0; i < buf_len && i < TRX_PAYLOAD_LENGTH - FRAME_HEADER_LEN; i++) {
             buffer[i] = rxframe[i+FRAME_HEADER_LEN];
         }
     }
 
-    return success;
+    return (outcome == TRX_RECEPTION_SUCCESS);
 }
 
 void data_link_tx(byte* payload, byte payload_len, uint32_t addr) {
