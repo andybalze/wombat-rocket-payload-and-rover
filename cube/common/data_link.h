@@ -7,7 +7,7 @@
 
 bool data_link_push_to_fifo(byte* buffer, byte buf_len);
 
-byte data_link_rx(byte* buffer, byte buf_len);
+bool data_link_rx(byte* buffer, byte buf_len, uint16_t timeout_ms);
 
 void data_link_tx(byte* payload, byte payload_len, uint32_t addr);
 

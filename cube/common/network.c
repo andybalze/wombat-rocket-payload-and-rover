@@ -11,32 +11,48 @@
 
 // This blocking function gets a payload from the network layer
 // and writes it to the buffer.
-// It returns the length of the payload (i.e. the segment).
-byte network_rx(byte* buffer, byte buf_len) {
+// It returns whether it successfully received a packet.
+// Note that the timeout will reset every time it receives a packet.
+// This behavior is as such because the programmer is lazy.
+bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
 
     byte packet_len;
     byte packet[MAX_PACKET_LEN];
 
-    // Repeat this until we get something that's for me.
+    bool success;
+    bool endloop = false;
+
+    // Repeat this until we get something that's for me,
+    // or until one of our things times out.
     do {
 
-        data_link_rx(packet, MAX_PACKET_LEN);
-        packet_len = packet[0];
-
-        // If packet isn't for me, forward it along.
-        if (packet[1] != MY_NETWORK_ADDR) {
-            network_tx(packet, packet_len, packet[1], packet[2]);
+        success = data_link_rx(packet, MAX_PACKET_LEN, timeout_ms);
+        if (success) {
+            packet_len = packet[0];
+            // If packet isn't for me, forward it along.
+            if (packet[1] != MY_NETWORK_ADDR) {
+                network_tx(packet, packet_len, packet[1], packet[2]);
+            }
+            else {
+                // Break if we receive a packet for us
+                endloop = true;
+            }
         }
-        
+        else {
+            // Break if we time out
+            endloop = true;
+        }
 
-    } while (packet[1] != MY_NETWORK_ADDR);
+    } while (endloop);
 
     // Got something for me. Let's return it.
-    for (byte i = 0; i < packet_len - PACKET_HEADER_LEN && i < buf_len; i++) {
-        buffer[i] = packet[i + PACKET_HEADER_LEN];
+    if (success) {
+        for (byte i = 0; i < packet_len - PACKET_HEADER_LEN && i < buf_len; i++) {
+            buffer[i] = packet[i + PACKET_HEADER_LEN];
+        }
     }
 
-    return packet_len - PACKET_HEADER_LEN;
+    return success;
 }
 
 // Transmit to the specified network address.

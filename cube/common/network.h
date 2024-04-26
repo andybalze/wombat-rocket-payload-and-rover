@@ -8,7 +8,7 @@
 // This function blocks and waits until it receives a packet
 // destined for us. It might even forward packets while waiting.
 // How fun!
-byte network_rx(byte* buffer, byte buf_len);
+bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms);
 
 void network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte src_network_addr);
 
