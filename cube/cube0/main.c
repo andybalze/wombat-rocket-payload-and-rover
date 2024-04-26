@@ -20,6 +20,7 @@
 
 static char* restart_message_format 	= "\n\rHello World.\n\r";
 static char* received_message_format 	= "Received message:\t%s\n\r";
+static char* timeout_message_format		= "Message timed out.\n\r";
 
 static trx_payload_element_t *example_payload1 = "This better work, cuz if not...";
 static trx_payload_element_t *example_payload2 = "I swear I'll shit yourself!!!\n\r";
@@ -61,14 +62,20 @@ int main() {
 	}
 	UART_WAIT_UNTIL_DONE();
 
-	while (1) {
+	while(1) {
 
-		trx_receive_payload(received_payload, TRX_TIMEOUT_INDEFINITE);
-		uart_transmit_formatted_message(received_message_format, received_payload);
+		uart_transmit_formatted_message("Attempting to receive transmissions.\r\n");
+		UART_WAIT_UNTIL_DONE();
+	
+		trx_reception_outcome_t outcome;
+		outcome = trx_receive_payload(received_payload, 1000);
+		if (outcome == TRX_RECEPTION_SUCCESS) {
+			uart_transmit_formatted_message(received_message_format, received_payload);
+		} else {
+			uart_transmit_formatted_message(timeout_message_format);
+		}
 		UART_WAIT_UNTIL_DONE();
 
 	}
-
-	while(1);
 
 }
