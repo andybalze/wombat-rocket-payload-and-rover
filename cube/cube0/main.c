@@ -5,6 +5,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include "digital_io.h"
 #include "uart.h"
 #include "spi.h"
 #include "trx.h"
@@ -30,6 +31,7 @@ int main() {
 	// Let's wait for all of our hardware to turn on.
 	_delay_ms(STARTUP_DELAY_MS);
 
+	digital_io_initialize();
 	uart_initialize();
 	uart_transmit_formatted_message(restart_message_format);
 	UART_WAIT_UNTIL_DONE();

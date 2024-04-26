@@ -60,23 +60,6 @@ void uart_initialize(void) {
 
 }
 
-// Deprecated. Use uart_transmit_formatted_message instead.
-uint8_t uart_transmit_message(
-  const uart_message_element_t *message, 
-  int length
-) {
-
-  uart_message_element_t message_length;
-  message_length = uart_transmit_formatted_message(message);
-
-  if (message_length == 0) {
-    return 0;
-  } else {
-    return 1;
-  }
-
-}
-
 // Transmits a formatted message over the U(S)ART. Returns the number of
 // characters that will be transmitted. If the message cannot be transmitted at
 // this time, returns 0. If the message to be transmitted cannot fit in the
@@ -92,14 +75,14 @@ uart_message_length_t uart_transmit_formatted_message(
   
   // If a message is already being transmitted, a new one cannot be started.
   // The status is determined by checking the interrupt enable bit.
-  int interrupt_enabled;
+  uint8_t interrupt_enabled;
   interrupt_enabled = UCSR0B & _BV(UDRIE0);
   if (interrupt_enabled != 0) {
     return 0;
   }
 
   // Prints the formatted message into the uart message buffer.
-  int formatted_character_count;
+  uart_message_length_t formatted_character_count;
   formatted_character_count = vsnprintf(
     message_buffer, 
     UART_MESSAGE_MAX_LENGTH, 
@@ -108,7 +91,7 @@ uart_message_length_t uart_transmit_formatted_message(
   );
 
   // Determine the possibly-truncated length of the message.
-  int message_length;
+  uart_message_length_t message_length;
   if(formatted_character_count > UART_MESSAGE_MAX_LENGTH) {
     message_length = UART_MESSAGE_MAX_LENGTH;
   } else {

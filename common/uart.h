@@ -25,24 +25,18 @@
 ///////////////////// Type Definitions /////////////////////////////////////////
 
 // An element of a UART message.
-typedef char uart_message_element_t;
+typedef uint8_t uart_message_element_t;
 
 // Indexes into a uart message.
-typedef uint8_t uart_message_index_t;
+typedef uint16_t uart_message_index_t;
 
 // The length of a uart message.
-typedef uint8_t uart_message_length_t;
+typedef uint16_t uart_message_length_t;
 
 ///////////////////// Public Function Prototypes ///////////////////////////////
 
 // Initializes the U(S)ART, including configuring the appropriate pins.
 void uart_initialize(void);
-
-// Deprecated. Use uart_transmit_formatted_message instead.
-uint8_t uart_transmit_message(
-  const uart_message_element_t *message, 
-  int length
-);
 
 // Transmits a formatted message over the U(S)ART. Returns the number of
 // characters that will be transmitted. If the message cannot be transmitted at
