@@ -49,7 +49,7 @@ int main() {
 
 		_delay_ms(100);
 		trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH];
-		trx_receive_payload(received_payload);
+		trx_receive_payload(received_payload, TRX_TIMEOUT_INDEFINITE);
 		uart_transmit_formatted_message(
 			received_payload_format,
 			received_payload

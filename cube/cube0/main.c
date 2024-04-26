@@ -63,7 +63,7 @@ int main() {
 
 	while (1) {
 
-		trx_receive_payload(received_payload);
+		trx_receive_payload(received_payload, TRX_TIMEOUT_INDEFINITE);
 		uart_transmit_formatted_message(received_message_format, received_payload);
 		UART_WAIT_UNTIL_DONE();
 
