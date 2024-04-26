@@ -17,6 +17,7 @@
 #include "trx.h"
 
 #include "spi.h"
+#include "uart.h"
 
 #define F_CPU 1000000
 #include <util/delay.h>
@@ -312,6 +313,9 @@ trx_reception_outcome_t trx_receive_payload(
   while(!TIMER_DONE && !TRX_IRQ);
   // While loop exits either when the timer times out or an interrupt is requested.
 
+  //uart_transmit_formatted_message("While-wait exited.\r\n");
+  //UART_WAIT_UNTIL_DONE();
+
   timer_stop();
 
   if (TIMER_DONE) {
@@ -388,9 +392,7 @@ void read_rx_payload(
 }
 
 trx_interrupt_request_t get_interrupt_request() {
-  
-  while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) != 0);
-  
+    
   // Read the status register.
   spi_message_element_t status_register;
   status_register = read_register(TRX_REGISTER_ADDRESS_STATUS);
