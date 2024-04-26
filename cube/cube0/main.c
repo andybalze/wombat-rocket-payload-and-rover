@@ -63,6 +63,9 @@ int main() {
 	UART_WAIT_UNTIL_DONE();
 
 	while(1) {
+
+		uart_transmit_formatted_message("Attempting to receive transmissions.\r\n");
+		UART_WAIT_UNTIL_DONE();
 	
 		trx_reception_outcome_t outcome;
 		outcome = trx_receive_payload(received_payload, 1000);
@@ -71,6 +74,7 @@ int main() {
 		} else {
 			uart_transmit_formatted_message(timeout_message_format);
 		}
+		UART_WAIT_UNTIL_DONE();
 
 	}
 
