@@ -6,6 +6,7 @@
 #include "trx.h"
 #else
 #include "sim_trx.h"
+#include <stdio.h>
 #endif
 
 
@@ -24,10 +25,15 @@ bool data_link_rx(byte* buffer, byte buf_len, timer_delay_ms_t timeout_ms) {
         for (int i = 0; i < buf_len && i < TRX_PAYLOAD_LENGTH - FRAME_HEADER_LEN; i++) {
             buffer[i] = rxframe[i+FRAME_HEADER_LEN];
         }
+        printf("data_link_rx\n");
+    }
+    else {
+        printf("DEBUG: data_link_rx timed out!\n");
     }
 
     return (outcome == TRX_RECEPTION_SUCCESS);
 }
+
 
 void data_link_tx(byte* payload, byte payload_len, uint32_t addr) {
 

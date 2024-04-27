@@ -1,10 +1,8 @@
 /*
-
         WARNING
 
         This is a SIMULATION FILE.
         Do not compile this code for hardware.
-
 */
 
 
@@ -32,9 +30,12 @@ int main() {
 
     while(1) {
         printf("Attempting to receive packet...\n");
-        network_rx(received_payload, MAX_PACKET_LEN);
-        printf("Got something: %s\n\n", received_payload);
-        _delay_ms(1000);
+        if (network_rx(received_payload, MAX_PACKET_LEN, 1000)) {
+            printf("Got something: %s\n\n", received_payload);
+        }
+        else {
+            printf("Timed out...");
+        }
     }
 
 }

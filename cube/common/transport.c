@@ -10,6 +10,11 @@
 #include "transport.h"
 #include "network.h"
 #include "address.h"
+#ifndef SIMULATION
+#include "trx.h"
+#else
+#include "sim_trx.h"
+#endif
 
 // the transport layer intentionally adds delays between segments.
 // fun fact: in the TCP/IP protocol stack,
@@ -26,9 +31,10 @@
 
 #define TRANSPORT_ACK_DELAY_MS (1)
 #define TRANSPORT_TIMEOUT_MS (3)
+#define TRANSPORT_TX_ATTEMPT_LIMIT (100)
 
 
-// three segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE
+// four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
 
 // START_OF_MESSAGE segment:
 // segment[0] = length of segment = 6
@@ -105,7 +111,7 @@ byte transport_rx(byte* buffer, byte buf_len) {
     do {
 
         // Get the next segment
-        bool success = network_rx(segment, MAX_SEGMENT_LEN, 255);
+        bool success = network_rx(segment, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
         if (success) {
 
             segment_len = segment[0];
@@ -189,6 +195,8 @@ bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port
 
     bool did_my_friend_get_the_message_yet = false;
 
+    uint16_t transmit_attempts = 0;
+
     do {
         // Let's send this bad boy.
         network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
@@ -203,16 +211,20 @@ bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port
                 }
             }
         }
+        transmit_attempts++;
 
-    } while (did_my_friend_get_the_message_yet == false);
+    } while (did_my_friend_get_the_message_yet == false && transmit_attempts < TRANSPORT_TX_ATTEMPT_LIMIT);
 
-    *current_seq_num = *current_seq_num == 0 ? 1 : 0;
-
-    // for now, this will NOT return until my MESSAGE WAS ACKNOWLEDGED, DARNIT!
-    return true;
+    if (did_my_friend_get_the_message_yet) {
+        *current_seq_num = *current_seq_num == 0 ? 1 : 0;
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
-void transport_tx(byte* message, byte message_len, byte dest_port) {
+bool transport_tx(byte* message, byte message_len, byte dest_port) {
 
     byte current_seq_num = 0;
 
@@ -227,7 +239,9 @@ void transport_tx(byte* message, byte message_len, byte dest_port) {
     segment[4] = SEGID_START_OF_MESSAGE;
     segment[5] = message_len;
 
-    transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, &current_seq_num);
+    if (!transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, &current_seq_num)) {
+        return false;
+    }
 
     // ------ send data segments -----
     while (bytes_remaining > 0) {
@@ -256,7 +270,9 @@ void transport_tx(byte* message, byte message_len, byte dest_port) {
 
         bytes_remaining -= this_payload_len;
 
-        transport_keep_trying_to_tx(segment, this_segment_len, dest_port, &current_seq_num);
+        if (!transport_keep_trying_to_tx(segment, this_segment_len, dest_port, &current_seq_num)) {
+            return false;
+        }
     }
 
     // ------ send END_OF_MESSAGE -----
@@ -266,8 +282,10 @@ void transport_tx(byte* message, byte message_len, byte dest_port) {
     segment[3] = MY_PORT;
     segment[4] = SEGID_END_OF_MESSAGE;
 
-    transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, &current_seq_num);
+    if (!transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, &current_seq_num)) {
+        return false;
+    }
 
-    return;
+    return true;
 
 }

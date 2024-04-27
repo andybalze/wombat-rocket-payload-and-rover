@@ -1,10 +1,8 @@
 /*
-
         WARNING
 
         This is a SIMULATION FILE.
         Do not compile this code for hardware.
-
 */
 
 

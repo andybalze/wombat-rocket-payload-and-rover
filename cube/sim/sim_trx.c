@@ -68,7 +68,6 @@ trx_transmission_outcome_t trx_transmit_payload(
 
     // Open FIFO
     int fd = open(destination_fifo, O_WRONLY);
-    printf("Test..\n");
 
     // Write to FIFO
     write(fd, final_payload, TRX_PAYLOAD_LENGTH);
@@ -81,7 +80,10 @@ trx_transmission_outcome_t trx_transmit_payload(
 }
 
 // Receives a payload using polling.
-int trx_receive_payload(trx_payload_element_t *payload_buffer) {
+trx_reception_outcome_t trx_receive_payload(
+  trx_payload_element_t *payload_buffer,
+  uint16_t timer_delay_ms_t
+) {
 
     // Open FIFO
     int fd = open(my_fifo, O_RDONLY);
@@ -96,7 +98,7 @@ int trx_receive_payload(trx_payload_element_t *payload_buffer) {
     else {
         printf("Error opening FIFO to read: %s\n", my_fifo);
     }
-    return TRX_PAYLOAD_LENGTH;
+    return TRX_RECEPTION_SUCCESS;
 
 }
 

@@ -11,6 +11,6 @@
 // The return value is the length of the message.
 byte transport_rx(byte* buffer, byte buf_len);
 
-void transport_tx(byte* message, byte message_len, byte dest_port);
+bool transport_tx(byte* message, byte message_len, byte dest_port);
 
 #endif

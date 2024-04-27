@@ -43,7 +43,7 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
             endloop = true;
         }
 
-    } while (endloop);
+    } while (endloop == false);
 
     // Got something for me. Let's return it.
     if (success) {

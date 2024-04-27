@@ -13,6 +13,10 @@
 
 #include <stdint.h>
 
+// jank
+typedef uint16_t timer_delay_ms_t;
+
+
 /////////////////// TRX Settings ///////////////////////////////////////////////
 
 // The length of payloads transmitted and received by this transceiver.
@@ -32,6 +36,13 @@ typedef uint8_t trx_transmission_outcome_t;
 #define TRX_TRANSMISSION_FAILURE (0)
 #define TRX_TRANSMISSION_SUCCESS (1)
 
+// Whether a given attempt to receive a transmission succeeded or failed.
+typedef uint8_t trx_reception_outcome_t;
+#define TRX_RECEPTION_FAILURE (0)
+#define TRX_RECEPTION_SUCCESS (1) 
+
+#define TRX_TIMEOUT_INDEFINITE (1501)
+
 /////////////////// Public function prototypes /////////////////////////////////
 
 // Initializes the TRX, including initializing the SPI and any other peripherals
@@ -48,8 +59,9 @@ trx_transmission_outcome_t trx_transmit_payload(
 );
 
 // Receives a payload using polling.
-int trx_receive_payload(
-  trx_payload_element_t *payload_buffer
+trx_reception_outcome_t trx_receive_payload(
+  trx_payload_element_t *payload_buffer,
+  uint16_t timer_delay_ms_t
 );
 
 // Gets the value currently in the status buffer. This is equivalent to what was
