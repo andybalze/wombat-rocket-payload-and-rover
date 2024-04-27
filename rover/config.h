@@ -39,8 +39,8 @@ Instead, commment out the flight section and uncomment the test section
 // #define WAIT_FOR_LANDING_TIME           (uint32_t) 10 * ONE_MINUTE     // Rover waits this amount of time after launch before attempting to exit the canister
 // #define EXIT_TIME                       (uint32_t) 10 * ONE_SECOND     // Rover drives forward this amount of time in an attempt to exit the canister
 // #define DRIVE_FORWARD_DELAY             (uint32_t) 100                 // Delay between exiting canister and driving forward to reduce back EMF if the rover wheels change direction
-// #define DRIVE_TIME                      (uint32_t) 30 * ONE_SECOND     // Rover drives forward this amount of time
-// #define DISPENSE_TIME                   (uint32_t) 1  * ONE_MINUTE     // Rover runs dispenser motor this amount of time (actually takes about 35 seconds)
+// #define DRIVE_TIME                      (uint32_t) 30 * ONE_SECOND     // Rover drives forward this amount of time between dispensing each cube
+// #define DISPENSE_TIME                   (uint32_t) 1  * ONE_MINUTE     // Rover runs dispenser motor this amount of time to dispense one cube
 // #define SIGNAL_ONBOARD_DATA_CUBE_TIME   (uint32_t) 10 * ONE_SECOND     // Rover waits this amount of time after dispensing and before signaling the onboard data cube
 ////////// FLIGHT //////////
 
@@ -51,8 +51,8 @@ Instead, commment out the flight section and uncomment the test section
 #define WAIT_FOR_LANDING_TIME           (uint32_t) 5  * ONE_SECOND
 #define EXIT_TIME                       (uint32_t) 2  * ONE_SECOND
 #define DRIVE_FORWARD_DELAY             (uint32_t) 100
-#define DRIVE_TIME                      (uint32_t) 10 * ONE_SECOND
-#define DISPENSE_TIME                   (uint32_t) 35 * ONE_SECOND
+#define DRIVE_TIME                      (uint32_t) 10 * ONE_SECOND      // Between dispensing each cube
+#define DISPENSE_TIME                   (uint32_t) 12 * ONE_SECOND      // To dispense one cube
 #define SIGNAL_ONBOARD_DATA_CUBE_TIME   (uint32_t) 5  * ONE_SECOND
 ////////// TEST //////////
 
