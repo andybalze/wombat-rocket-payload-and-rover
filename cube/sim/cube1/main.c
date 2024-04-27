@@ -29,12 +29,13 @@ int main() {
     }
 
     while(1) {
-        printf("Attempting to receive packet...\n");
+        printf("Attempting to receive packet... ");
+        fflush(stdout);
         if (network_rx(received_payload, MAX_PACKET_LEN, 1000)) {
-            printf("Got something: %s\n\n", received_payload);
+            printf("\n===== Got something: ===== %s\n==========================\n", &received_payload[PACKET_HEADER_LEN]);
         }
         else {
-            printf("Timed out...");
+            printf("Timed out.\n");
         }
     }
 

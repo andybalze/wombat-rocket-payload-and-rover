@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <poll.h>
 
 /////////////////// Private type definitions ///////////////////////////////////
 
@@ -84,20 +85,40 @@ trx_reception_outcome_t trx_receive_payload(
   trx_payload_element_t *payload_buffer,
   uint16_t timer_delay_ms_t
 ) {
+    // https://man7.org/linux/man-pages/man2/poll.2.html
+    int ready;
+    ssize_t s;
+    struct pollfd fds;
 
     // Open FIFO
-    int fd = open(my_fifo, O_RDONLY);
-
-    if (fd) {
-        // Read from FIFO
-        read(fd, payload_buffer, TRX_PAYLOAD_LENGTH);
-
-        // Close the FIFO
-        close(fd);
+    fds.fd = open(my_fifo, O_RDONLY | O_NONBLOCK);
+    if (fds.fd == -1) {
+        printf("ERROR: Could not open FIFO.\n");
+        return TRX_RECEPTION_FAILURE;
     }
-    else {
-        printf("Error opening FIFO to read: %s\n", my_fifo);
+
+    // Wait for data
+    ready = poll(&fds, 1, 1200);
+    if (ready == -1) {
+        return TRX_RECEPTION_FAILURE;
     }
+    if (fds.revents == 0) {
+        return TRX_RECEPTION_FAILURE;
+    }
+
+    // Read from FIFO
+    s = read(fds.fd, payload_buffer, TRX_PAYLOAD_LENGTH);
+    if (s == -1) {
+        printf("reading failed, s == -1\n");
+        return TRX_RECEPTION_FAILURE;
+    }
+
+    // Close the FIFO
+    if (close(fds.fd) == -1) {
+        printf("closing the file failed\n");
+        return TRX_RECEPTION_FAILURE;
+    }
+
     return TRX_RECEPTION_SUCCESS;
 
 }
