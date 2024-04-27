@@ -98,7 +98,7 @@ trx_reception_outcome_t trx_receive_payload(
     }
 
     // Wait for data
-    ready = poll(&fds, 1, 1200);
+    ready = poll(&fds, 1, timer_delay_ms_t);
     if (ready == -1) {
         return TRX_RECEPTION_FAILURE;
     }
