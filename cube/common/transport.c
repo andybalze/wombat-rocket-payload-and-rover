@@ -124,8 +124,9 @@ bool transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num) {
     success = network_rx(segment, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
 
     // Timed out?
-    if (!success)
+    if (!success) {
         return false;
+    }
 
     // Alright we got something, let me acknowledge it really quick.
     _delay_ms(TRANSPORT_ACK_DELAY_MS);
@@ -135,17 +136,13 @@ bool transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num) {
     ack_seg[3] = MY_PORT;    // source port = me :)
     ack_seg[4] = SEGID_ACK;
     // (the return value of this function call is intentionally ignored)
-    //network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
-    printf("I should have acknowledged this.\n");
+    network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
 
-    printf("The segment is... ");
 
     // Okay. Is this new data?
-    if (expected_seq_num != segment[1])
-        printf("NOT new.\n");
+    if (expected_seq_num != segment[1]) {
         return false;
-
-    printf("new.\n");
+    }
 
     return true;
 }
@@ -202,6 +199,9 @@ bool transport_rx(byte* buffer, byte buf_len) {
             if (segment_identifier == SEGID_DATA) {
                 byte offset = segment[5];
                 byte payload_len = segment_len - DATA_SEGMENT_HEADER_LEN;
+
+                printf("Writing [%s] to %d\n", &segment[DATA_SEGMENT_HEADER_LEN], offset);
+
                 for (byte i = 0; i < payload_len && i + offset < buf_len; i++) {
                     buffer[i + offset] = segment[i + DATA_SEGMENT_HEADER_LEN];
                 }

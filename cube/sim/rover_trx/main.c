@@ -14,8 +14,8 @@
 
 #define TARGET_PORT 0x0A
 
-#define EXAMPLE_PAYLOAD_LEN (12)
-static char example_payload[256] = "Hello, world";
+#define EXAMPLE_PAYLOAD_LEN (120)
+static char example_payload[256] = "Hello, world! Here is a message that is too large to fit inside of a single packet. This message is 120 characters long.";
 
 int main() {
 

@@ -31,7 +31,7 @@ int main() {
         fflush(stdout);
 
         if (transport_rx(received_payload, 200)) {
-            printf("\n\n===== Got something: ===== \n%s\n==========================\n\n", &received_payload[PACKET_HEADER_LEN]);
+            printf("\n\n===== Got something: ===== \n%s\n==========================\n\n", received_payload);
         }
         else {
             printf("Failed to get message.\n");

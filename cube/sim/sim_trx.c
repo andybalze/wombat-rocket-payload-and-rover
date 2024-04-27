@@ -58,8 +58,8 @@ trx_transmission_outcome_t trx_transmit_payload(
     for (int i = 0; i < TRX_PAYLOAD_LENGTH; i++) {
         final_payload[i] = '\0';
     }
-    if (!(payload_length < TRX_PAYLOAD_LENGTH - 1)) {
-        payload_length = TRX_PAYLOAD_LENGTH - 1;
+    if (!(payload_length < TRX_PAYLOAD_LENGTH)) {
+        payload_length = TRX_PAYLOAD_LENGTH;
     }
     for (int i = 0; i < payload_length; i++) {
         final_payload[i] = payload[i];

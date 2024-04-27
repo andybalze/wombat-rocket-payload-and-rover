@@ -3,6 +3,11 @@
 
 void print_segment(byte* segment) {
 
+    char payload[256];
+    for (int i = 0; i < 256; i++) {
+        payload[i] = '\0';
+    }
+
 
     // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
     int segtype = segment[4];
@@ -38,6 +43,10 @@ void print_segment(byte* segment) {
     // rest is payload
 
     case SEGID_DATA:
+        int payload_length = segment[0] - DATA_SEGMENT_HEADER_LEN;
+        for (int i = 0; i < payload_length; i++) {
+            payload[i] = segment[i + DATA_SEGMENT_HEADER_LEN];
+        }
         printf("\t\t========== Segment (Data) ===========\n");
         printf("\t\tLength of segment:          %d\n", segment[0]);
         printf("\t\tSequence number:            %d\n", segment[1]);
@@ -45,6 +54,7 @@ void print_segment(byte* segment) {
         printf("\t\tSource port number:         %02x\n", segment[3]);
         printf("\t\tSegment identifier:         %02x (DATA)\n", segment[4]);
         printf("\t\tStart address:              %02x\n", segment[5]);
+        printf("\t\tThe payload:                %s\n", payload);
         printf("\t\t=================================================\n");
         break;
 

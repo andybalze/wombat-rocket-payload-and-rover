@@ -36,7 +36,7 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
             return false;
         }
 
-        printf("Received packet:\n");
+        printf("Received packet.\n");
         print_packet(packet);
 
         packet_len = packet[0];
