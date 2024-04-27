@@ -186,44 +186,66 @@ byte transport_rx(byte* buffer, byte buf_len) {
 // I can finally adjust "current seq number" and move on and send the next packet.
 
 
-// This function is local to this file.
-// It takes in a ready-to-go segment and tries to transport it until
-// it gets an acknowledgement.
-bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port, byte* current_seq_num) {
+// This function transmits a segment, then waits to receive an acknowledgement.
+// This function can time out.
+// The function returns whether the acknowledgement was received before the timeout.
+bool transport_attempt_a_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
     byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
+    bool success;
 
-    bool did_my_friend_get_the_message_yet = false;
+    // Let's send this bad boy.
+    network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
+
+    // Now let's try to get an acknowledgement.
+    success = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TIMEOUT_MS);
+
+    // Timed out?
+    if (!success) {
+        return false;
+    }
+
+    // The received segment is an ack?
+    if (hopefully_an_ack[4] != SEGID_ACK) {
+        return false;
+    }
+
+    // The sequence number is advanced?
+    if (hopefully_an_ack[1] == current_seq_num) {
+        return false;
+    }
+
+    // Looks good. Our message was acknowledged.
+    return true;
+}
+
+// This function continually tries to transmit segments until one is acknowledged.
+// This function can fail if the attempted transmissions exceeds TRANSPORT_TX_ATTEMPT_LIMIT.
+// The function returns whether the segment was eventually transmitted and acknowledged.
+bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
     uint16_t transmit_attempts = 0;
+    bool success;
 
-    do {
-        // Let's send this bad boy.
-        network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
-        // And see if it came.
-        if (network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TIMEOUT_MS)) {
-            // No timeout, good...
-            if (hopefully_an_ack[4] == SEGID_ACK) {
-                // Ack, good...
-                if (hopefully_an_ack[1] != *current_seq_num) {
-                    // They got it! (Sequence numbers are diff. so they expect something new)
-                    did_my_friend_get_the_message_yet = true;
-                }
-            }
-        }
+    while(true) {
+
         transmit_attempts++;
+        if (transmit_attempts > TRANSPORT_TX_ATTEMPT_LIMIT)
+            return false;
 
-    } while (did_my_friend_get_the_message_yet == false && transmit_attempts < TRANSPORT_TX_ATTEMPT_LIMIT);
+        success = transport_attempt_a_tx(segment, segment_len, dest_port, current_seq_num);
 
-    if (did_my_friend_get_the_message_yet) {
-        *current_seq_num = *current_seq_num == 0 ? 1 : 0;
-        return true;
-    }
-    else {
-        return false;
+        if (success)
+            return true;
     }
 }
 
+// The application layer calls this function.
+// The function takes the message, splits it up into segments,
+// and sends each segment one-by-one.
+// Every segment must be acknowledged before the next one is sent.
+// The function can fail if one of the segments is not acknowledged in time.
+// The function returns whether the message was sent successfully.
 bool transport_tx(byte* message, byte message_len, byte dest_port) {
 
     byte current_seq_num = 0;
@@ -239,9 +261,9 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
     segment[4] = SEGID_START_OF_MESSAGE;
     segment[5] = message_len;
 
-    if (!transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, &current_seq_num)) {
+    if (!transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, current_seq_num))
         return false;
-    }
+    current_seq_num = current_seq_num == 0 ? 1 : 0;
 
     // ------ send data segments -----
     while (bytes_remaining > 0) {
@@ -270,9 +292,9 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
 
         bytes_remaining -= this_payload_len;
 
-        if (!transport_keep_trying_to_tx(segment, this_segment_len, dest_port, &current_seq_num)) {
+        if (!transport_keep_trying_to_tx(segment, this_segment_len, dest_port, current_seq_num))
             return false;
-        }
+        current_seq_num = current_seq_num == 0 ? 1 : 0;
     }
 
     // ------ send END_OF_MESSAGE -----
@@ -282,9 +304,9 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
     segment[3] = MY_PORT;
     segment[4] = SEGID_END_OF_MESSAGE;
 
-    if (!transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, &current_seq_num)) {
+    if (!transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, current_seq_num))
         return false;
-    }
+    current_seq_num = current_seq_num == 0 ? 1 : 0;
 
     return true;
 
