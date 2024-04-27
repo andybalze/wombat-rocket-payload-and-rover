@@ -28,8 +28,8 @@
 // a network from being overwhelmed by throttling its own output!
 
 
-#define TRANSPORT_ACK_DELAY_MS (400)
-#define TRANSPORT_TIMEOUT_MS (800)
+#define TRANSPORT_ACK_DELAY_MS (2000)
+#define TRANSPORT_TIMEOUT_MS (4000)
 #define TRANSPORT_TX_ATTEMPT_LIMIT (5)
 
 
@@ -199,8 +199,6 @@ bool transport_rx(byte* buffer, byte buf_len) {
             if (segment_identifier == SEGID_DATA) {
                 byte offset = segment[5];
                 byte payload_len = segment_len - DATA_SEGMENT_HEADER_LEN;
-
-                printf("Writing [%s] to %d\n", &segment[DATA_SEGMENT_HEADER_LEN], offset);
 
                 for (byte i = 0; i < payload_len && i + offset < buf_len; i++) {
                     buffer[i + offset] = segment[i + DATA_SEGMENT_HEADER_LEN];

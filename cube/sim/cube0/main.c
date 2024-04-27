@@ -37,5 +37,4 @@ int main() {
             printf("Failed to get message.\n");
         }
     }
-
 }

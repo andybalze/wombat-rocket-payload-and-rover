@@ -42,7 +42,7 @@
 
 // Passing this to trx_receive_payload will cause the function to wait for a
 // reception indefinitely.
-#define TRX_TIMEOUT_INDEFINITE (1501)
+#define TRX_TIMEOUT_INDEFINITE (15001)
 
 /////////////////// TRX Macros /////////////////////////////////////////////////
 

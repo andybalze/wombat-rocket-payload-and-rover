@@ -23,19 +23,23 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <poll.h>
+#include <stdlib.h>
+#include <time.h>
 
 /////////////////// Private type definitions ///////////////////////////////////
 
 static trx_address_t my_addr;
 char my_fifo[256];
 
-
+// As a percent
+#define NETWORK_RELIABILITY (90)
 
 /////////////////// Public Function Bodies /////////////////////////////////////
 
 // Initializes the TRX, including initializing the SPI and any other peripherals
 // required.
 void trx_initialize(trx_address_t rx_address) {
+    srand(time(NULL));
     my_addr = rx_address;
     sprintf(my_fifo, "/tmp/rocket_rover_fifo_test_%#010x", rx_address);
     printf("Creating a FIFO: %s\n", my_fifo);
@@ -43,11 +47,21 @@ void trx_initialize(trx_address_t rx_address) {
 }
 
 // Transmits a payload to the given address.
+
+// Sometimes, the payload will not send.
+// Sometimes, the payload will send, but we will
+// not get our acknowledgement back.
 trx_transmission_outcome_t trx_transmit_payload(
     trx_address_t address,
     trx_payload_element_t *payload,
     int payload_length
 ) {
+
+    // Randomly fail to transmit.
+    if (!(rand() % 100 < NETWORK_RELIABILITY)) {
+        printf("Failed to transmit. (legit)\n");
+        return TRX_TRANSMISSION_FAILURE;
+    }
 
     // prepare FIFO name
     char destination_fifo[256];
@@ -75,6 +89,12 @@ trx_transmission_outcome_t trx_transmit_payload(
 
     // Close FIFO
     close(fd);
+
+    // Randomly report a failure. Perhaps our data link acknowledgement was lost.
+    if (!(rand() % 100 < NETWORK_RELIABILITY)) {
+        printf("Failed to transmit. (unacknowledged)\n");
+        return TRX_TRANSMISSION_FAILURE;
+    }
     return TRX_TRANSMISSION_SUCCESS;
 
 

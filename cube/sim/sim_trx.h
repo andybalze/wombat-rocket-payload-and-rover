@@ -41,7 +41,7 @@ typedef uint8_t trx_reception_outcome_t;
 #define TRX_RECEPTION_FAILURE (0)
 #define TRX_RECEPTION_SUCCESS (1) 
 
-#define TRX_TIMEOUT_INDEFINITE (1501)
+#define TRX_TIMEOUT_INDEFINITE (15001)
 
 /////////////////// Public function prototypes /////////////////////////////////
 
