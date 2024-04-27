@@ -20,39 +20,32 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
     byte packet[MAX_PACKET_LEN];
 
     bool success;
-    bool endloop = false;
 
     // Repeat this until we get something that's for me,
     // or until one of our things times out.
-    do {
-
+    while(true) {
         success = data_link_rx(packet, MAX_PACKET_LEN, timeout_ms);
-        if (success) {
-            packet_len = packet[0];
-            // If packet isn't for me, forward it along.
-            if (packet[1] != MY_NETWORK_ADDR) {
-                network_tx(packet, packet_len, packet[1], packet[2]);
-            }
-            else {
-                // Break if we receive a packet for us
-                endloop = true;
-            }
-        }
-        else {
-            // Break if we time out
-            endloop = true;
+
+        // Timed out. Return false.
+        if (!success) {
+            return false;
         }
 
-    } while (endloop == false);
+        packet_len = packet[0];
 
-    // Got something for me. Let's return it.
-    if (success) {
-        for (byte i = 0; i < packet_len - PACKET_HEADER_LEN && i < buf_len; i++) {
-            buffer[i] = packet[i + PACKET_HEADER_LEN];
+        // Packet is for me. Copy data and return true.
+        if (packet[1] == MY_NETWORK_ADDR) {
+            for (byte i = 0; i < packet_len - PACKET_HEADER_LEN && i < buf_len; i++) {
+                buffer[i] = packet[i + PACKET_HEADER_LEN];
+            }
+            return true;
         }
+
+        // Packet is not for me. Forward it and try again.
+        network_tx(packet, packet_len, packet[1], packet[2]);
+
     }
 
-    return success;
 }
 
 // Transmit to the specified network address.
