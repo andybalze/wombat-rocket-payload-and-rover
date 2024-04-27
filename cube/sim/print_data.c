@@ -81,9 +81,17 @@ void print_segment(byte* segment) {
         printf("\t\tSegment identifier:         %02x (ACK)\n", segment[4]);
         printf("\t\t=================================================\n");
         break;
+
+    default:
+        printf("\t\t========== Segment (Invalid) ===========\n");
+        printf("\t\tLength of segment:          %d\n", segment[0]);
+        printf("\t\tSequence number:            %d\n", segment[1]);
+        printf("\t\tDestination port number:    %02x\n", segment[2]);
+        printf("\t\tSource port number:         %02x\n", segment[3]);
+        printf("\t\tSegment identifier:         %02x (ACK)\n", segment[4]);
+        printf("\t\t========================================\n");
+        break;
     }
-
-
 }
 
 void print_packet(byte* packet) {
@@ -97,8 +105,8 @@ void print_packet(byte* packet) {
     printf("\tPacket length:    %d\n", packet[0]);
     printf("\tDestination addr: %02x\n", packet[1]);
     printf("\tSource addr:      %02x\n", packet[2]);
-    //printf("\tPayload:\n");
-    //print_segment(&packet[PACKET_HEADER_LEN]);
+    printf("\tPayload:\n");
+    print_segment(&packet[PACKET_HEADER_LEN]);
     printf("\t============================\n");
 
 }
