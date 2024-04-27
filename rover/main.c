@@ -19,6 +19,8 @@
 #include "motors.h"
 #include "timer.h"
 #include "accelerometer.h"
+#include "ir.h"
+#include "avoid_obstacles.h"
 
 
 
