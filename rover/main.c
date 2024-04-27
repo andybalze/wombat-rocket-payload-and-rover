@@ -123,7 +123,7 @@ int main() {
                             launch_check_enable();
                         }
 
-                        if (get_launch_is_a_go() == true) {                               //                     exit condition if (rocket launched)
+                        if (get_launch_is_a_go() == true) {                         //                     exit condition if (rocket launched)
                             launch_check_disable();
                             LED_set(RED, ON);
                             LED_set(GREEN, OFF);
@@ -140,32 +140,32 @@ int main() {
                             LED_set(YELLOW, OFF);
                         }
 
-                        if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_TIME) {  //                     exit condition
-                            no_motion_check_enable();   // TEST //          // Has to be in here b.c. counter can't work during motion check
+                        if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_TIME) {//                     exit condition
+                            no_motion_check_enable();   // TEST //                  // Has to be in here b.c. counter can't work during motion check
                             if (get_no_motion() == true) {  // TEST //
                                 no_motion_check_disable();  // TEST //
                                 LED_set(YELLOW, OFF);
-                                is_upside_down = !is_up();                                  //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
+                                is_upside_down = !is_up();          // Joey TEST // //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
                                 PWM_enable();
                                 uart_transmit_formatted_message("EXIT_CANISTER\r\n");
                                 UART_WAIT_UNTIL_DONE();
-                                reset_timer_counter(counter_alpha);                               //                         reset timer counter
-                                flight_state = EXIT_CANISTER;                           //                         change state to EXIT_CANISTER
+                                reset_timer_counter(counter_alpha);                 //                         reset timer counter
+                                flight_state = EXIT_CANISTER;                       //                         change state to EXIT_CANISTER
                             }
                         }                                                           //                     end exit condition
                         break;
                     }                                                               //                 end case
 
                     case EXIT_CANISTER: {                                           //                 case (EXIT_CANISTER)
-                        motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);                     //                     turn on drive motors
+                        motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);    //                     turn on drive motors
                         motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
 
-                        if (get_timer_counter(counter_alpha) >= EXIT_TIME) {              //                     exit condition if (time delay reached)
+                        if (get_timer_counter(counter_alpha) >= EXIT_TIME) {        //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
                             UART_WAIT_UNTIL_DONE();
-                            reset_timer_counter(counter_alpha);                               //                         reset timer counter
+                            reset_timer_counter(counter_alpha);                     //                         reset timer counter
                             flight_state = DRIVE_FORWARD;                           //                         change state to DRIVE_FORWARD
                         }                                                           //                     end exit condition
                         break;
@@ -177,7 +177,7 @@ int main() {
                             motor(RIGHT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);
                         }
 
-                        if (get_timer_counter(counter_alpha) >= DRIVE_TIME) {             //                     exit condition if (time delay reached)
+                        if (get_timer_counter(counter_alpha) >= DRIVE_TIME) {       //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             uart_transmit_formatted_message("DISPENSE_DATA_CUBE\r\n");
@@ -218,7 +218,7 @@ int main() {
                     }                                                               //                 end case
 
                     case DEAD_LOOP: {                                               //                 case (DEAD_LOOP)
-                        end_operation = true;                                          //                     dead loop
+                        end_operation = true;                                       //                     dead loop
                         break;
                     }                                                               //                 end case
 
@@ -227,7 +227,7 @@ int main() {
                         LED_set(GREEN, OFF);
                         uart_transmit_formatted_message("ERROR 1674: flight mode state machine error\r\n");
                         UART_WAIT_UNTIL_DONE();
-                        end_operation = true;                                          //                     enter rover error state
+                        end_operation = true;                                       //                     enter rover error state
                         break;
                     }                                                               //                 end case
                 }                                                                   //             end switch
