@@ -8,33 +8,29 @@
 
 #include "sim_trx.h"
 #include "sim_delay.h"
-#include "network.h"
+#include "transport.h"
 #include "address.h"
 #include <stdio.h>
 
-#define TARGET_NETWORK_ADDR 0x0A
+#define TARGET_PORT 0x0A
 
-static trx_payload_element_t *example_payload1 = "Hello, world";
-
-static trx_payload_element_t received_payload[TRX_PAYLOAD_LENGTH + 1];
+#define EXAMPLE_PAYLOAD_LEN (12)
+static char example_payload[256] = "Hello, world";
 
 int main() {
 
-    printf("Rover Powering on...\n");
+    printf("::: Transport layer test :::\n");
+    printf("::: Simulating rover     :::\n\n");
 
 	trx_initialize(MY_DATA_LINK_ADDR);
 	_delay_ms(300);
 
-
-    for (int i = 0; i < TRX_PAYLOAD_LENGTH + 1; i++) {
-        received_payload[i] = '\0';
+    printf("Attempting to transmit payload... ");
+    fflush(stdout);
+    if (transport_tx(example_payload, EXAMPLE_PAYLOAD_LEN, TARGET_PORT)) {
+        printf("Succeeded.\n");
     }
-
-    while(1) {
-        printf("Attempting to transmit payload.\n");
-        network_tx(example_payload1, 12, TARGET_NETWORK_ADDR, MY_NETWORK_ADDR);
-        printf("Transmitted the payload.\n\n");
-        _delay_ms(1000);
+    else {
+        printf("Failed.\n");
     }
-
 }

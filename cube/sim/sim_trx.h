@@ -61,7 +61,7 @@ trx_transmission_outcome_t trx_transmit_payload(
 // Receives a payload using polling.
 trx_reception_outcome_t trx_receive_payload(
   trx_payload_element_t *payload_buffer,
-  uint16_t timer_delay_ms_t
+  uint16_t timer_delay_ms
 );
 
 // Gets the value currently in the status buffer. This is equivalent to what was

@@ -83,12 +83,13 @@ trx_transmission_outcome_t trx_transmit_payload(
 // Receives a payload using polling.
 trx_reception_outcome_t trx_receive_payload(
   trx_payload_element_t *payload_buffer,
-  uint16_t timer_delay_ms_t
+  uint16_t timer_delay_ms
 ) {
     // https://man7.org/linux/man-pages/man2/poll.2.html
     int ready;
     ssize_t s;
     struct pollfd fds;
+
 
     // Open FIFO
     fds.fd = open(my_fifo, O_RDONLY | O_NONBLOCK);
@@ -97,14 +98,19 @@ trx_reception_outcome_t trx_receive_payload(
         return TRX_RECEPTION_FAILURE;
     }
 
+    int my_delay = timer_delay_ms;
+    if (my_delay >= TRX_TIMEOUT_INDEFINITE)
+        my_delay = -1;
+
     // Wait for data
-    ready = poll(&fds, 1, timer_delay_ms_t);
+    ready = poll(&fds, 1, my_delay);
     if (ready == -1) {
         return TRX_RECEPTION_FAILURE;
     }
     if (fds.revents == 0) {
         return TRX_RECEPTION_FAILURE;
     }
+
 
     // Read from FIFO
     s = read(fds.fd, payload_buffer, TRX_PAYLOAD_LENGTH);

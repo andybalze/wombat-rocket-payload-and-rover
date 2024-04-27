@@ -4,6 +4,11 @@
 #include "address.h"
 #include "routing_table.h"
 
+#ifdef SIMULATION
+#include <stdio.h>
+#include "print_data.h"
+#endif
+
 // packet[0] = length of packet
 // packet[1] = final destination network address
 // packet[2] = original source network address
@@ -31,7 +36,11 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
             return false;
         }
 
+        printf("Received packet:\n");
+        print_packet(packet);
+
         packet_len = packet[0];
+
 
         // Packet is for me. Copy data and return true.
         if (packet[1] == MY_NETWORK_ADDR) {
@@ -63,6 +72,8 @@ bool network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte sr
 
     success = data_link_tx(packet, packet_len, resolve_data_link_addr(next_hop_addr));
     if (success) {
+        printf("Transmitted packet:\n");
+        print_packet(packet);
         return true;
     }
     else {

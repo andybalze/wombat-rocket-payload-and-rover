@@ -10,10 +10,16 @@
 #include "transport.h"
 #include "network.h"
 #include "address.h"
+#include "cube_parameters.h"
+
 #ifndef SIMULATION
 #include "trx.h"
+#include <util/delay.h>
 #else
 #include "sim_trx.h"
+#include "sim_delay.h"
+#include "print_data.h"
+#include <stdio.h>
 #endif
 
 // the transport layer intentionally adds delays between segments.
@@ -21,17 +27,10 @@
 // the transport layer is actually responsible for preventing
 // a network from being overwhelmed by throttling its own output!
 
-#include "cube_parameters.h"
 
-#ifndef SIMULATION
-#include <util/delay.h>
-#else
-#include "sim_delay.h"
-#endif
-
-#define TRANSPORT_ACK_DELAY_MS (1)
-#define TRANSPORT_TIMEOUT_MS (3)
-#define TRANSPORT_TX_ATTEMPT_LIMIT (100)
+#define TRANSPORT_ACK_DELAY_MS (400)
+#define TRANSPORT_TIMEOUT_MS (800)
+#define TRANSPORT_TX_ATTEMPT_LIMIT (5)
 
 
 // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
@@ -74,12 +73,6 @@ enum rx_state_t {
     RXST_Receiving
 };
 
-enum segment_identifier_t {
-    SEGID_START_OF_MESSAGE = 0x07,
-    SEGID_DATA = 0x0D,
-    SEGID_END_OF_MESSAGE = 0x09,
-    SEGID_ACK = 0x0A
-};
 
 
 /*
@@ -135,21 +128,26 @@ bool transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num) {
         return false;
 
     // Alright we got something, let me acknowledge it really quick.
+    _delay_ms(TRANSPORT_ACK_DELAY_MS);
     ack_seg[0] = ACK_SEGMENT_HEARDER_LEN;
     ack_seg[1] = segment[1] == 0 ? 1 : 0; // advance seq number
     ack_seg[2] = segment[3]; // destination port = port of whoever sent
     ack_seg[3] = MY_PORT;    // source port = me :)
     ack_seg[4] = SEGID_ACK;
     // (the return value of this function call is intentionally ignored)
-    network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
+    //network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
+    printf("I should have acknowledged this.\n");
+
+    printf("The segment is... ");
 
     // Okay. Is this new data?
     if (expected_seq_num != segment[1])
+        printf("NOT new.\n");
         return false;
 
+    printf("new.\n");
 
     return true;
-
 }
 
 // For now, this will never fail.

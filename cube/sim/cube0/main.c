@@ -8,35 +8,33 @@
 
 #include "sim_trx.h"
 #include "sim_delay.h"
-#include "network.h"
+#include "transport.h"
 #include "address.h"
 #include "networking_constants.h"
 #include <stdio.h>
 
 int main() {
 
-    char received_payload[256];
-    for (int i = 0; i < 256; i++) {
+    char received_payload[200];
+    for (int i = 0; i < 200; i++) {
         received_payload[i] = 0;
     }
 
-    printf("Cube 0 Powering on...\n");
+    printf("::: Transport layer test :::\n");
+    printf("::: Simulating cube 0    :::\n\n");
 
 	trx_initialize(MY_DATA_LINK_ADDR);
 	_delay_ms(300);
 
-    for (int i = 0; i < TRX_PAYLOAD_LENGTH + 1; i++) {
-        received_payload[i] = '\0';
-    }
-
     while(1) {
-        printf("Attempting to receive packet... ");
+        printf("Attempting to receive message... ");
         fflush(stdout);
-        if (network_rx(received_payload, MAX_PACKET_LEN, 1000)) {
-            printf("\n===== Got something: ===== %s\n==========================\n", &received_payload[PACKET_HEADER_LEN]);
+
+        if (transport_rx(received_payload, 200)) {
+            printf("\n\n===== Got something: ===== \n%s\n==========================\n\n", &received_payload[PACKET_HEADER_LEN]);
         }
         else {
-            printf("Timed out.\n");
+            printf("Failed to get message.\n");
         }
     }
 
