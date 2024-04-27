@@ -10,6 +10,6 @@
 // How fun!
 bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms);
 
-void network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte src_network_addr);
+bool network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte src_network_addr);
 
 #endif

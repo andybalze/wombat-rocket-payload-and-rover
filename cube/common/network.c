@@ -47,8 +47,9 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
 }
 
 // Transmit to the specified network address.
-void network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte src_network_addr) {
+bool network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte src_network_addr) {
 
+    bool success;
     byte packet_len = payload_len + PACKET_HEADER_LEN;
     byte packet[packet_len];
 
@@ -60,7 +61,11 @@ void network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte sr
     }
     byte next_hop_addr = routing_table(dest_network_addr);
 
-    data_link_tx(packet, packet_len, resolve_data_link_addr(next_hop_addr));
-
-    return;
+    success = data_link_tx(packet, packet_len, resolve_data_link_addr(next_hop_addr));
+    if (success) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }

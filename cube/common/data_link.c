@@ -30,7 +30,9 @@ bool data_link_rx(byte* buffer, byte buf_len, timer_delay_ms_t timeout_ms) {
 }
 
 
-void data_link_tx(byte* payload, byte payload_len, uint32_t addr) {
+bool data_link_tx(byte* payload, byte payload_len, uint32_t addr) {
+
+    trx_transmission_outcome_t success;
 
     // initialize
     byte payload_zero_pad[TRX_PAYLOAD_LENGTH];
@@ -46,7 +48,12 @@ void data_link_tx(byte* payload, byte payload_len, uint32_t addr) {
         payload_zero_pad[i + FRAME_HEADER_LEN] = payload[i];
     }
 
-    // TO-DO: handle return value
-    trx_transmit_payload(addr, payload_zero_pad, TRX_PAYLOAD_LENGTH);
+    success = trx_transmit_payload(addr, payload_zero_pad, TRX_PAYLOAD_LENGTH);
+    if (success == TRX_TRANSMISSION_SUCCESS) {
+        return true;
+    }
+    else {
+        return false;
+    }
 
 }
