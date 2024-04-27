@@ -43,9 +43,7 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
 
         // Packet is not for me. Forward it and try again.
         network_tx(packet, packet_len, packet[1], packet[2]);
-
     }
-
 }
 
 // Transmit to the specified network address.
