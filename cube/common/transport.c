@@ -71,8 +71,7 @@
 // Using an enum for a "state machine" to make this a little more easily expandable.
 enum rx_state_t {
     RXST_Idle,
-    RXST_Receiving,
-    RXST_Complete
+    RXST_Receiving
 };
 
 enum segment_identifier_t {
@@ -83,18 +82,91 @@ enum segment_identifier_t {
 };
 
 
+/*
+================================================================================
 
-// While receiving...
-// if I receive a frame, I first acknowledge it no matter what.
-// If the frame's sequence number is 0, I ack 1 and set my "expecting seq num" to 1.
-// If the frame's sequence number is 1, I ack 0 and set my "expecting seq num" to 0.
+            Theory
 
-// If the frame's sequence number matches my "expecting seq num", we're golden.
-// I'll do something with this frame.
-// If it does not match... well, somehow my ack got lost in transmission,
-// so the other guy sent the same thing again. I'll ignore it.
+=== Receiver side ===
+if I receive a frame, I first acknowledge it no matter what.
+If the frame's sequence number is 0, I ack 1, regardless of what my expected_seq_num is.
+If the frame's sequence number is 1, I ack 0, regardless of what my expected_seq_num is.
 
-byte transport_rx(byte* buffer, byte buf_len) {
+If the frame's sequence number matches my "expected_seq_num", we're golden.
+I'll do something with this frame. I will also advance my expected_seq_num.
+If it does not match... well, somehow my previous ack got lost in transmission,
+so the other guy sent the same thing again. I won't do anything this time.
+Hopefully he got my ack this time and sends the next frame.
+
+=== Transmitter side ===
+We both start at seq number 0. This will be my "current seq num".
+
+I will send a message. Then I'll immediately start waiting for an ack.
+If I timeout, I will re-send my message.
+If I get an ack, but the ack's sequence number matches mine,
+I will re-send my message.
+If I get an ack, and the ack sequence number is advanced one,
+I can finally adjust "current seq number" and move on and send the next packet.
+
+================================================================================
+*/
+
+
+
+
+// ======================= Receiver Code =======================================
+
+
+
+// Get data from the network layer.
+// Acknowledge it.
+// Verify the data is new by checking the sequence number.
+// Returns true if the reception was successful.
+bool transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num) {
+
+    bool success;
+    byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
+
+    // try to receive some data from the network
+    success = network_rx(segment, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
+
+    // Timed out?
+    if (!success)
+        return false;
+
+    // Alright we got something, let me acknowledge it really quick.
+    ack_seg[0] = ACK_SEGMENT_HEARDER_LEN;
+    ack_seg[1] = segment[1] == 0 ? 1 : 0; // advance seq number
+    ack_seg[2] = segment[3]; // destination port = port of whoever sent
+    ack_seg[3] = MY_PORT;    // source port = me :)
+    ack_seg[4] = SEGID_ACK;
+    // (the return value of this function call is intentionally ignored)
+    network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
+
+    // Okay. Is this new data?
+    if (expected_seq_num != segment[1])
+        return false;
+
+
+    return true;
+
+}
+
+// For now, this will never fail.
+// You could make it fail after a number of attempts... would there be a point?
+bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_num) {
+    while(true) {
+        if (transport_attempt_rx(segment, buf_len, expected_seq_num)) {
+            return true;
+        }
+    }
+}
+
+
+// The application layer calls this function.
+// Get a complete message.
+// The function returns if a complete message was successfully received.
+bool transport_rx(byte* buffer, byte buf_len) {
 
     int state = RXST_Idle;
     byte message_length;
@@ -102,94 +174,62 @@ byte transport_rx(byte* buffer, byte buf_len) {
     byte segment_len;
     byte segment[MAX_SEGMENT_LEN];
 
-    byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
-
     byte segment_identifier;
+    byte expected_seq_num = 0;
 
-    byte expecting_seq_number = 0;
+    // Continually receive segments until we've put together a whole message.
+    while(true) {
 
-    do {
+        // Get the next segment.
+        // As a side effect, acknowledge anything we receive.
+        bool success = transport_keep_trying_to_rx(segment, MAX_SEGMENT_LEN, expected_seq_num);
+        if (!success)
+            return false;
 
-        // Get the next segment
-        bool success = network_rx(segment, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
-        if (success) {
+        expected_seq_num = expected_seq_num == 0 ? 1 : 0;
 
-            segment_len = segment[0];
-            segment_identifier = segment[4];
+        segment_len = segment[0];
+        segment_identifier = segment[4];
 
-            // No matter my state, I will acknowledge it...
-            ack_seg[0] = ACK_SEGMENT_HEARDER_LEN;
-            ack_seg[1] = segment[1] == 0 ? 1 : 0; // advance seq number (don't kill me)
-            ack_seg[2] = segment[3]; // destination port = port of whoever sent
-            ack_seg[3] = MY_PORT;    // source port = me :)
-            ack_seg[4] = SEGID_ACK;
-            network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
+        switch(state) {
 
-            // Okay. Do I do something with it now?
-            // Only if it was the sequence number I was expecting.
-            if (expecting_seq_number == segment[1]) {
+        case RXST_Idle:
+            if (segment_identifier == SEGID_START_OF_MESSAGE) {
+                message_length = segment[5];
+                state = RXST_Receiving;
+            }
+            break;
 
-                // Okay, this is fresh data I haven't seen before.
-                // Let's work with it.
-                switch(state) {
-
-                case RXST_Idle:
-                    if (segment_identifier == SEGID_START_OF_MESSAGE) {
-                        message_length = segment[5];
-                        state = RXST_Receiving;
-                    }
-                    break;
-
-                case RXST_Receiving:
-                    if (segment_identifier == SEGID_DATA) {
-                        byte offset = segment[5];
-                        byte payload_len = segment_len - DATA_SEGMENT_HEADER_LEN;
-                        for (byte i = 0; i < payload_len; i++) {
-                            if (i + offset < buf_len) {
-                                buffer[i + offset] = segment[i + DATA_SEGMENT_HEADER_LEN];
-                            }
-                        }
-                    }
-                    else if (segment_identifier == SEGID_END_OF_MESSAGE) {
-                        state = RXST_Complete;
-                    }
-                    break;
-
-                // (this case never executes)
-                case RXST_Complete:
-                    break;
-
+        case RXST_Receiving:
+            if (segment_identifier == SEGID_DATA) {
+                byte offset = segment[5];
+                byte payload_len = segment_len - DATA_SEGMENT_HEADER_LEN;
+                for (byte i = 0; i < payload_len && i + offset < buf_len; i++) {
+                    buffer[i + offset] = segment[i + DATA_SEGMENT_HEADER_LEN];
                 }
             }
-            // Finally. I can update my expecting_seq_number.
-            expecting_seq_number = segment[1] == 0 ? 1 : 0;
+            else if (segment_identifier == SEGID_END_OF_MESSAGE) {
+                return true;
+            }
+            // An unusual case. Can happen if the transmitter gives up
+            // and tries again from the beginning.
+            else if (segment_identifier == SEGID_START_OF_MESSAGE) {
+                message_length = segment[5];
+            }
+            break;
         }
-
-    } while (state != RXST_Complete);
-
-
-    // We have a complete message!
-    state = RXST_Idle;
-    return message_length;
+    }
 }
 
 
 
-// While transmitting...
-// We both start at seq number 0. This will be my "current seq num".
-
-// I will send a message. Then I'll immediately start waiting for an ack.
-// If I timeout, I will re-send my message.
-// If I get an ack, but the ack's sequence number matches mine,
-// I will re-send my message.
-// If I get an ack, and the ack sequence number is advanced one,
-// I can finally adjust "current seq number" and move on and send the next packet.
+// ======================= Transmitter Code ====================================
 
 
 // This function transmits a segment, then waits to receive an acknowledgement.
 // This function can time out.
 // The function returns whether the acknowledgement was received before the timeout.
-bool transport_attempt_a_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
+bool transport_attempt_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
     byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
     bool success;
@@ -238,7 +278,7 @@ bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port
         if (transmit_attempts > TRANSPORT_TX_ATTEMPT_LIMIT)
             return false;
 
-        success = transport_attempt_a_tx(segment, segment_len, dest_port, current_seq_num);
+        success = transport_attempt_tx(segment, segment_len, dest_port, current_seq_num);
 
         if (success)
             return true;
