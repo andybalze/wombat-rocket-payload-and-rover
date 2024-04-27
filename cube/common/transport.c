@@ -195,7 +195,12 @@ bool transport_attempt_a_tx(byte* segment, byte segment_len, byte dest_port, byt
     bool success;
 
     // Let's send this bad boy.
-    network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
+    success = network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
+
+    // Did the transmission go through?
+    if (!success) {
+        return false;
+    }
 
     // Now let's try to get an acknowledgement.
     success = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TIMEOUT_MS);
