@@ -5,6 +5,7 @@
 #include "routing_table.h"
 
 #ifndef SIMULATION
+#include "cube_parameters.h"
 #include <util/delay.h>
 #else
 #include "sim_delay.h"
