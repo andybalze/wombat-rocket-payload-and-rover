@@ -315,6 +315,9 @@ trx_reception_outcome_t trx_receive_payload(
 
   timer_stop();
 
+  // Set the CE pin low.
+  TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
+
   if (TIMER_DONE) {
 
     // The reception timed out.
@@ -323,10 +326,6 @@ trx_reception_outcome_t trx_receive_payload(
   } else {
 
     // The reception succeeded.
-
-    // Set the CE pin low.
-    TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
-
     trx_interrupt_request_t interrupt_request;
     interrupt_request = get_interrupt_request();
 
