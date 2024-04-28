@@ -120,7 +120,7 @@ int main() {
     digital_io_initialize();
     uart_initialize();
 
-    uart_transmit_formatted_message("\n\r::: Data Cube %02x :::\n\r", MY_NETWORK_ADDR);
+    uart_transmit_formatted_message("\r\n::: Data Cube %02x :::\r\n", MY_NETWORK_ADDR);
 
     timer_start(STARTUP_DURATION_MS);
     current_state = STARTUP;
