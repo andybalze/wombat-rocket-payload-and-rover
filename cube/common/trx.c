@@ -17,6 +17,7 @@
 #include "trx.h"
 
 #include "spi.h"
+#include "uart.h"
 
 #define F_CPU 1000000
 #include <util/delay.h>
@@ -205,9 +206,8 @@ void read_rx_payload(
   spi_message_element_t *buffer
 );
 
-// Waits for the transceiver to request and interrupt. Returns which interrupt
-// whas requested.
-trx_interrupt_request_t wait_for_interrupt_request();
+// Returns which interrupt was requested by the transceiver.
+trx_interrupt_request_t get_interrupt_request();
 
 /////////////////// Public Function Bodies /////////////////////////////////////
 
@@ -268,8 +268,9 @@ trx_transmission_outcome_t trx_transmit_payload(
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
   // Wait until the transceiver raises the IRQ flag (active low).
+  TRX_WAIT_FOR_IRQ();
   trx_interrupt_request_t interrupt_request;
-  interrupt_request = wait_for_interrupt_request();
+  interrupt_request = get_interrupt_request();
 
   trx_transmission_outcome_t outcome;
   switch (interrupt_request)
@@ -288,8 +289,9 @@ trx_transmission_outcome_t trx_transmit_payload(
 }
 
 // Receives a payload using polling.
-int trx_receive_payload(
-  trx_payload_element_t *payload_buffer
+trx_reception_outcome_t trx_receive_payload(
+  trx_payload_element_t *payload_buffer,
+  timer_delay_ms_t timeout_ms
 ) {
 
   // Move back into receive mode.
@@ -301,21 +303,41 @@ int trx_receive_payload(
   // Enable active RX mode.
   TRX_CE_PORT |= _BV(TRX_CE_INDEX);
 
-  TRX_WAIT_FOR_IRQ();
-
-  // Set the CE pin low.
-  TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
-
-  trx_interrupt_request_t interrupt_request;
-  interrupt_request = wait_for_interrupt_request();
-
-  if (interrupt_request == TRX_INTERRUPT_REQUEST_DATA_RECEIVED) {
-    read_rx_payload(payload_buffer);
-    return TRX_PAYLOAD_LENGTH;
+  // Start Timer 0 if required.
+  if (timeout_ms < TRX_TIMEOUT_INDEFINITE) {
+    timer_start(timeout_ms);
   }
+  // Not starting the timer means the timer flag will never go high.
 
-  return TRX_PAYLOAD_LENGTH;
+  // Wait either for the transceiver to finish or to time out.
+  while(!TIMER_DONE && !TRX_IRQ);
+  // While loop exits either when the timer times out or an interrupt is requested.
 
+  timer_stop();
+
+  if (TIMER_DONE) {
+
+    // The reception timed out.
+    return TRX_RECEPTION_FAILURE;
+
+  } else {
+
+    // The reception succeeded.
+
+    // Set the CE pin low.
+    TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
+
+    trx_interrupt_request_t interrupt_request;
+    interrupt_request = get_interrupt_request();
+
+    if (interrupt_request == TRX_INTERRUPT_REQUEST_DATA_RECEIVED) {
+      read_rx_payload(payload_buffer);
+      return TRX_RECEPTION_SUCCESS;
+    } else {
+      // This should be an unreachable state.
+      return TRX_RECEPTION_FAILURE;
+    }
+  }
 }
 
 // Gets the value currently in the status buffer. This is equivalent to what was
@@ -366,10 +388,8 @@ void read_rx_payload(
   spi_execute_transaction(buffer, 1, 2, &instruction, 1, NULL, TRX_PAYLOAD_LENGTH);
 }
 
-trx_interrupt_request_t wait_for_interrupt_request() {
-  
-  while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) != 0);
-  
+trx_interrupt_request_t get_interrupt_request() {
+    
   // Read the status register.
   spi_message_element_t status_register;
   status_register = read_register(TRX_REGISTER_ADDRESS_STATUS);

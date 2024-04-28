@@ -1,19 +1,20 @@
-.PHONY: all rover_all rover_compile rover_size rover_fuse rover_flash cube_all cube_compile cube_size cube_fuse cube_flash trx_all trx_compile trx_size trx_fuse trx_flash
+.PHONY: all rover_all rover_compile rover_size rover_fuse rover_flash cube_all cube_compile cube_size cube_fuse cube_flash trx_all trx_compile trx_size trx_fuse trx_flash sim
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 common_dependencies = common/spi.c common/spi.h common/uart.c common/uart.h
-cube_common_dependencies = cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h cube/common/trx.c cube/common/trx.h cube/common/digital_io.h cube/common/digital_io.c
+cube_common_dependencies = cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h cube/common/trx.c cube/common/trx.h cube/common/digital_io.h cube/common/digital_io.c cube/common/timer.h cube/common/timer.c
 
-<<<<<<< HEAD
-rover_dependencies = $(common_dependencies) rover/ir.c rover/ir.h rover/adc.c rover/adc.h rover/main.c rover/digital_io.h rover/digital_io.c rover/motors.h rover/motors.c
-=======
 rover_dependencies = $(common_dependencies) rover/config.h rover/adc.c rover/adc.h rover/main.c rover/digital_io.h rover/digital_io.c rover/motors.h rover/motors.c rover/timer.h rover/timer.c rover/accelerometer.h rover/accelerometer.c
->>>>>>> test/rover-test-launch
 trx_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/rover_trx/address.h cube/rover_trx/application.c cube/rover_trx/application.h cube/rover_trx/main.c cube/rover_trx/routing_table.c cube/rover_trx/routing_table.h
 cube0_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube0/address.h cube/cube0/application.c cube/cube0/application.h cube/cube0/main.c cube/cube0/routing_table.c cube/cube0/routing_table.h
 cube1_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube1/address.h cube/cube1/application.c cube/cube1/application.h cube/cube1/main.c cube/cube1/routing_table.c cube/cube1/routing_table.h
 cube2_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube2/address.h cube/cube2/application.c cube/cube2/application.h cube/cube2/main.c cube/cube2/routing_table.c cube/cube2/routing_table.h
 
+cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/sim/sim_trx.c cube/sim/sim_trx.h cube/sim/print_data.c cube/sim/print_data.h cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h
+cube0_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube0/main.c cube/cube0/address.h cube/cube0/routing_table.h cube/cube0/routing_table.c
+cube1_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube1/main.c cube/cube1/address.h cube/cube1/routing_table.h cube/cube1/routing_table.c
+cube2_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube2/main.c cube/cube2/address.h cube/cube2/routing_table.h cube/cube2/routing_table.c
+rover_trx_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/rover_trx/main.c cube/rover_trx/address.h cube/rover_trx/routing_table.h cube/rover_trx/routing_table.c
 
 
 
@@ -72,7 +73,7 @@ cube0_fuse:
 cube0_flash: build/cube0.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/cube0.hex:i
 
-# ============ Cube 0 (standalone) =============
+# ============ Cube 1 (standalone) =============
 
 cube1_all: cube1_compile cube1_fuse cube1_flash
 
@@ -136,6 +137,22 @@ trx_fuse:
 trx_flash: build/trx.hex
 	avrdude -p m328p -c usbtiny -U flash:w:build/trx.hex:i
 
+# =============== Simulation =====================
+
+sim: build/sim_cube0 build/sim_cube1 build/sim_cube2 build/sim_rover_trx
+
+build/sim_cube0: $(cube0_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/cube0 -Icube/cube0 -Icube/common -Icube/sim $(cube0_sim_dependencies) -o build/sim_cube0
+
+build/sim_cube1: $(cube1_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/cube1 -Icube/cube1 -Icube/common -Icube/sim $(cube1_sim_dependencies) -o build/sim_cube1
+
+build/sim_cube2: $(cube2_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/cube2 -Icube/cube2 -Icube/common -Icube/sim $(cube2_sim_dependencies) -o build/sim_cube2
+
+build/sim_rover_trx: $(rover_trx_sim_dependencies)
+	gcc -DSIMULATION -Icube/sim/rover_trx -Icube/rover_trx -Icube/common -Icube/sim $(rover_trx_sim_dependencies) -o build/sim_rover_trx
+
 # =============== General ========================
 	
 clean:
@@ -145,3 +162,4 @@ clean:
 	rm -f build/cube.out
 	rm -f build/trx.hex
 	rm -f build/trx.out
+	rm -f build/sim_cube0
