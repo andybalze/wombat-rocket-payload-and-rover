@@ -1,11 +1,16 @@
 /*
-    Welcome to what is perhaps the most barebones transport layer
-    mankind has ever created. A modern transport layer like TCP is pretty nuts.
+    Welcome to a bit of a bizarre transport layer.
+    It only works with one message sender at a time. This is because we only
+    expect one sender at a time. A more correct transport layer is more
+    complicated and a little impractical for our tiny microcontroller.
 
-    The segment includes some unused data. This is in case we want to
-    be a little more elaborate.
+    This transport layer abuses the "port" concept. Normally, an endpoint
+    is uniquely identified by a network address and port number pair.
+    In this protocol stack, the port is globally unique, and therefore
+    the port number does not need to be paired with the network address.
 */
 
+#include <stdlib.h>
 #include "address_resolution.h"
 #include "transport.h"
 #include "network.h"
