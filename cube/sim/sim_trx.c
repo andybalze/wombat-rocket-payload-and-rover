@@ -27,15 +27,13 @@
 #include <time.h>
 #include "sim_delay.h"
 
-/////////////////// Private type definitions ///////////////////////////////////
 
 static trx_address_t my_addr;
 char my_fifo[256];
 
 // As a percent
-#define NETWORK_RELIABILITY (50)
+#define NETWORK_RELIABILITY (90)
 
-/////////////////// Public Function Bodies /////////////////////////////////////
 
 // Initializes the TRX, including initializing the SPI and any other peripherals
 // required.

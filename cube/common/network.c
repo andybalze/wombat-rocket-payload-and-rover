@@ -53,7 +53,6 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
         }
 
         // Packet is not for me. Forward it and try again.
-        printf("\nForwarded packet");
         network_tx(&packet[PACKET_HEADER_LEN], packet_len - PACKET_HEADER_LEN, packet[1], packet[2]);
     }
 }

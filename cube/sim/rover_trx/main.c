@@ -25,7 +25,7 @@ int main() {
 	trx_initialize(MY_DATA_LINK_ADDR);
 	_delay_ms(300);
 
-    printf("Attempting to transmit payload...\n ");
+    printf("Attempting to transmit payload... ");
     fflush(stdout);
     if (transport_tx(example_payload, EXAMPLE_PAYLOAD_LEN, TARGET_PORT)) {
         printf("Succeeded.\n");

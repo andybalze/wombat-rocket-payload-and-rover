@@ -30,7 +30,7 @@
 
 #define TRANSPORT_ACK_DELAY_MS (1)
 #define TRANSPORT_TIMEOUT_MS (50)
-#define TRANSPORT_TX_ATTEMPT_LIMIT (500)
+#define TRANSPORT_TX_ATTEMPT_LIMIT (5)
 
 
 // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
@@ -126,13 +126,6 @@ bool transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num) {
     // Timed out?
     if (!success) {
         return false;
-    }
-
-    if (expected_seq_num != segment[1]) {
-        printf("Got a segment, but it was old.\n");
-    }
-    else {
-        printf("Got a segment with new data.\n");
     }
 
     // Alright we got something, let me acknowledge it really quick.
@@ -234,9 +227,6 @@ bool transport_rx(byte* buffer, byte buf_len) {
 // The function returns whether the acknowledgement was received before the timeout.
 bool transport_attempt_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
-    printf("Attempting to transmit... ");
-    fflush(stdout);
-
     byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
     bool success;
 
@@ -245,36 +235,28 @@ bool transport_attempt_tx(byte* segment, byte segment_len, byte dest_port, byte 
 
     // Did the transmission go through?
     if (!success) {
-        printf("failed.\n");
         return false;
     }
-
-    printf("transmitted. Waiting for ack... ");
-    fflush(stdout);
 
     // Now let's try to get an acknowledgement.
     success = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TIMEOUT_MS);
 
     // Timed out?
     if (!success) {
-        printf("Ack timed out.\n");
         return false;
     }
 
     // The received segment is an ack?
     if (hopefully_an_ack[4] != SEGID_ACK) {
-        printf("This should not have happened.\n");
         return false;
     }
 
     // The sequence number is advanced?
     if (hopefully_an_ack[1] == current_seq_num) {
-        printf("Got an old ack.\n");
         return false;
     }
 
     // Looks good. Our message was acknowledged.
-    printf("Success.\n");
     return true;
 }
 
@@ -290,7 +272,6 @@ bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port
 
         transmit_attempts++;
         if (transmit_attempts > TRANSPORT_TX_ATTEMPT_LIMIT) {
-            printf("\nExceeded transmission attempts limit!\n");
             return false;
         }
 
@@ -322,8 +303,9 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
     segment[4] = SEGID_START_OF_MESSAGE;
     segment[5] = message_len;
 
-    if (!transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, current_seq_num))
+    if (!transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, current_seq_num)) {
         return false;
+    }
     current_seq_num = current_seq_num == 0 ? 1 : 0;
 
     // ------ send data segments -----
@@ -353,8 +335,9 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
 
         bytes_remaining -= this_payload_len;
 
-        if (!transport_keep_trying_to_tx(segment, this_segment_len, dest_port, current_seq_num))
+        if (!transport_keep_trying_to_tx(segment, this_segment_len, dest_port, current_seq_num)) {
             return false;
+        }
         current_seq_num = current_seq_num == 0 ? 1 : 0;
     }
 
@@ -365,8 +348,9 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
     segment[3] = MY_PORT;
     segment[4] = SEGID_END_OF_MESSAGE;
 
-    if (!transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, current_seq_num))
+    if (!transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, current_seq_num)) {
         return false;
+    }
     current_seq_num = current_seq_num == 0 ? 1 : 0;
 
     return true;
