@@ -30,8 +30,10 @@ int main() {
         printf("Attempting to receive message... ");
         fflush(stdout);
 
-        if (transport_rx(received_payload, 65535)) {
-            printf("\n\n===== Got something: ===== \n%s\n==========================\n\n", received_payload);
+        byte src_port;
+
+        if (transport_rx(received_payload, 65535, &src_port)) {
+            printf("\n\n===== Got something from %02x ==== \n%s\n==========================\n\n", src_port, received_payload);
         }
         else {
             printf("Failed to get message.\n");

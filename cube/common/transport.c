@@ -30,7 +30,7 @@
 
 #define TRANSPORT_ACK_DELAY_MS (1)
 #define TRANSPORT_TIMEOUT_MS (50)
-#define TRANSPORT_TX_ATTEMPT_LIMIT (5)
+#define TRANSPORT_TX_ATTEMPT_LIMIT (100)
 
 
 // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
@@ -161,7 +161,10 @@ bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_
 // The application layer calls this function.
 // Get a complete message.
 // The function returns if a complete message was successfully received.
-bool transport_rx(byte* buffer, uint16_t buf_len) {
+// The function will write to source_port to identify who sent the message.
+
+// NOTE: this system ONLY works with one transmitter at a time.
+bool transport_rx(byte* buffer, uint16_t buf_len, byte* source_port) {
 
     int state = RXST_Idle;
     byte message_length;
@@ -190,6 +193,9 @@ bool transport_rx(byte* buffer, uint16_t buf_len) {
 
         case RXST_Idle:
             if (segment_identifier == SEGID_START_OF_MESSAGE) {
+                if (source_port != NULL) {
+                    *source_port = segment[3];
+                }
                 message_length = segment[5];
                 state = RXST_Receiving;
             }
