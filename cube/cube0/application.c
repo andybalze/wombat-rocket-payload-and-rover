@@ -2,10 +2,104 @@
 #include "transport.h"
 #include "networking_constants.h"
 #include "uart.h"
+#include "digital_io.h"
 
-// for testing
-#include "data_link.h"
+#include <stdio.h>
+#include <string.h>
+
+// read message and adjust the LED accordingly
+void parse_message(char* message) {
+
+    char search[12];
+
+    strncpy(search, "LED:OFF", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_OFF);
+        return;
+    }
+
+    strncpy(search, "LED:BLUE", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_BLUE);
+        return;
+    }
+
+    strncpy(search, "LED:GREEN", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_GREEN);
+        return;
+    }
+
+    strncpy(search, "LED:CYAN", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_CYAN);
+        return;
+    }
+
+    strncpy(search, "LED:RED", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_RED);
+        return;
+    }
+
+    strncpy(search, "LED:MAGENTA", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_MAGENTA);
+        return;
+    }
+
+    strncpy(search, "LED:YELLOW", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_YELLOW);
+        return;
+    }
+
+    strncpy(search, "LED:WHITE", sizeof(search));
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_WHITE);
+        return;
+    }
+
+    return;
+}
 
 void application() {
+
+    char message[MAX_MESSAGE_LEN];
+    uint16_t message_len;
+    byte who_sent_me_this;
+
+    uart_transmit_formatted_message("Data cube activated. Now entering network mode.\r\n");
+
+    LED_set(LED_WHITE);
+
+    while(true) {
+
+
+        // listen for a message
+        for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
+        transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
+
+        // force the string to be null-terminated if it isn't already
+        message[MAX_MESSAGE_LEN - 1] = '\0';
+
+        // record it
+        // TO-DO
+
+        // parse the message and light the LED depending on the result
+        parse_message(message);
+
+
+        // compose the response
+        for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
+        snprintf(message, MAX_MESSAGE_LEN, "Text, %d", 1);
+
+        // transmit the response
+        // note: the +1 is to include the null terminator in the message
+        transport_tx(message, strlen(message) + 1, who_sent_me_this);
+
+
+
+    }
 
 }
