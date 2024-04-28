@@ -98,7 +98,7 @@ void print_segment(byte* segment) {
         printf("\t\tSequence number:            %d\n", segment[1]);
         printf("\t\tDestination port number:    %02x\n", segment[2]);
         printf("\t\tSource port number:         %02x\n", segment[3]);
-        printf("\t\tSegment identifier:         %02x (ACK)\n", segment[4]);
+        printf("\t\tSegment identifier:         %02x (INVALID)\n", segment[4]);
         printf("\t\t========================================\n");
         break;
     }
