@@ -3,12 +3,13 @@
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 common_dependencies = common/spi.c common/spi.h common/uart.c common/uart.h
 cube_common_dependencies = cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h cube/common/trx.c cube/common/trx.h cube/common/digital_io.h cube/common/digital_io.c cube/common/timer.h cube/common/timer.c
+standalone_cube_common_dependencies = cube/standalone_common/main.c
 
 rover_dependencies = $(common_dependencies) rover/config.h rover/adc.c rover/adc.h rover/main.c rover/digital_io.h rover/digital_io.c rover/motors.h rover/motors.c rover/timer.h rover/timer.c rover/accelerometer.h rover/accelerometer.c
 trx_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/rover_trx/address.h cube/rover_trx/application.c cube/rover_trx/application.h cube/rover_trx/main.c cube/rover_trx/routing_table.c cube/rover_trx/routing_table.h
-cube0_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube0/address.h cube/cube0/application.c cube/cube0/application.h cube/cube0/main.c cube/cube0/routing_table.c cube/cube0/routing_table.h
-cube1_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube1/address.h cube/cube1/application.c cube/cube1/application.h cube/cube1/main.c cube/cube1/routing_table.c cube/cube1/routing_table.h
-cube2_dependencies = $(common_dependencies) $(cube_common_dependencies) cube/cube2/address.h cube/cube2/application.c cube/cube2/application.h cube/cube2/main.c cube/cube2/routing_table.c cube/cube2/routing_table.h
+cube0_dependencies = $(common_dependencies) $(cube_common_dependencies) $(standalone_cube_common_dependencies) cube/cube0/address.h cube/cube0/application.c cube/cube0/application.h cube/cube0/routing_table.c cube/cube0/routing_table.h
+cube1_dependencies = $(common_dependencies) $(cube_common_dependencies) $(standalone_cube_common_dependencies) cube/cube1/address.h cube/cube1/application.c cube/cube1/application.h cube/cube1/routing_table.c cube/cube1/routing_table.h
+cube2_dependencies = $(common_dependencies) $(cube_common_dependencies) $(standalone_cube_common_dependencies) cube/cube2/address.h cube/cube2/application.c cube/cube2/application.h cube/cube2/routing_table.c cube/cube2/routing_table.h
 
 cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/sim/sim_trx.c cube/sim/sim_trx.h cube/sim/print_data.c cube/sim/print_data.h cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h
 cube0_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube0/main.c cube/cube0/address.h cube/cube0/routing_table.h cube/cube0/routing_table.c
@@ -62,7 +63,7 @@ build/cube0.hex: build/cube0.out
 	avr-objcopy -j .text -j .data -O ihex build/cube0.out build/cube0.hex
 
 build/cube0.out: $(cube0_dependencies)
-	avr-gcc -Icube/cube0 -Icube/common -Icommon $(cube0_dependencies) -mmcu=atmega328p -Os -o build/cube0.out
+	avr-gcc -Icube/cube0 -Icube/common -Icube/standalone_common -Icommon $(cube0_dependencies) -mmcu=atmega328p -Os -o build/cube0.out
 
 cube0_size: build/cube0.out
 	avr-size build/cube0.out --format=avr --mcu=atmega328p -C
@@ -83,7 +84,7 @@ build/cube1.hex: build/cube1.out
 	avr-objcopy -j .text -j .data -O ihex build/cube1.out build/cube1.hex
 
 build/cube1.out: $(cube1_dependencies)
-	avr-gcc -Icube/cube1 -Icube/common -Icommon $(cube1_dependencies) -mmcu=atmega328p -Os -o build/cube1.out
+	avr-gcc -Icube/cube1 -Icube/common -Icube/standalone_common -Icommon $(cube1_dependencies) -mmcu=atmega328p -Os -o build/cube1.out
 
 cube1_size: build/cube1.out
 	avr-size build/cube1.out --format=avr --mcu=atmega328p -C
@@ -104,7 +105,7 @@ build/cube2.hex: build/cube2.out
 	avr-objcopy -j .text -j .data -O ihex build/cube2.out build/cube2.hex
 
 build/cube2.out: $(cube2_dependencies)
-	avr-gcc -Icube/cube2 -Icube/common -Icommon $(cube2_dependencies) -mmcu=atmega328p -Os -o build/cube2.out
+	avr-gcc -Icube/cube2 -Icube/common -Icube/standalone_common -Icommon $(cube2_dependencies) -mmcu=atmega328p -Os -o build/cube2.out
 
 cube2_size: build/cube2.out
 	avr-size build/cube2.out --format=avr --mcu=atmega328p -C
@@ -141,13 +142,13 @@ trx_flash: build/trx.hex
 sim: build/sim_cube0 build/sim_cube1 build/sim_cube2 build/sim_rover_trx
 
 build/sim_cube0: $(cube0_sim_dependencies)
-	gcc -DSIMULATION -Icube/sim/cube0 -Icube/cube0 -Icube/common -Icube/sim $(cube0_sim_dependencies) -o build/sim_cube0
+	gcc -DSIMULATION -Icube/sim/cube0 -Icube/cube0 -Icube/common -Icube/standalone_common -Icube/sim $(cube0_sim_dependencies) -o build/sim_cube0
 
 build/sim_cube1: $(cube1_sim_dependencies)
-	gcc -DSIMULATION -Icube/sim/cube1 -Icube/cube1 -Icube/common -Icube/sim $(cube1_sim_dependencies) -o build/sim_cube1
+	gcc -DSIMULATION -Icube/sim/cube1 -Icube/cube1 -Icube/common -Icube/standalone_common -Icube/sim $(cube1_sim_dependencies) -o build/sim_cube1
 
 build/sim_cube2: $(cube2_sim_dependencies)
-	gcc -DSIMULATION -Icube/sim/cube2 -Icube/cube2 -Icube/common -Icube/sim $(cube2_sim_dependencies) -o build/sim_cube2
+	gcc -DSIMULATION -Icube/sim/cube2 -Icube/cube2 -Icube/common -Icube/standalone_common -Icube/sim $(cube2_sim_dependencies) -o build/sim_cube2
 
 build/sim_rover_trx: $(rover_trx_sim_dependencies)
 	gcc -DSIMULATION -Icube/sim/rover_trx -Icube/rover_trx -Icube/common -Icube/sim $(rover_trx_sim_dependencies) -o build/sim_rover_trx
