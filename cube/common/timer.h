@@ -12,11 +12,6 @@
 
 #include <avr/io.h>
 
-/////////////////// Timer Settings /////////////////////////////////////////////
-
-// The CPU frequency of the ATMega328p in hertx
-#define TIMER_CPU_FREQUENCY (1000000)
-
 /////////////////// Timer Macros ///////////////////////////////////////////////
 
 // Whether the timer has "gone off".
