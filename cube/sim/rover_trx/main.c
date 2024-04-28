@@ -14,8 +14,8 @@
 
 #define TARGET_PORT 0x0A
 
-#define EXAMPLE_PAYLOAD_LEN (120)
-static char example_payload[256] = "Hello, world! Here is a message that is too large to fit inside of a single packet. This message is 120 characters long.";
+#define EXAMPLE_PAYLOAD_LEN (353)
+static char example_payload[65536] = "Hello, world! Here is a message that is too large to fit inside of a single packet.\nIf you really think about it, when we get home,\nwe can have all the bread we want.\n\nEverything should be made as simple as possible,\nbut no simpler.\n\n\t-Some smart man\n\nWow.... I am really struggling to go beyond 256 characters.\nBut I need to, to test if our code works.";
 
 int main() {
 

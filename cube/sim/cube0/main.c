@@ -15,8 +15,8 @@
 
 int main() {
 
-    char received_payload[200];
-    for (int i = 0; i < 200; i++) {
+    char received_payload[65535];
+    for (int i = 0; i < 65535; i++) {
         received_payload[i] = 0;
     }
 
@@ -30,7 +30,7 @@ int main() {
         printf("Attempting to receive message... ");
         fflush(stdout);
 
-        if (transport_rx(received_payload, 200)) {
+        if (transport_rx(received_payload, 65535)) {
             printf("\n\n===== Got something: ===== \n%s\n==========================\n\n", received_payload);
         }
         else {

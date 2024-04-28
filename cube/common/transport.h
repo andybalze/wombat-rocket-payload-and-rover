@@ -12,8 +12,8 @@ enum segment_identifier_t {
     SEGID_ACK = 0x0A
 };
 
-bool transport_rx(byte* buffer, byte buf_len);
+bool transport_rx(byte* buffer, uint16_t buf_len);
 
-bool transport_tx(byte* message, byte message_len, byte dest_port);
+bool transport_tx(byte* message, uint16_t message_len, byte dest_port);
 
 #endif

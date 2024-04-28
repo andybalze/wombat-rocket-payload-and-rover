@@ -41,7 +41,7 @@
 // segment[2] = destination port number
 // segment[3] = source port number
 // segment[4] = segment identifier = 0x07, START_OF_MESSAGE
-// segment[5] = total length of message
+// segment[5-6] = total length of message
 
 // DATA segment:
 // segment[0] = length of segment
@@ -49,7 +49,7 @@
 // segment[2] = destination port number
 // segment[3] = source port number
 // segment[4] = segment identifier = 0x0D, DATA
-// segment[5] = start address (starting memory address of this segment's data)
+// segment[5-6] = start address (starting memory address of this segment's data)
 // rest is payload
 
 // END_OF_MESSAGE segment:
@@ -161,7 +161,7 @@ bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_
 // The application layer calls this function.
 // Get a complete message.
 // The function returns if a complete message was successfully received.
-bool transport_rx(byte* buffer, byte buf_len) {
+bool transport_rx(byte* buffer, uint16_t buf_len) {
 
     int state = RXST_Idle;
     byte message_length;
@@ -197,10 +197,10 @@ bool transport_rx(byte* buffer, byte buf_len) {
 
         case RXST_Receiving:
             if (segment_identifier == SEGID_DATA) {
-                byte offset = segment[5];
+                uint16_t offset = (segment[5] << 8) + segment[6];
                 byte payload_len = segment_len - DATA_SEGMENT_HEADER_LEN;
 
-                for (byte i = 0; i < payload_len && i + offset < buf_len; i++) {
+                for (uint16_t i = 0; i < payload_len && i + offset < buf_len; i++) {
                     buffer[i + offset] = segment[i + DATA_SEGMENT_HEADER_LEN];
                 }
             }
@@ -288,12 +288,12 @@ bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port
 // Every segment must be acknowledged before the next one is sent.
 // The function can fail if one of the segments is not acknowledged in time.
 // The function returns whether the message was sent successfully.
-bool transport_tx(byte* message, byte message_len, byte dest_port) {
+bool transport_tx(byte* message, uint16_t message_len, byte dest_port) {
 
     byte current_seq_num = 0;
 
     byte segment[MAX_SEGMENT_LEN];
-    byte bytes_remaining = message_len;
+    uint16_t bytes_remaining = message_len;
 
     // ------ send START_OF_MESSAGE -----
     segment[0] = START_SEGMENT_HEADER_LEN;
@@ -301,7 +301,8 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
     segment[2] = dest_port;
     segment[3] = MY_PORT;
     segment[4] = SEGID_START_OF_MESSAGE;
-    segment[5] = message_len;
+    segment[5] = (message_len & 0xFF00) >> 8;
+    segment[6] = (message_len & 0x00FF) >> 0;
 
     if (!transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, current_seq_num)) {
         return false;
@@ -317,23 +318,24 @@ bool transport_tx(byte* message, byte message_len, byte dest_port) {
             this_payload_len = MAX_SEGMENT_LEN - DATA_SEGMENT_HEADER_LEN;
         }
         else {
-            this_payload_len = bytes_remaining;
+            this_payload_len = (byte) bytes_remaining;
         }
 
         byte this_segment_len = this_payload_len + DATA_SEGMENT_HEADER_LEN;
-        byte start_address = message_len - bytes_remaining;
+        uint16_t start_address = message_len - (uint16_t) bytes_remaining;
 
         segment[0] = this_segment_len;
         segment[1] = current_seq_num;
         segment[2] = dest_port;
         segment[3] = MY_PORT;
         segment[4] = SEGID_DATA;
-        segment[5] = start_address;
+        segment[5] = (start_address & 0xFF00) >> 8;
+        segment[6] = (start_address & 0x00FF) >> 0;
         for (byte i = 0; i < this_payload_len; i++) {
             segment[i + DATA_SEGMENT_HEADER_LEN] = message[i + start_address];
         }
 
-        bytes_remaining -= this_payload_len;
+        bytes_remaining -= (uint16_t) this_payload_len;
 
         if (!transport_keep_trying_to_tx(segment, this_segment_len, dest_port, current_seq_num)) {
             return false;

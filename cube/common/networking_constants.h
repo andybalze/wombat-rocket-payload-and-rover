@@ -12,11 +12,9 @@ typedef uint8_t byte;
 #define PACKET_HEADER_LEN (3)
 
 #define MAX_SEGMENT_LEN (28) 
-#define START_SEGMENT_HEADER_LEN (6)
-#define DATA_SEGMENT_HEADER_LEN (6)
+#define START_SEGMENT_HEADER_LEN (7)
+#define DATA_SEGMENT_HEADER_LEN (7)
 #define END_SEGMENT_HEADER_LEN (5)
 #define ACK_SEGMENT_HEARDER_LEN (5)
-
-#define MAX_MESSAGE_LEN (255)
 
 #endif
