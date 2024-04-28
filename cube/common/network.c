@@ -4,10 +4,15 @@
 #include "address.h"
 #include "routing_table.h"
 
-#ifdef SIMULATION
+#ifndef SIMULATION
+#include <util/delay.h>
+#else
+#include "sim_delay.h"
 #include <stdio.h>
 #include "print_data.h"
 #endif
+
+#define NETWORK_DELAY_MS (1)
 
 // packet[0] = length of packet
 // packet[1] = final destination network address
@@ -36,9 +41,6 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
             return false;
         }
 
-        printf("Received packet.\n");
-        print_packet(packet);
-
         packet_len = packet[0];
 
 
@@ -51,12 +53,15 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
         }
 
         // Packet is not for me. Forward it and try again.
+        printf("\nForwarded packet");
         network_tx(&packet[PACKET_HEADER_LEN], packet_len - PACKET_HEADER_LEN, packet[1], packet[2]);
     }
 }
 
 // Transmit to the specified network address.
 bool network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte src_network_addr) {
+
+    _delay_ms(NETWORK_DELAY_MS);
 
     bool success;
     byte packet_len = payload_len + PACKET_HEADER_LEN;
@@ -72,8 +77,6 @@ bool network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte sr
 
     success = data_link_tx(packet, packet_len, resolve_data_link_addr(next_hop_addr));
     if (success) {
-        printf("Transmitted packet:\n");
-        print_packet(packet);
         return true;
     }
     else {

@@ -25,6 +25,7 @@
 #include <poll.h>
 #include <stdlib.h>
 #include <time.h>
+#include "sim_delay.h"
 
 /////////////////// Private type definitions ///////////////////////////////////
 
@@ -32,7 +33,7 @@ static trx_address_t my_addr;
 char my_fifo[256];
 
 // As a percent
-#define NETWORK_RELIABILITY (90)
+#define NETWORK_RELIABILITY (50)
 
 /////////////////// Public Function Bodies /////////////////////////////////////
 
@@ -57,9 +58,10 @@ trx_transmission_outcome_t trx_transmit_payload(
     int payload_length
 ) {
 
+    _delay_ms(1);
+
     // Randomly fail to transmit.
     if (!(rand() % 100 < NETWORK_RELIABILITY)) {
-        printf("Failed to transmit. (legit)\n");
         return TRX_TRANSMISSION_FAILURE;
     }
 
@@ -90,13 +92,15 @@ trx_transmission_outcome_t trx_transmit_payload(
     // Close FIFO
     close(fd);
 
-    // Randomly report a failure. Perhaps our data link acknowledgement was lost.
-    if (!(rand() % 100 < NETWORK_RELIABILITY)) {
-        printf("Failed to transmit. (unacknowledged)\n");
-        return TRX_TRANSMISSION_FAILURE;
-    }
-    return TRX_TRANSMISSION_SUCCESS;
 
+    _delay_ms(1);
+
+    // Randomly report a failure. Perhaps our data link acknowledgement was lost.
+    // ...nevermind. My Linux FIFOs lock up when I do this, for some reason...
+    //if (!(rand() % 100 < NETWORK_RELIABILITY)) {
+        //return TRX_TRANSMISSION_FAILURE;
+    //}
+    return TRX_TRANSMISSION_SUCCESS;
 
 }
 
@@ -109,7 +113,6 @@ trx_reception_outcome_t trx_receive_payload(
     int ready;
     ssize_t s;
     struct pollfd fds;
-
 
     // Open FIFO
     fds.fd = open(my_fifo, O_RDONLY | O_NONBLOCK);
@@ -131,7 +134,6 @@ trx_reception_outcome_t trx_receive_payload(
         return TRX_RECEPTION_FAILURE;
     }
 
-
     // Read from FIFO
     s = read(fds.fd, payload_buffer, TRX_PAYLOAD_LENGTH);
     if (s == -1) {
@@ -142,6 +144,7 @@ trx_reception_outcome_t trx_receive_payload(
     // Close the FIFO
     if (close(fds.fd) == -1) {
         printf("closing the file failed\n");
+        _delay_ms(1);
         return TRX_RECEPTION_FAILURE;
     }
 
