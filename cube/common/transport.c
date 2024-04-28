@@ -166,13 +166,13 @@ bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_
 // The application layer calls this function.
 // Get a complete message.
 // The function returns if a complete message was successfully received.
+// The function will write to message_len to identify the length of the message.
 // The function will write to source_port to identify who sent the message.
 
 // NOTE: this system ONLY works with one transmitter at a time.
-bool transport_rx(byte* buffer, uint16_t buf_len, byte* source_port) {
+bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port) {
 
     int state = RXST_Idle;
-    byte message_length;
 
     byte segment_len;
     byte segment[MAX_SEGMENT_LEN];
@@ -201,7 +201,9 @@ bool transport_rx(byte* buffer, uint16_t buf_len, byte* source_port) {
                 if (source_port != NULL) {
                     *source_port = segment[3];
                 }
-                message_length = segment[5];
+                if (message_len != NULL) {
+                    *message_len = segment[5] << 8 + segment[6];
+                }
                 state = RXST_Receiving;
             }
             break;
@@ -221,7 +223,9 @@ bool transport_rx(byte* buffer, uint16_t buf_len, byte* source_port) {
             // An unusual case. Can happen if the transmitter gives up
             // and tries again from the beginning.
             else if (segment_identifier == SEGID_START_OF_MESSAGE) {
-                message_length = segment[5];
+                if (message_len != NULL) {
+                    *message_len = segment[5] << 8 + segment[6];
+                }
             }
             break;
         }
