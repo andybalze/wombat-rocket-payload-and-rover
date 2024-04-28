@@ -3,6 +3,16 @@
 
 #include <avr/io.h>
 
+//                   red        green      blue
+#define LED_OFF     ((0 << 2) | (0 << 1) | (0 << 0))
+#define LED_BLUE    ((0 << 2) | (0 << 1) | (1 << 0))
+#define LED_GREEN   ((0 << 2) | (1 << 1) | (0 << 0))
+#define LED_CYAN    ((0 << 2) | (1 << 1) | (1 << 0))
+#define LED_RED     ((1 << 2) | (0 << 1) | (0 << 0))
+#define LED_MAGENTA ((1 << 2) | (0 << 1) | (1 << 0))
+#define LED_YELLOW  ((1 << 2) | (1 << 1) | (0 << 0))
+#define LED_WHITE   ((1 << 2) | (1 << 1) | (1 << 0))
+
 enum SW_name_enum {
     SW1 = 1
 };

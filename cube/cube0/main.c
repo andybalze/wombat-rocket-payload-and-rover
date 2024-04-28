@@ -13,9 +13,11 @@
 #include "digital_io.h"
 #include "trx.h"
 #include "networking_constants.h"
+#include "timer.h"
 
 // Specific to this cube includes
 #include "address.h"
+#include "application.h"
 
 // AVR includes
 #include <util/delay.h> // Must come after #include "cube_parameters.h"
@@ -49,12 +51,14 @@
 #define DISPENSING_DURATION_MS 1000
 // Wait 1/10 seconds for the trx to start up.
 
-#define LED_COLOR_STARTUP               0   // Off
-#define LED_COLOR_READY_TO_LOAD         2   // Green
-#define LED_COLOR_LOADING               2   // Green
-#define LED_COLOR_LOADED_1              4   // Red
-#define LED_COLOR_LOADED_2              0   // Off
-#define LED_COLOR_DISPENSING            1   // Blue
+// These colors are for the state machine leading up to network operation.
+// Go to application.c to see how colors are handled during network operation.
+#define LED_COLOR_STARTUP               LED_OFF
+#define LED_COLOR_READY_TO_LOAD         LED_GREEN
+#define LED_COLOR_LOADING               LED_YELLOW
+#define LED_COLOR_LOADED_1              LED_RED
+#define LED_COLOR_LOADED_2              LED_OFF
+#define LED_COLOR_DISPENSING            LED_BLUE
 
 /////////////////// Private Typedefs ///////////////////////////////////////////
 
@@ -109,14 +113,6 @@ void state_code_loaded(void);
 void state_code_dispensing(void);
 void state_code_operational(void);
 
-// Starts the 16-bit Timer 1 and sets it to run for a certain number of
-// milliseconds. Function can check whether the timer is up by checking the
-// TIFR1 OCF1A bit. The stop_timer function must then be called.
-void start_timer(uint16_t milliseconds);
-
-// Stops the 16-bit Timer 1.
-void stop_timer();
-
 /////////////////// Public Function Bodies ////////////////////////////////////
 
 int main() {
@@ -124,9 +120,9 @@ int main() {
     digital_io_initialize();
     uart_initialize();
 
-    uart_transmit_formatted_message("\n\r::: Data Cube 0 :::\n\r");
+    uart_transmit_formatted_message("\n\r::: Data Cube %02x :::\n\r", MY_NETWORK_ADDR);
 
-    start_timer(STARTUP_DURATION_MS);
+    timer_start(STARTUP_DURATION_MS);
     current_state = STARTUP;
 
     // The main state machine loop.
@@ -174,12 +170,7 @@ void state_code_startup(void) {
 
     if ((TIFR1 & _BV(OCF1A)) != 0) {
 
-#ifdef DEBUG_MODE
-        uart_transmit_formatted_message("Transitioning to READY_TO_LOAD state.\n\r");
-        UART_WAIT_UNTIL_DONE();
-#endif
-
-        stop_timer();
+        timer_stop();
         current_state = READY_TO_LOAD;
         LED_set(LED_COLOR_READY_TO_LOAD);
 
@@ -191,12 +182,7 @@ void state_code_ready_to_load(void) {
 
     if (SW_read(SW1)) {
 
-#ifdef DEBUG_MODE
-    uart_transmit_formatted_message("Transitioning to LOADING state.\n\r");
-    UART_WAIT_UNTIL_DONE();
-#endif
-
-        start_timer(LOADING_DURATION_MS);
+        timer_start(LOADING_DURATION_MS);
         current_state = LOADING;
         LED_set(LED_COLOR_LOADING);
 
@@ -208,12 +194,7 @@ void state_code_loading(void) {
 
     if (!SW_read(SW1)) {
 
-#ifdef DEBUG_MODE
-        uart_transmit_formatted_message("Transitioning to READY_TO_LOAD state.\n\r");
-        UART_WAIT_UNTIL_DONE();
-#endif
-
-        stop_timer();
+        timer_stop();
         current_state = READY_TO_LOAD;
         LED_set(LED_COLOR_READY_TO_LOAD);
 
@@ -221,13 +202,8 @@ void state_code_loading(void) {
 
     else if ((TIFR1 & _BV(OCF1A)) != 0) {
 
-#ifdef DEBUG_MODE
-        uart_transmit_formatted_message("Transitioning to LOADED state.\n\r");
-        UART_WAIT_UNTIL_DONE();
-#endif
-
-        stop_timer();
-        start_timer(1000);
+        timer_stop();
+        timer_start(1000);
         current_state = LOADED;
         LED_set(LED_COLOR_LOADED_1);
 
@@ -240,17 +216,17 @@ void state_code_loaded(void) {
     static int seconds_passed;
 
     if ((TIFR1 & _BV(OCF1A)) != 0) {
-        stop_timer();
+        timer_stop();
         seconds_passed = seconds_passed + 1;
         if (seconds_passed >= LOADED_1_DURATION_S) {
             LED_set(LED_COLOR_LOADED_2);
         } else {
-            start_timer(1000);
+            timer_start(1000);
         }
     }
 
     if (!SW_read(SW1)) {
-        start_timer(DISPENSING_DURATION_MS);
+        timer_start(DISPENSING_DURATION_MS);
         current_state = DISPENSING;
         trx_initialize(MY_DATA_LINK_ADDR);
         LED_set(LED_COLOR_DISPENSING);
@@ -261,13 +237,14 @@ void state_code_loaded(void) {
 void state_code_dispensing(void) {
 
     if ((TIFR1 & _BV(OCF1A)) != 0) {
-        stop_timer();
+        timer_stop();
         current_state = OPERATIONAL;
-        LED_set(0);
     }
 
 }
 
 void state_code_operational(void) {
+
+    application();
 
 }
