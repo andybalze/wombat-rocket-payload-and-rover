@@ -20,7 +20,7 @@ void print_segment(byte* segment) {
     // segment[2] = destination port number
     // segment[3] = source port number
     // segment[4] = segment identifier = 0x07, START_OF_MESSAGE
-    // segment[5] = total length of message
+    // segment[5-6] = total length of message
 
     case SEGID_START_OF_MESSAGE:
         printf("\t\t========== Segment (Start of Message) ===========\n");
@@ -29,7 +29,7 @@ void print_segment(byte* segment) {
         printf("\t\tDestination port number:    %02x\n", segment[2]);
         printf("\t\tSource port number:         %02x\n", segment[3]);
         printf("\t\tSegment identifier:         %02x (START_OF_MESSAGE)\n", segment[4]);
-        printf("\t\tTotal message length:       %d\n", segment[5]);
+        printf("\t\tTotal message length:       %d\n", ((segment[5] & 0xFF00) << 8) + ((segment[6] & 0x00FF) << 0));
         printf("\t\t=================================================\n");
         break;
 
@@ -39,7 +39,7 @@ void print_segment(byte* segment) {
     // segment[2] = destination port number
     // segment[3] = source port number
     // segment[4] = segment identifier = 0x0D, DATA
-    // segment[5] = start address (starting memory address of this segment's data)
+    // segment[5-6] = start address (starting memory address of this segment's data)
     // rest is payload
 
     case SEGID_DATA:
@@ -53,7 +53,7 @@ void print_segment(byte* segment) {
         printf("\t\tDestination port number:    %02x\n", segment[2]);
         printf("\t\tSource port number:         %02x\n", segment[3]);
         printf("\t\tSegment identifier:         %02x (DATA)\n", segment[4]);
-        printf("\t\tStart address:              %02x\n", segment[5]);
+        printf("\t\tStart address:              %02x\n", ((segment[5] & 0xFF00) << 8) + ((segment[6] & 0x00FF) << 0));
         printf("\t\tThe payload:                %s\n", payload);
         printf("\t\t=================================================\n");
         break;
