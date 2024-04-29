@@ -89,6 +89,7 @@ void application() {
         // listen for a message
         for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
         transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
+        num_messages_this_session++;
 
         // force the string to be null-terminated if it isn't already
         message[MAX_MESSAGE_LEN - 1] = '\0';
