@@ -99,7 +99,6 @@ void application() {
         transport_tx(message, strlen(message) + 1, who_sent_me_this);
 
 
-
     }
 
 }
