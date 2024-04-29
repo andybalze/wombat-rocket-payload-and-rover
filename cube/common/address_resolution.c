@@ -16,6 +16,9 @@ uint32_t resolve_data_link_addr(byte network_addr) {
     case 0x3F:
         data_link_addr = 0x3F3F3F3F;
         break;
+    default:
+        data_link_addr = network_addr;
+        break;
     }
     return data_link_addr;
 }

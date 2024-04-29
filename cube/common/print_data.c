@@ -140,9 +140,9 @@ void print_packet(byte* packet) {
     UART_WAIT_UNTIL_DONE();
     uart_transmit_formatted_message("\tSource addr:      %02x\r\n", packet[2]);
     UART_WAIT_UNTIL_DONE();
-    uart_transmit_formatted_message("\tPayload:\r\n");
+    uart_transmit_formatted_message("\tPayload:          %s\r\n", &packet[3]);
     UART_WAIT_UNTIL_DONE();
-    print_segment(&packet[PACKET_HEADER_LEN]);
+    //print_segment(&packet[PACKET_HEADER_LEN]);
     uart_transmit_formatted_message("\t============================\r\n");
     UART_WAIT_UNTIL_DONE();
 

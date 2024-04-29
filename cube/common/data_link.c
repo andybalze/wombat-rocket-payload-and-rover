@@ -1,5 +1,6 @@
 #include "data_link.h"
 #include "address.h"
+#include "uart.h"
 
 
 #ifndef SIMULATION
@@ -34,6 +35,8 @@ bool data_link_rx(byte* buffer, byte buf_len, timer_delay_ms_t timeout_ms) {
 
 
 bool data_link_tx(byte* payload, byte payload_len, uint32_t addr) {
+
+    uart_transmit_formatted_message("data_link_tx: Transmitting to %08lx\r\n", addr);
 
     trx_transmission_outcome_t success;
 
