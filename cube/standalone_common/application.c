@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "address.h"
 #include "digital_io.h"
+#include "log.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -97,7 +98,7 @@ void application() {
         UART_WAIT_UNTIL_DONE();
 
         // record it
-        // TO-DO
+        log_message(message, message_len, who_sent_me_this);        
 
         // parse the message and light the LED depending on the result
         parse_message(message);
