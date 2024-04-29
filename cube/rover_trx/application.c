@@ -19,49 +19,49 @@ void parse_message(char* message) {
 
     char search[12];
 
-    strncpy(search, "LED:OFF", sizeof(search));
+    snprintf(search, sizeof(search), "LED:OFF");
     if (strstr(message, search) != NULL) {
         LED_set(LED_OFF);
         return;
     }
 
-    strncpy(search, "LED:BLUE", sizeof(search));
+    snprintf(search, sizeof(search), "LED:BLUE");
     if (strstr(message, search) != NULL) {
         LED_set(LED_BLUE);
         return;
     }
 
-    strncpy(search, "LED:GREEN", sizeof(search));
+    snprintf(search, sizeof(search), "LED:GREEN");
     if (strstr(message, search) != NULL) {
         LED_set(LED_GREEN);
         return;
     }
 
-    strncpy(search, "LED:CYAN", sizeof(search));
+    snprintf(search, sizeof(search), "LED:CYAN");
     if (strstr(message, search) != NULL) {
         LED_set(LED_CYAN);
         return;
     }
 
-    strncpy(search, "LED:RED", sizeof(search));
+    snprintf(search, sizeof(search), "LED:RED");
     if (strstr(message, search) != NULL) {
         LED_set(LED_RED);
         return;
     }
 
-    strncpy(search, "LED:MAGENTA", sizeof(search));
+    snprintf(search, sizeof(search), "LED:MAGENTA");
     if (strstr(message, search) != NULL) {
         LED_set(LED_MAGENTA);
         return;
     }
 
-    strncpy(search, "LED:YELLOW", sizeof(search));
+    snprintf(search, sizeof(search), "LED:YELLOW");
     if (strstr(message, search) != NULL) {
         LED_set(LED_YELLOW);
         return;
     }
 
-    strncpy(search, "LED:WHITE", sizeof(search));
+    snprintf(search, sizeof(search), "LED:WHITE");
     if (strstr(message, search) != NULL) {
         LED_set(LED_WHITE);
         return;
