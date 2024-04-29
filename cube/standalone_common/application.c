@@ -2,6 +2,7 @@
 #include "transport.h"
 #include "networking_constants.h"
 #include "uart.h"
+#include "address.h"
 #include "digital_io.h"
 
 #include <stdio.h>
@@ -65,16 +66,20 @@ void parse_message(char* message) {
 
 void application() {
 
+    // To save on memory, the same buffer is used to store a received message
+    // and to prepare a message to transmit.
     char message[MAX_MESSAGE_LEN];
     uint16_t message_len;
     byte who_sent_me_this;
 
-    uart_transmit_formatted_message("Data cube activated. Now entering network mode.\r\n");
+    uint16_t num_messages_this_session = 0;
+
+    uart_transmit_formatted_message("::: Data cube activated. Now entering network mode. :::\r\n");
+    UART_WAIT_UNTIL_DONE();
 
     LED_set(LED_WHITE);
 
     while(true) {
-
 
         // listen for a message
         for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
@@ -83,16 +88,23 @@ void application() {
         // force the string to be null-terminated if it isn't already
         message[MAX_MESSAGE_LEN - 1] = '\0';
 
+        // report that the message was received
+        uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
+        UART_WAIT_UNTIL_DONE();
+        uart_transmit_formatted_message(message);
+        UART_WAIT_UNTIL_DONE();
+        uart_transmit_formatted_message("================================================\r\n");
+        UART_WAIT_UNTIL_DONE();
+
         // record it
         // TO-DO
 
         // parse the message and light the LED depending on the result
         parse_message(message);
 
-
         // compose the response
         for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
-        snprintf(message, MAX_MESSAGE_LEN, "Text, %d", 1);
+        snprintf(message, MAX_MESSAGE_LEN, "Hello, whoever lives at address %02x. I am cube %02x.\r\nI have received %d messages since powering on.\r\nThanks for reaching out.\r\n", who_sent_me_this, MY_PORT, num_messages_this_session);
 
         // transmit the response
         // note: the +1 is to include the null terminator in the message
