@@ -59,6 +59,7 @@ int main() {
     uint8_t cubes_dispensed = 0;
 
     digital_io_initialize();                                                        // initialize functions
+    ir_initialize();
     uart_initialize();
     adc_initialize();
     motors_initialize();            // PWM must be initialized seperately
@@ -165,6 +166,7 @@ int main() {
                         if (get_timer_counter(counter_alpha) >= EXIT_TIME) {        //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
+                            ir_power(ON);
                             uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
                             UART_WAIT_UNTIL_DONE();
                             reset_timer_counter(counter_alpha);                     //                         reset timer counter
@@ -181,6 +183,7 @@ int main() {
                         if (get_timer_counter(counter_alpha) >= DRIVE_TIME) {       //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
+                            ir_power(OFF);
                             uart_transmit_formatted_message("DISPENSE_DATA_CUBE %d\r\n", cubes_dispensed+1);
                             UART_WAIT_UNTIL_DONE();
                             reset_timer_counter(counter_alpha);                     //                         reset timer counter
@@ -194,6 +197,7 @@ int main() {
 
                         if (get_timer_counter(counter_alpha) >= DISPENSE_TIME && cubes_dispensed < MAX_DATA_CUBE_INV-1) {//                     exit condition if (time delay reached)
                             motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
+                            ir_power(ON);
                             cubes_dispensed++;
                             uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
                             UART_WAIT_UNTIL_DONE();
