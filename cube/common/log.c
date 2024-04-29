@@ -6,7 +6,8 @@
 /*
     EEPROM Layout
 
-    eeprom[0..1]        = message count; used to determine next message slot
+    eeprom[0]           = initialization identifier; if not 0x77, needs init
+    eeprom[1..2]        = message count; used to determine next message slot
     eeprom[2..63]       = <reserved>
 
     eeprom[64]          = source address of message in slot 0
@@ -35,14 +36,14 @@
 // ---------------- Private functions -------------
 
 uint16_t get_message_count() {
-    return (eeprom_read_byte((uint8_t*)0) << 8) + (eeprom_read_byte((uint8_t*)1) << 0);
+    return (eeprom_read_byte((uint8_t*)1) << 8) + (eeprom_read_byte((uint8_t*)2) << 0);
 }
 
 void set_message_count(uint16_t count) {
     uint8_t top = (count & 0xFF00) >> 8;
     uint8_t bot = (count & 0x00FF) >> 0;
-    eeprom_update_byte((uint8_t*)0, top);
-    eeprom_update_byte((uint8_t*)1, bot);
+    eeprom_update_byte((uint8_t*)1, top);
+    eeprom_update_byte((uint8_t*)2, bot);
     return;
 }
 
@@ -146,9 +147,11 @@ void print_log() {
     return;
 }
 
-void erase_log() {
-    for (uint16_t i = 0; i < 1023; i++) {
-        eeprom_update_byte((uint8_t*)i, 0);
+void init_log() {
+    uint8_t identifier = eeprom_read_byte((uint8_t*)0);
+    if (identifier != 0x77) {
+        eeprom_write_byte((uint8_t*)0, 0x77);
+        set_message_count(0);
     }
     return;
 }

@@ -23,6 +23,10 @@ rover_trx_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/rover_trx/
 
 all: rover_compile cube0_compile cube1_compile cube2_compile trx_compile
 
+# ============ Read EEPROM =================
+eeprom_read:
+	avrdude -p m328p -c usbtiny -U eeprom:r:eeprom_read.hex:i
+
 # ============ Reset the ATMega without writing anything ============
 
 reset: 

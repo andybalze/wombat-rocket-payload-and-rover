@@ -12,15 +12,20 @@
 
 int main() {
 
-	digital_io_initialize();
-	LED_set(LED_OFF);
+    init_log();
 
-	// Wait until the rover instructs the cube to start transmitting.
-	while(SW_read(SW1));
+    digital_io_initialize();
+    LED_set(LED_OFF);
 
-	trx_initialize(MY_DATA_LINK_ADDR);
+    // Wait until the rover instructs the cube to start transmitting.
+    //while(SW_read(SW1));
+    //
+    // For debug, only!
+    _delay_ms(2000);
 
-	application();
+    trx_initialize(MY_DATA_LINK_ADDR);
 
-	while(1);
+    application();
+
+    while(1);
 }

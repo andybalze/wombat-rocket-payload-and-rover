@@ -13,6 +13,6 @@ void log_message(byte* message, uint16_t message_len, uint8_t message_source);
 void print_log();
 
 // Completely erase the log.
-void erase_log();
+void init_log();
 
 #endif

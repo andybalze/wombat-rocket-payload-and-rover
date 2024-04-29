@@ -118,6 +118,8 @@ void state_code_operational(void);
 
 int main() {
 
+    init_log();
+
     LED_set(LED_WHITE);
 
     digital_io_initialize();
