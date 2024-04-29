@@ -114,23 +114,27 @@ I can finally adjust "current seq number" and move on and send the next packet.
 
 // ======================= Receiver Code =======================================
 
-
+enum transport_rx_result {
+    TRANSPORT_RX_SUCCESS,
+    TRANSPORT_RX_FAIL_TIMEOUT,
+    TRANSPORT_RX_FAIL_OUTDATED
+};
 
 // Get data from the network layer.
 // Acknowledge it.
 // Verify the data is new by checking the sequence number.
 // Returns true if the reception was successful.
-bool transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num) {
+int transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
 
     bool success;
     byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
 
     // try to receive some data from the network
-    success = network_rx(segment, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
+    success = network_rx(segment, MAX_SEGMENT_LEN, timeout_ms);
 
     // Timed out?
     if (!success) {
-        return false;
+        return TRANSPORT_RX_FAIL_TIMEOUT;
     }
 
     // Alright we got something, let me acknowledge it really quick.
@@ -146,18 +150,25 @@ bool transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num) {
 
     // Okay. Is this new data?
     if (expected_seq_num != segment[1]) {
-        return false;
+        return TRANSPORT_RX_FAIL_OUTDATED;
     }
 
-    return true;
+    return TRANSPORT_RX_SUCCESS;
 }
 
-// For now, this will never fail.
-// You could make it fail after a number of attempts... would there be a point?
-bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_num) {
+bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
     while(true) {
-        if (transport_attempt_rx(segment, buf_len, expected_seq_num)) {
+        int result = transport_attempt_rx(segment, buf_len, expected_seq_num, timeout_ms);
+        switch (result) {
+        case TRANSPORT_RX_SUCCESS:
             return true;
+            break;
+        case TRANSPORT_RX_FAIL_TIMEOUT:
+            return false;
+            break;
+        case TRANSPORT_RX_FAIL_OUTDATED:
+            // (do nothing; try again)
+            break;
         }
     }
 }
@@ -170,7 +181,7 @@ bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_
 // The function will write to source_port to identify who sent the message.
 
 // NOTE: this system ONLY works with one transmitter at a time.
-bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port) {
+bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port, uint16_t timeout_ms) {
 
     int state = RXST_Idle;
 
@@ -185,7 +196,7 @@ bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* s
 
         // Get the next segment.
         // As a side effect, acknowledge anything we receive.
-        bool success = transport_keep_trying_to_rx(segment, MAX_SEGMENT_LEN, expected_seq_num);
+        bool success = transport_keep_trying_to_rx(segment, MAX_SEGMENT_LEN, expected_seq_num, timeout_ms);
         if (!success)
             return false;
 
