@@ -70,6 +70,30 @@ void parse_message(char* message) {
     return;
 }
 
+// Same as transport_rx, with the side effects of
+// logging the result and printing the message to UART.
+void listen(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* src) {
+
+    for (int i = 0; i < buf_len; i++) buffer[i] = 0;
+    transport_rx(buffer, buf_len, message_len, src);
+
+    // force the string to be null-terminated if it isn't already
+    buffer[buf_len - 1] = '\0';
+
+    // report that the message was received
+    uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", *src);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message(buffer);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message("================================================\r\n");
+    UART_WAIT_UNTIL_DONE();
+
+    // record it
+    log_message(buffer, *message_len, *src);        
+
+    return;
+}
+
 void application() {
 
     // To save on memory, the same buffer is used to store a received message
@@ -92,22 +116,7 @@ void application() {
     transport_tx(message, strlen(message)+1, 0x0A);
 
     // LISTEN FOR CUBE 0's RESPONSE
-    for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
-    transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
-
-    // force the string to be null-terminated if it isn't already
-    message[MAX_MESSAGE_LEN - 1] = '\0';
-
-    // report that the message was received
-    uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
-    UART_WAIT_UNTIL_DONE();
-    uart_transmit_formatted_message(message);
-    UART_WAIT_UNTIL_DONE();
-    uart_transmit_formatted_message("================================================\r\n");
-    UART_WAIT_UNTIL_DONE();
-
-    // record it
-    log_message(message, message_len, who_sent_me_this);        
+    listen(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
 
     // ================= TRANSMIT TO CUBE 1 ===========================
     _delay_ms(ROVER_APP_DELAY_BETWEEN_MSG_MS);
@@ -115,22 +124,7 @@ void application() {
     transport_tx(message, strlen(message)+1, 0x0B);
 
     // LISTEN FOR CUBE 1's RESPONSE
-    for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
-    transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
-
-    // force the string to be null-terminated if it isn't already
-    message[MAX_MESSAGE_LEN - 1] = '\0';
-
-    // report that the message was received
-    uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
-    UART_WAIT_UNTIL_DONE();
-    uart_transmit_formatted_message(message);
-    UART_WAIT_UNTIL_DONE();
-    uart_transmit_formatted_message("================================================\r\n");
-    UART_WAIT_UNTIL_DONE();
-
-    // record it
-    log_message(message, message_len, who_sent_me_this);        
+    listen(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
 
     // ================= TRANSMIT TO CUBE 2 ===========================
     _delay_ms(ROVER_APP_DELAY_BETWEEN_MSG_MS);
@@ -138,43 +132,15 @@ void application() {
     transport_tx(message, strlen(message)+1, 0x0C);
 
     // LISTEN FOR CUBE 2's RESPONSE
-    for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
-    transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
-
-    // force the string to be null-terminated if it isn't already
-    message[MAX_MESSAGE_LEN - 1] = '\0';
-
-    // report that the message was received
-    uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
-    UART_WAIT_UNTIL_DONE();
-    uart_transmit_formatted_message(message);
-    UART_WAIT_UNTIL_DONE();
-    uart_transmit_formatted_message("================================================\r\n");
-    UART_WAIT_UNTIL_DONE();
-
-    // record it
-    log_message(message, message_len, who_sent_me_this);        
+    listen(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
 
     // After this point, the rover actually behaves pretty similarly to the data cubes.
     while(true) {
 
-        // listen for a message
-        for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
-        transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
+        // receive a message
+        listen(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
 
-        // force the string to be null-terminated if it isn't already
-        message[MAX_MESSAGE_LEN - 1] = '\0';
-
-        // report that the message was received
-        uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
-        UART_WAIT_UNTIL_DONE();
-        uart_transmit_formatted_message(message);
-        UART_WAIT_UNTIL_DONE();
-        uart_transmit_formatted_message("================================================\r\n");
-        UART_WAIT_UNTIL_DONE();
-
-        // record it
-        log_message(message, message_len, who_sent_me_this);        
+        num_messages_this_session++;
 
         // parse the message and light the LED depending on the result
         parse_message(message);
