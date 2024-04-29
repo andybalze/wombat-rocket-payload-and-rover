@@ -10,10 +10,15 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#include "digital_io.h"
 
 ///////////////////// Public Function Prototypes ///////////////////////////////
+
+// Initializes IR power pin to an output
+void ir_initialize(void);
+
+// Turns on or off the IR sensor.
+void ir_power(output_state_t state);
 
 // Requests and returns a distance from the IR sensor in centemeters.
 int16_t ir_distance_read(void);
