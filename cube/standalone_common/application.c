@@ -18,7 +18,7 @@ void application() {
 
     // To save on memory, the same buffer is used to store a received message
     // and to prepare a message to transmit.
-    char message[MAX_SEGMENT_LEN];
+    char message[MAX_MESSAGE_LEN];
     uint16_t message_len;
     byte who_sent_me_this;
 
@@ -30,7 +30,9 @@ void application() {
     LED_set(LED_WHITE);
 
     while(true) {
-        network_rx(message, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
+        transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this, TRX_TIMEOUT_INDEFINITE);
+        message[MAX_MESSAGE_LEN - 1] = 0;
+        uart_transmit_formatted_message("Got the following message: %s", message);
         _delay_ms(400);
     }
 }
