@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <string.h>
 
+// note: currently only used for debug
+#include "cube_parameters.h"
+#include <util/delay.h>
+
 // read message and adjust the LED accordingly
 void parse_message(char* message) {
 
@@ -111,7 +115,8 @@ void application() {
         // note: the +1 is to include the null terminator in the message
         transport_tx(message, strlen(message) + 1, who_sent_me_this);
 
+        // DEBUG! Remove this after you've determined the EEPROM isn't being written to a whole bunch.
+        _delay_ms(1000);
 
     }
-
 }
