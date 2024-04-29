@@ -17,4 +17,7 @@ typedef uint8_t byte;
 #define END_SEGMENT_HEADER_LEN (5)
 #define ACK_SEGMENT_HEARDER_LEN (5)
 
+#define MAX_MESSAGE_LEN (256)
+#define MESSAGE_HEADER_LEN (1)
+
 #endif
