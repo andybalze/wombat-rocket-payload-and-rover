@@ -86,18 +86,74 @@ void application() {
     LED_set(LED_WHITE);
 
 
-    // This block of code is what sets the rover apart. It is the sole transmitter in the network.
+    // ================= TRANSMIT TO CUBE 0 ===========================
     _delay_ms(ROVER_APP_DELAY_BETWEEN_MSG_MS);
     snprintf(message, MAX_MESSAGE_LEN, "Hello, data cube at address 0a. I am the Wombat. Please turn red, like a tomato.\r\nDo you pronounce it tomato, or tomato?\r\nLED:RED\r\n");
     transport_tx(message, strlen(message)+1, 0x0A);
 
+    // LISTEN FOR CUBE 0's RESPONSE
+    for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
+    transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
+
+    // force the string to be null-terminated if it isn't already
+    message[MAX_MESSAGE_LEN - 1] = '\0';
+
+    // report that the message was received
+    uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message(message);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message("================================================\r\n");
+    UART_WAIT_UNTIL_DONE();
+
+    // record it
+    log_message(message, message_len, who_sent_me_this);        
+
+    // ================= TRANSMIT TO CUBE 1 ===========================
     _delay_ms(ROVER_APP_DELAY_BETWEEN_MSG_MS);
     snprintf(message, MAX_MESSAGE_LEN, "Hello, data cube at address 0b. I am the Wombat. Please turn cyan.\r\nTeal and cyan are nice colors. They remind me of the ocean.\r\nLED:CYAN\r\n");
     transport_tx(message, strlen(message)+1, 0x0B);
 
+    // LISTEN FOR CUBE 1's RESPONSE
+    for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
+    transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
+
+    // force the string to be null-terminated if it isn't already
+    message[MAX_MESSAGE_LEN - 1] = '\0';
+
+    // report that the message was received
+    uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message(message);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message("================================================\r\n");
+    UART_WAIT_UNTIL_DONE();
+
+    // record it
+    log_message(message, message_len, who_sent_me_this);        
+
+    // ================= TRANSMIT TO CUBE 2 ===========================
     _delay_ms(ROVER_APP_DELAY_BETWEEN_MSG_MS);
     snprintf(message, MAX_MESSAGE_LEN, "Hello, data cube at address 0c. I am the Wombat. Please turn magenta.\r\nThe best way to enjoy plum pie is with vanilla ice cream to the side.\r\nLED:MAGENTA\r\n");
     transport_tx(message, strlen(message)+1, 0x0C);
+
+    // LISTEN FOR CUBE 2's RESPONSE
+    for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
+    transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
+
+    // force the string to be null-terminated if it isn't already
+    message[MAX_MESSAGE_LEN - 1] = '\0';
+
+    // report that the message was received
+    uart_transmit_formatted_message("========== Received message from %02x ==========\r\n", who_sent_me_this);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message(message);
+    UART_WAIT_UNTIL_DONE();
+    uart_transmit_formatted_message("================================================\r\n");
+    UART_WAIT_UNTIL_DONE();
+
+    // record it
+    log_message(message, message_len, who_sent_me_this);        
 
     // After this point, the rover actually behaves pretty similarly to the data cubes.
     while(true) {
