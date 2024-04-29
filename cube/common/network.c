@@ -6,11 +6,13 @@
 
 #ifndef SIMULATION
 #include "cube_parameters.h"
+#include "print_data.h"
+#include "uart.h"
 #include <util/delay.h>
 #else
 #include "sim_delay.h"
 #include <stdio.h>
-#include "print_data.h"
+#include "sim_print_data.h"
 #endif
 
 #define NETWORK_DELAY_MS (1)
@@ -41,6 +43,11 @@ bool network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
         if (!success) {
             return false;
         }
+
+        uart_transmit_formatted_message("got a packet...\r\n");
+        UART_WAIT_UNTIL_DONE();
+        //print_packet(packet);
+        
 
         packet_len = packet[0];
 

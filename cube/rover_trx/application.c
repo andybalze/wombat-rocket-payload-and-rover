@@ -144,7 +144,7 @@ void application() {
     UART_WAIT_UNTIL_DONE();
     //snprintf(message, MAX_MESSAGE_LEN, "Hello, data cube at address 0b. I am the Wombat. Please turn cyan.\r\nTeal and cyan are nice colors. They remind me of the ocean.\r\nLED:CYAN\r\n");
     snprintf(message, MAX_MESSAGE_LEN, "Hello, data cube at address 0b. Please turn cyan.\r\nLED:CYAN\r\n");
-    if (transport_tx(message, strlen(message)+1, 0x0A)) {
+    if (transport_tx(message, strlen(message)+1, 0x0B)) {
         uart_transmit_formatted_message("succeded.\r\n");
         UART_WAIT_UNTIL_DONE();
     }
@@ -162,7 +162,7 @@ void application() {
     UART_WAIT_UNTIL_DONE();
     //snprintf(message, MAX_MESSAGE_LEN, "Hello, data cube at address 0c. I am the Wombat. Please turn magenta.\r\nThe best way to enjoy plum pie is with vanilla ice cream to the side.\r\nLED:MAGENTA\r\n");
     snprintf(message, MAX_MESSAGE_LEN, "Hello, data cube at address 0c. Please turn magenta.\r\n");
-    if (transport_tx(message, strlen(message)+1, 0x0A)) {
+    if (transport_tx(message, strlen(message)+1, 0x0C)) {
         uart_transmit_formatted_message("succeded.\r\n");
         UART_WAIT_UNTIL_DONE();
     }

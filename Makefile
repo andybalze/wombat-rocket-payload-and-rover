@@ -2,7 +2,7 @@
 
 # As you program, you should only need to update these. List every file you'd throw under the "gcc" program.
 common_dependencies = common/spi.c common/spi.h common/uart.c common/uart.h
-cube_common_dependencies = cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h cube/common/trx.c cube/common/trx.h cube/common/digital_io.h cube/common/digital_io.c cube/common/timer.h cube/common/timer.c cube/common/log.c cube/common/log.h
+cube_common_dependencies = cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h cube/common/trx.c cube/common/trx.h cube/common/digital_io.h cube/common/digital_io.c cube/common/timer.h cube/common/timer.c cube/common/log.c cube/common/log.h cube/common/print_data.c cube/common/print_data.h
 standalone_cube_common_dependencies = cube/standalone_common/main.c cube/standalone_common/application.c cube/standalone_common/application.h
 
 rover_dependencies = $(common_dependencies) rover/config.h rover/adc.c rover/adc.h rover/main.c rover/digital_io.h rover/digital_io.c rover/motors.h rover/motors.c rover/timer.h rover/timer.c rover/accelerometer.h rover/accelerometer.c
@@ -11,7 +11,7 @@ cube0_dependencies = $(common_dependencies) $(cube_common_dependencies) $(standa
 cube1_dependencies = $(common_dependencies) $(cube_common_dependencies) $(standalone_cube_common_dependencies) cube/cube1/address.h cube/cube1/routing_table.c cube/cube1/routing_table.h
 cube2_dependencies = $(common_dependencies) $(cube_common_dependencies) $(standalone_cube_common_dependencies) cube/cube2/address.h cube/cube2/routing_table.c cube/cube2/routing_table.h
 
-cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/sim/sim_trx.c cube/sim/sim_trx.h cube/sim/print_data.c cube/sim/print_data.h cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h
+cube_sim_common_dependencies = cube/sim/sim_delay.c cube/sim/sim_delay.h cube/sim/sim_trx.c cube/sim/sim_trx.h cube/sim/sim_print_data.c cube/sim/sim_print_data.h cube/common/address_resolution.c cube/common/address_resolution.h cube/common/cube_parameters.h cube/common/data_link.c cube/common/data_link.h cube/common/network.c cube/common/network.h cube/common/networking_constants.h cube/common/transport.c cube/common/transport.h
 cube0_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube0/main.c cube/cube0/address.h cube/cube0/routing_table.h cube/cube0/routing_table.c
 cube1_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube1/main.c cube/cube1/address.h cube/cube1/routing_table.h cube/cube1/routing_table.c
 cube2_sim_dependencies = $(cube_sim_common_dependencies) cube/sim/cube2/main.c cube/cube2/address.h cube/cube2/routing_table.h cube/cube2/routing_table.c
