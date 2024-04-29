@@ -85,12 +85,8 @@ bool network_tx(byte* payload, byte payload_len, byte dest_network_addr, byte sr
     uart_transmit_formatted_message("Transmitting a packet:\r\n");
     UART_WAIT_UNTIL_DONE();
     print_packet(packet);
-    uart_transmit_formatted_message("That is the summary of that packet.\r\n");
-    UART_WAIT_UNTIL_DONE();
 
     success = data_link_tx(packet, packet_len, resolve_data_link_addr(next_hop_addr));
-    uart_transmit_formatted_message("Okay, I tried to transmit it. ");
-    UART_WAIT_UNTIL_DONE();
     if (success) {
         uart_transmit_formatted_message("Transmission succeeded.\r\n");
         UART_WAIT_UNTIL_DONE();

@@ -21,7 +21,7 @@ void application() {
 
     // To save on memory, the same buffer is used to store a received message
     // and to prepare a message to transmit.
-    char message[MAX_SEGMENT_LEN];
+    char message[MAX_MESSAGE_LEN];
     uint16_t message_len;
     byte who_sent_me_this;
 
@@ -33,8 +33,8 @@ void application() {
     LED_set(LED_WHITE);
 
     while(true) {
-        snprintf(message, MAX_SEGMENT_LEN, "Test packet\r\n");
-        network_tx(message, 15, 0x3c, MY_NETWORK_ADDR);
-        _delay_ms(2000);
+        snprintf(message, MAX_SEGMENT_LEN, "Test message\r\n");
+        transport_tx(message, 15, 0x3c);
+        _delay_ms(3000);
     }
 }

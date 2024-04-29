@@ -16,6 +16,7 @@
 #include "network.h"
 #include "address.h"
 #include "cube_parameters.h"
+#include "uart.h"
 
 #ifndef SIMULATION
 #include "trx.h"
@@ -33,9 +34,9 @@
 // a network from being overwhelmed by throttling its own output!
 
 
-#define TRANSPORT_ACK_DELAY_MS (1)
-#define TRANSPORT_TIMEOUT_MS (50)
-#define TRANSPORT_TX_ATTEMPT_LIMIT (100)
+#define TRANSPORT_ACK_DELAY_MS (1000)
+#define TRANSPORT_TIMEOUT_MS (4000)
+#define TRANSPORT_TX_ATTEMPT_LIMIT (3)
 
 
 // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
@@ -298,6 +299,8 @@ bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port
 
         transmit_attempts++;
         if (transmit_attempts > TRANSPORT_TX_ATTEMPT_LIMIT) {
+            uart_transmit_formatted_message("transport tx timed out\r\n");
+            UART_WAIT_UNTIL_DONE();
             return false;
         }
 
