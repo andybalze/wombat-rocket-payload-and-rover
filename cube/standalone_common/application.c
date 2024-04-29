@@ -74,7 +74,7 @@ void application() {
 
     uint16_t num_messages_this_session = 0;
 
-    uart_transmit_formatted_message("::: Data cube activated. Now entering network mode. :::\r\n");
+    uart_transmit_formatted_message("::: Data cube activated. Entering network mode. :::\r\n");
     UART_WAIT_UNTIL_DONE();
 
     LED_set(LED_WHITE);
