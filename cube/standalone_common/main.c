@@ -14,6 +14,7 @@
 #include "trx.h"
 #include "networking_constants.h"
 #include "timer.h"
+#include "log.h"
 
 // Specific to this cube includes
 #include "address.h"
@@ -117,10 +118,13 @@ void state_code_operational(void);
 
 int main() {
 
+    LED_set(LED_WHITE);
+
     digital_io_initialize();
     uart_initialize();
 
     uart_transmit_formatted_message("\r\n::: Data Cube %02x :::\r\n", MY_NETWORK_ADDR);
+    print_log();
 
     timer_start(STARTUP_DURATION_MS);
     current_state = STARTUP;
