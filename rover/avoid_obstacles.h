@@ -3,7 +3,8 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdbool.h>
 
-void avoid(void);
+void avoid(bool is_upside_down);
 
 #endif

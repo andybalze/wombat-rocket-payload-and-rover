@@ -175,9 +175,7 @@ int main() {
 
                     case DRIVE_FORWARD: {                                           //                 case (DRIVE_FORWARD)
                         if (get_timer_counter(counter_alpha) >= DRIVE_FORWARD_DELAY) {
-                            // motor(LEFT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);//                     drive forward
-                            // motor(RIGHT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);
-                            avoid();
+                            avoid(is_upside_down);
                         }
 
                         if (get_timer_counter(counter_alpha) >= DRIVE_TIME) {       //                     exit condition if (time delay reached)
@@ -194,8 +192,9 @@ int main() {
                     case DISPENSE_DATA_CUBE: {                                      //                 case (DISPENSE_DATA_CUBE)
                         motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 //                     turn on dispenser motor
 
-                        if (get_timer_counter(counter_alpha) >= DISPENSE_TIME && cubes_dispensed < MAX_DATA_CUBE_INV) {//                     exit condition if (time delay reached)
+                        if (get_timer_counter(counter_alpha) >= DISPENSE_TIME && cubes_dispensed < MAX_DATA_CUBE_INV-1) {//                     exit condition if (time delay reached)
                             motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
+                            cubes_dispensed++;
                             uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
                             UART_WAIT_UNTIL_DONE();
                             reset_timer_counter(counter_alpha);                     //                         reset timer counter
