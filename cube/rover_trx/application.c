@@ -21,49 +21,49 @@ void parse_message(char* message) {
 
     snprintf(search, sizeof(search), "LED:OFF");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_OFF);
+        LED_set(LED_OFF);
         return;
     }
 
     snprintf(search, sizeof(search), "LED:BLUE");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_BLUE);
+        LED_set(LED_BLUE);
         return;
     }
 
     snprintf(search, sizeof(search), "LED:GREEN");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_GREEN);
+        LED_set(LED_GREEN);
         return;
     }
 
     snprintf(search, sizeof(search), "LED:CYAN");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_CYAN);
+        LED_set(LED_CYAN);
         return;
     }
 
     snprintf(search, sizeof(search), "LED:RED");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_RED);
+        LED_set(LED_RED);
         return;
     }
 
     snprintf(search, sizeof(search), "LED:MAGENTA");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_MAGENTA);
+        LED_set(LED_MAGENTA);
         return;
     }
 
     snprintf(search, sizeof(search), "LED:YELLOW");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_YELLOW);
+        LED_set(LED_YELLOW);
         return;
     }
 
     snprintf(search, sizeof(search), "LED:WHITE");
     if (strstr(message, search) != NULL) {
-        LED_update_color(LED_WHITE);
+        LED_set(LED_WHITE);
         return;
     }
 
@@ -94,21 +94,51 @@ void application() {
     uint16_t message_len;
     byte who_sent_me_this;
 
-    uint16_t num_messages_this_session = 0;
+    char *color_wheel_str[7] = {
+        "Do you like blue? LED:BLUE\r\n",
+        "Go touch some grass. LED:GREEN\r\n",
+        "This color reminds me of the ocean. LED:CYAN\r\n",
+        "Is it pronounced \"tomato\" or \"tomato\"? LED:RED\r\n",
+        "This color is pretty. LED:MAGENTA\r\n",
+        "This is yellow? Are you sure? LED:YELLOW\r\n",
+        "White chocolate is over-rated. Except when used in cookies. LED:WHITE\r\n",
+    };
+
+    char color_wheel_raw[7] = {
+        LED_BLUE,
+        LED_GREEN,
+        LED_CYAN,
+        LED_RED,
+        LED_MAGENTA,
+        LED_YELLOW,
+        LED_WHITE
+    };
+
+    uint8_t port_wheel[3] = {
+        0x3a,
+        0x3b,
+        0x3c
+    };
 
     uart_transmit_formatted_message("::: Rover's transceiver activated. Entering network mode. :::\r\n");
     UART_WAIT_UNTIL_DONE();
 
-    LED_update_color(LED_BLUE);
+    LED_set(LED_BLUE);
 
     while(true) {
 
-        snprintf(message, MAX_MESSAGE_LEN, "Everything should be made as simple as possible,\r\nbut no simpler.\r\nLED:GREEN\r\n");
-        application_tx(message, 79, 0x3c);
-        _delay_ms(5000);
-
-        snprintf(message, MAX_MESSAGE_LEN, "Please work. I will buy you a coffee.\r\nLED:MAGENTA\r\n");
-        application_tx(message, 53, 0x3c);
-        _delay_ms(5000);
+        // Step right up and spin the wheel!
+        for (int i = 0; i < 7; i++) {
+            char* this_color_str = color_wheel_str[i];
+            char this_color_raw = color_wheel_raw[i];
+            for (int i = 0; i < 5; i++) {
+                LED_blink(this_color_raw);
+            }
+            LED_set(this_color_raw);
+            _delay_ms(1000);
+            snprintf(message, MAX_MESSAGE_LEN, this_color_str);
+            application_tx(message, strlen(message), 0x3c);
+            _delay_ms(5000);
+        }
     }
 }
