@@ -24,7 +24,7 @@ int main() {
     //print_log();
 
     // Wait until the rover instructs the cube to start transmitting.
-    //while(SW_read(SW1));
+    while(SW_read(SW1));
 
     LED_set(LED_WHITE);
     _delay_ms(2000);
