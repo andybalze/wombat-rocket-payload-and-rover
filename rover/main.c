@@ -19,6 +19,12 @@
 #include "motors.h"
 #include "timer.h"
 #include "accelerometer.h"
+#include "ir.h"
+#include "avoid_obstacles.h"
+
+
+
+# define MAX_DATA_CUBE_INV 3
 
 
 
@@ -34,7 +40,7 @@ enum flight_state_enum {
     WAIT_FOR_LANDING,
     EXIT_CANISTER,
     DRIVE_FORWARD,
-    DISPENSE_DATA_CUBES,
+    DISPENSE_DATA_CUBE,
     SIGNAL_ONBOARD_DATA_CUBE,
     DEAD_LOOP
 };
@@ -50,19 +56,16 @@ int main() {
     bool end_operation = false;
     bool is_upside_down;
 
+    uint8_t cubes_dispensed = 0;
+
     digital_io_initialize();                                                        // initialize functions
+    ir_initialize();
     uart_initialize();
     adc_initialize();
     motors_initialize();            // PWM must be initialized seperately
 
     timer_counter_initialize();
 
-    ////////// DEBUG //////////
-    // while (!false) {
-    //     uart_transmit_formatted_message("x: %d    y: %d    z: %d    agg_mag: %d    sqrt(agg_mag): %d\r\n", accelerometer_read(X_AXIS), accelerometer_read(Y_AXIS), accelerometer_read(Z_AXIS), acceleration_agg_mag(), (uint32_t)sqrt(acceleration_agg_mag()));
-    //     UART_WAIT_UNTIL_DONE();
-    // }
-    ////////// DEBUG //////////
 
     while(1) {                                                                      // begin main loop
         if (end_operation == true) {
@@ -163,6 +166,7 @@ int main() {
                         if (get_timer_counter(counter_alpha) >= EXIT_TIME) {        //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
+                            ir_power(ON);
                             uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
                             UART_WAIT_UNTIL_DONE();
                             reset_timer_counter(counter_alpha);                     //                         reset timer counter
@@ -173,25 +177,34 @@ int main() {
 
                     case DRIVE_FORWARD: {                                           //                 case (DRIVE_FORWARD)
                         if (get_timer_counter(counter_alpha) >= DRIVE_FORWARD_DELAY) {
-                            motor(LEFT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);//                     drive forward
-                            motor(RIGHT_MOTOR, (FORWARD ^ is_upside_down), DRIVE_SPEED);
+                            avoid(is_upside_down);
                         }
 
                         if (get_timer_counter(counter_alpha) >= DRIVE_TIME) {       //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
-                            uart_transmit_formatted_message("DISPENSE_DATA_CUBE\r\n");
+                            ir_power(OFF);
+                            uart_transmit_formatted_message("DISPENSE_DATA_CUBE %d\r\n", cubes_dispensed+1);
                             UART_WAIT_UNTIL_DONE();
                             reset_timer_counter(counter_alpha);                     //                         reset timer counter
-                            flight_state = DISPENSE_DATA_CUBES;                     //                         change state to DISPENSE_DATA_CUBES
+                            flight_state = DISPENSE_DATA_CUBE;                      //                         change state to DISPENSE_DATA_CUBE
                         }                                                           //                     end exit condition
                         break;
                     }                                                               //                 end case
 
-                    case DISPENSE_DATA_CUBES: {                                     //                 case (DISPENSE_DATA_CUBES)
+                    case DISPENSE_DATA_CUBE: {                                      //                 case (DISPENSE_DATA_CUBE)
                         motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 //                     turn on dispenser motor
 
-                        if (get_timer_counter(counter_alpha) >= DISPENSE_TIME) {    //                     exit condition if (time delay reached)
+                        if (get_timer_counter(counter_alpha) >= DISPENSE_TIME && cubes_dispensed < MAX_DATA_CUBE_INV-1) {//                     exit condition if (time delay reached)
+                            motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
+                            ir_power(ON);
+                            cubes_dispensed++;
+                            uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
+                            UART_WAIT_UNTIL_DONE();
+                            reset_timer_counter(counter_alpha);                     //                         reset timer counter
+                            flight_state = DRIVE_FORWARD;                           //                         change state to DRIVE_FORWARD
+                        }
+                        else if (get_timer_counter(counter_alpha) >= DISPENSE_TIME) {
                             motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
                             motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
                             motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
@@ -204,7 +217,7 @@ int main() {
                     }                                                               //                 end case
 
                     case SIGNAL_ONBOARD_DATA_CUBE: {                                //                 case (SIGNAL_ONBOARD_DATA_CUBE)
-                        if (get_timer_counter(counter_alpha) >= SIGNAL_ONBOARD_DATA_CUBE_TIME) { //                     exit condition
+                        if (get_timer_counter(counter_alpha) >= DRIVE_TIME) { //                     exit condition
                             motor(LEFT_MOTOR, FORWARD, 0);
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             signal_data_cube(ON);                                   //                         signal onboard data cube

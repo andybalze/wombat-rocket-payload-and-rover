@@ -37,11 +37,10 @@ Instead, commment out the flight section and uncomment the test section
 // #define WAIT_FOR_LAUNCH_LED_OFF_TIME    (uint32_t) 10 * ONE_SECOND     // LED turns green for this amount of time before turning off
 // #define WAIT_FOR_LANDING_LED_OFF_TIME   (uint32_t) 10 * ONE_SECOND     // LED turns red for this amount of time before turning off
 // #define WAIT_FOR_LANDING_TIME           (uint32_t) 10 * ONE_MINUTE     // Rover waits this amount of time after launch before attempting to exit the canister
-// #define EXIT_TIME                       (uint32_t) 10 * ONE_SECOND     // Rover drives forward this amount of time in an attempt to exit the canister
+// #define EXIT_TIME                       (uint32_t) 2  * ONE_SECOND     // Rover drives forward this amount of time in an attempt to exit the canister
 // #define DRIVE_FORWARD_DELAY             (uint32_t) 100                 // Delay between exiting canister and driving forward to reduce back EMF if the rover wheels change direction
-// #define DRIVE_TIME                      (uint32_t) 30 * ONE_SECOND     // Rover drives forward this amount of time
-// #define DISPENSE_TIME                   (uint32_t) 1  * ONE_MINUTE     // Rover runs dispenser motor this amount of time (actually takes about 35 seconds)
-// #define SIGNAL_ONBOARD_DATA_CUBE_TIME   (uint32_t) 10 * ONE_SECOND     // Rover waits this amount of time after dispensing and before signaling the onboard data cube
+// #define DRIVE_TIME                      (uint32_t) 10  * ONE_SECOND     // Rover drives forward this amount of time between dispensing each cube. Joey drives just under 0.6 ft/s
+// #define DISPENSE_TIME                   (uint32_t) 11 * ONE_SECOND     // Rover runs dispenser motor this amount of time to dispense one cube
 ////////// FLIGHT //////////
 
 
@@ -51,9 +50,8 @@ Instead, commment out the flight section and uncomment the test section
 #define WAIT_FOR_LANDING_TIME           (uint32_t) 5  * ONE_SECOND
 #define EXIT_TIME                       (uint32_t) 2  * ONE_SECOND
 #define DRIVE_FORWARD_DELAY             (uint32_t) 100
-#define DRIVE_TIME                      (uint32_t) 10 * ONE_SECOND
-#define DISPENSE_TIME                   (uint32_t) 35 * ONE_SECOND
-#define SIGNAL_ONBOARD_DATA_CUBE_TIME   (uint32_t) 5  * ONE_SECOND
+#define DRIVE_TIME                      (uint32_t) 84 * ONE_SECOND      // About 50 ft between dispensing each cube
+#define DISPENSE_TIME                   (uint32_t) 11 * ONE_SECOND      // To dispense one cube
 ////////// TEST //////////
 
 ////////// Timing for different states of the rover's main state machine ///////////////////
@@ -103,9 +101,9 @@ Please comment both sections out when you push so we get an error if we forget t
 
 
 ////////// Rover Controller SN2 //////////
-// #define X_AXIS_ERROR 2
-// #define Y_AXIS_ERROR 2
-// #define Z_AXIS_ERROR 0
+#define X_AXIS_ERROR 2
+#define Y_AXIS_ERROR 2
+#define Z_AXIS_ERROR 0
 ////////// Rover Controller SN2 //////////
 
 ////////// Accelerometer Callibration //////////////////////////////////////////////////////
