@@ -16,7 +16,6 @@
 #include "network.h"
 #include "address.h"
 #include "cube_parameters.h"
-#include "uart.h"
 
 #ifndef SIMULATION
 #include "trx.h"
@@ -144,7 +143,7 @@ transport_attempt_rx_result transport_attempt_rx(byte* segment, byte buf_len, by
     ack_seg[2] = segment[3]; // destination port = port of whoever sent
     ack_seg[3] = MY_PORT;    // source port = me :)
     ack_seg[4] = SEGID_ACK;
-    // (the return value of this function call is intentionally ignored)
+    // if this errors, we don't care, the other guy will send me another thing anyways
     network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
 
 
@@ -165,31 +164,23 @@ typedef enum {
 transport_keep_trying_to_rx_result transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
     while(true) {
         transport_attempt_rx_result result = transport_attempt_rx(segment, buf_len, expected_seq_num, timeout_ms);
-
         switch (result) {
 
         case TRANSPORT_ATTEMPT_RX_SUCCESS:
-        
+            return TRANSPORT_KEEP_TRYING_TO_RX_SUCCESS;
             break;
 
         case TRANSPORT_ATTEMPT_RX_OUTDATED:
+            // Try again, please.
             break;
 
         case TRANSPORT_ATTEMPT_RX_TIMEOUT:
+            return TRANSPORT_KEEP_TRYING_TO_RX_TIMEOUT;
             break;
 
         case TRANSPORT_ATTEMPT_RX_ERROR:
-            break;
-
-
-        case TRANSPORT_RX_SUCCESS:
-            return true;
-            break;
-        case TRANSPORT_RX_FAIL_TIMEOUT:
-            return false;
-            break;
-        case TRANSPORT_RX_FAIL_OUTDATED:
-            // (do nothing; try again)
+            // Actually... try again, please.
+            //return TRANSPORT_KEEP_TRYING_TO_RX_ERROR;
             break;
         }
     }
@@ -203,7 +194,7 @@ transport_keep_trying_to_rx_result transport_keep_trying_to_rx(byte* segment, by
 // The function will write to source_port to identify who sent the message.
 
 // NOTE: this system ONLY works with one transmitter at a time.
-bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port, uint16_t timeout_ms) {
+transport_rx_result transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port, uint16_t timeout_ms) {
 
     int state = RXST_Idle;
 
@@ -218,9 +209,9 @@ bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* s
 
         // Get the next segment.
         // As a side effect, acknowledge anything we receive.
-        bool success = transport_keep_trying_to_rx(segment, MAX_SEGMENT_LEN, expected_seq_num, timeout_ms);
-        if (!success)
-            return false;
+        transport_keep_trying_to_rx_result result = transport_keep_trying_to_rx(segment, MAX_SEGMENT_LEN, expected_seq_num, timeout_ms);
+        if (result == TRANSPORT_KEEP_TRYING_TO_RX_TIMEOUT) return TRANSPORT_RX_TIMEOUT;
+        if (result == TRANSPORT_KEEP_TRYING_TO_RX_ERROR) return TRANSPORT_RX_ERROR;
 
         expected_seq_num = expected_seq_num == 0 ? 1 : 0;
 
@@ -251,10 +242,11 @@ bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* s
                 }
             }
             else if (segment_identifier == SEGID_END_OF_MESSAGE) {
-                return true;
+                return TRANSPORT_RX_SUCCESS;
             }
             // An unusual case. Can happen if the transmitter gives up
             // and tries again from the beginning.
+            // note, may need to reset sequence number?
             else if (segment_identifier == SEGID_START_OF_MESSAGE) {
                 if (message_len != NULL) {
                     *message_len = segment[5] << 8 + segment[6];
@@ -269,66 +261,63 @@ bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* s
 
 // ======================= Transmitter Code ====================================
 
+typedef enum {
+    TRANSPORT_ATTEMPT_TX_SUCCESS,
+    TRANSPORT_ATTEMPT_TX_TRANSMIT_FAILED,
+    TRANSPORT_ATTEMPT_TX_NOT_ACKNOWLEDGED,
+    TRANSPORT_ATTEMPT_TX_OLD_ACK,
+    TRANSPORT_ATTEMPT_TX_ERROR
+} transport_attempt_tx_result;
 
 // This function transmits a segment, then waits to receive an acknowledgement.
 // This function can time out.
 // The function returns whether the acknowledgement was received before the timeout.
-bool transport_attempt_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
+transport_attempt_tx_result transport_attempt_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
     byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
-    bool success;
+    network_tx_result tx_result;
 
     // Let's send this bad boy.
-    success = network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
-
-    // Did the transmission go through?
-    if (!success) {
-        return false;
-    }
+    tx_result = network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
+    if (tx_result == NETWORK_TX_FAILURE) return TRANSPORT_ATTEMPT_TX_TRANSMIT_FAILED;
 
     // Now let's try to get an acknowledgement.
-    success = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TIMEOUT_MS);
+    network_rx_result rx_result = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TIMEOUT_MS);
+    if (rx_result == NETWORK_RX_TIMEOUT) return TRANSPORT_ATTEMPT_TX_NOT_ACKNOWLEDGED;
+    if (rx_result == NETWORK_RX_ERROR) return TRANSPORT_ATTEMPT_TX_ERROR;
+    if (hopefully_an_ack[4] != SEGID_ACK) return TRANSPORT_ATTEMPT_TX_ERROR;
+    if (hopefully_an_ack[1] == current_seq_num) return TRANSPORT_ATTEMPT_TX_OLD_ACK;
 
-    // Timed out?
-    if (!success) {
-        return false;
-    }
-
-    // The received segment is an ack?
-    if (hopefully_an_ack[4] != SEGID_ACK) {
-        return false;
-    }
-
-    // The sequence number is advanced?
-    if (hopefully_an_ack[1] == current_seq_num) {
-        return false;
-    }
-
-    // Looks good. Our message was acknowledged.
-    return true;
+    return TRANSPORT_ATTEMPT_TX_SUCCESS;
 }
+
+typedef enum {
+    TRANSPORT_KEEP_TRYING_TO_TX_SUCCESS,
+    TRANSPORT_KEEP_TRYING_TO_TX_REACHED_ATTEMPT_LIMIT,
+    TRANSPORT_KEEP_TRYING_TO_TX_ERROR
+} transport_keep_trying_to_tx_result;
+
 
 // This function continually tries to transmit segments until one is acknowledged.
 // This function can fail if the attempted transmissions exceeds TRANSPORT_TX_ATTEMPT_LIMIT.
 // The function returns whether the segment was eventually transmitted and acknowledged.
-bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
+transport_keep_trying_to_tx_result transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
     uint16_t transmit_attempts = 0;
-    bool success;
+    transport_attempt_tx_result result;
 
     while(true) {
 
         transmit_attempts++;
         if (transmit_attempts > TRANSPORT_TX_ATTEMPT_LIMIT) {
-            uart_transmit_formatted_message("transport tx timed out\r\n");
-            UART_WAIT_UNTIL_DONE();
-            return false;
+            return TRANSPORT_KEEP_TRYING_TO_TX_REACHED_ATTEMPT_LIMIT;
         }
 
-        success = transport_attempt_tx(segment, segment_len, dest_port, current_seq_num);
+        result = transport_attempt_tx(segment, segment_len, dest_port, current_seq_num);
 
-        if (success)
-            return true;
+        if (result == TRANSPORT_ATTEMPT_TX_SUCCESS) return TRANSPORT_KEEP_TRYING_TO_TX_SUCCESS;
+        if (result == TRANSPORT_ATTEMPT_TX_ERROR) return TRANSPORT_KEEP_TRYING_TO_TX_ERROR;
+
     }
 }
 
@@ -338,12 +327,14 @@ bool transport_keep_trying_to_tx(byte* segment, byte segment_len, byte dest_port
 // Every segment must be acknowledged before the next one is sent.
 // The function can fail if one of the segments is not acknowledged in time.
 // The function returns whether the message was sent successfully.
-bool transport_tx(byte* message, uint16_t message_len, byte dest_port) {
+transport_tx_result transport_tx(byte* message, uint16_t message_len, byte dest_port) {
 
     byte current_seq_num = 0;
 
     byte segment[MAX_SEGMENT_LEN];
     uint16_t bytes_remaining = message_len;
+
+    transport_keep_trying_to_tx_result result;
 
     // ------ send START_OF_MESSAGE -----
     segment[0] = START_SEGMENT_HEADER_LEN;
@@ -354,9 +345,9 @@ bool transport_tx(byte* message, uint16_t message_len, byte dest_port) {
     segment[5] = (message_len & 0xFF00) >> 8;
     segment[6] = (message_len & 0x00FF) >> 0;
 
-    if (!transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, current_seq_num)) {
-        return false;
-    }
+    result = transport_keep_trying_to_tx(segment, START_SEGMENT_HEADER_LEN, dest_port, current_seq_num);
+    if (result == TRANSPORT_KEEP_TRYING_TO_TX_REACHED_ATTEMPT_LIMIT) return TRANSPORT_TX_REACHED_ATTEMPT_LIMIT;
+    if (result == TRANSPORT_KEEP_TRYING_TO_TX_ERROR) return TRANSPORT_TX_ERROR;
     current_seq_num = current_seq_num == 0 ? 1 : 0;
 
     // ------ send data segments -----
@@ -387,9 +378,9 @@ bool transport_tx(byte* message, uint16_t message_len, byte dest_port) {
 
         bytes_remaining -= (uint16_t) this_payload_len;
 
-        if (!transport_keep_trying_to_tx(segment, this_segment_len, dest_port, current_seq_num)) {
-            return false;
-        }
+        result = transport_keep_trying_to_tx(segment, this_segment_len, dest_port, current_seq_num);
+        if (result == TRANSPORT_KEEP_TRYING_TO_TX_REACHED_ATTEMPT_LIMIT) return TRANSPORT_TX_REACHED_ATTEMPT_LIMIT;
+        if (result == TRANSPORT_KEEP_TRYING_TO_TX_ERROR) return TRANSPORT_TX_ERROR;
         current_seq_num = current_seq_num == 0 ? 1 : 0;
     }
 
@@ -400,11 +391,11 @@ bool transport_tx(byte* message, uint16_t message_len, byte dest_port) {
     segment[3] = MY_PORT;
     segment[4] = SEGID_END_OF_MESSAGE;
 
-    if (!transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, current_seq_num)) {
-        return false;
-    }
+    result = transport_keep_trying_to_tx(segment, END_SEGMENT_HEADER_LEN, dest_port, current_seq_num);
+    if (result == TRANSPORT_KEEP_TRYING_TO_TX_REACHED_ATTEMPT_LIMIT) return TRANSPORT_TX_REACHED_ATTEMPT_LIMIT;
+    if (result == TRANSPORT_KEEP_TRYING_TO_TX_ERROR) return TRANSPORT_TX_ERROR;
     current_seq_num = current_seq_num == 0 ? 1 : 0;
 
-    return true;
+    return TRANSPORT_TX_SUCCESS;
 
 }

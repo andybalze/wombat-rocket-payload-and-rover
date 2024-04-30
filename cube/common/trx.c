@@ -314,15 +314,13 @@ trx_reception_outcome_t trx_receive_payload(
   // Not starting the timer means the timer flag will never go high.
 
   // Wait either for the transceiver to finish or to time out.
-  //while(!TIMER_DONE && !TRX_IRQ);
-  while(!TRX_IRQ);
+  while(!TIMER_DONE && !TRX_IRQ);
   // While loop exits either when the timer times out or an interrupt is requested.
 
   // Set the CE pin low.
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
-  //if (TIMER_DONE) {
-  if (0) {
+  if (TIMER_DONE) {
 
     timer_stop();
 

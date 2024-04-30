@@ -12,8 +12,20 @@ enum segment_identifier_t {
     SEGID_ACK = 0x0A
 };
 
-bool transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port, uint16_t timeout_ms);
+typedef enum {
+    TRANSPORT_RX_SUCCESS,
+    TRANSPORT_RX_TIMEOUT,
+    TRANSPORT_RX_ERROR
+} transport_rx_result;
 
-bool transport_tx(byte* message, uint16_t message_len, byte dest_port);
+typedef enum {
+    TRANSPORT_TX_SUCCESS,
+    TRANSPORT_TX_REACHED_ATTEMPT_LIMIT,
+    TRANSPORT_TX_ERROR
+} transport_tx_result;
+
+transport_rx_result transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port, uint16_t timeout_ms);
+
+transport_tx_result transport_tx(byte* message, uint16_t message_len, byte dest_port);
 
 #endif
