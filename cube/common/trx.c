@@ -193,6 +193,10 @@ spi_message_element_t read_register(
   spi_message_element_t address
 );
 
+void flush_rx();
+
+void flush_tx();
+
 void write_address(
   spi_message_element_t register_address,
   trx_address_t         address
@@ -249,6 +253,8 @@ trx_transmission_outcome_t trx_transmit_payload(
   int payload_length
 ) {
 
+  //flush_tx();
+
   // Configure the transceiver as a primary transmitter.
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_TX);
@@ -297,6 +303,8 @@ trx_reception_outcome_t trx_receive_payload(
   trx_payload_element_t *payload_buffer,
   timer_delay_ms_t timeout_ms
 ) {
+
+  //flush_rx();
 
   // Move back into receive mode.
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_RX);
@@ -371,6 +379,20 @@ spi_message_element_t read_register(
   spi_message_element_t instruction = TRX_READ_REGISTER_INSTRUCTION | (address & TRX_READ_REGISTER_ADDRESS_MASK);
   spi_execute_transaction(&response, 1, 2, &instruction, 1, NULL, 1);
   return response;
+}
+
+void flush_rx() {
+  spi_message_element_t response;
+  spi_message_element_t instruction = 0b11100010;
+  spi_execute_transaction(&response, 0, 1, &instruction, 1);
+  return;
+}
+
+void flush_tx() {
+  spi_message_element_t response;
+  spi_message_element_t instruction = 0b11100001;
+  spi_execute_transaction(&response, 0, 1, &instruction, 1);
+  return;
 }
 
 void write_address(

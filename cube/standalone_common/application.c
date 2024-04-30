@@ -35,7 +35,7 @@ void application() {
         result = transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this, TRX_TIMEOUT_INDEFINITE);
         if (result == TRANSPORT_RX_SUCCESS) {
             message[MAX_MESSAGE_LEN - 1] = 0;
-            uart_transmit_formatted_message("Got the following message: %s\r\n", message);
+            uart_transmit_formatted_message("I got the message!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n", message);
             UART_WAIT_UNTIL_DONE();
         }
         if (result == TRANSPORT_RX_TIMEOUT) {
