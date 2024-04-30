@@ -280,9 +280,13 @@ trx_transmission_outcome_t trx_transmit_payload(
     break;
 
   case TRX_INTERRUPT_REQUEST_MAX_RETRANSMISSIONS:
+    uart_transmit_formatted_message("[WARNING] Transceiver reached max retransmissions\r\n");
+    UART_WAIT_UNTIL_DONE();
     return TRX_TRANSMISSION_FAILURE;
   
   default:
+    uart_transmit_formatted_message("[WARNING] Unknown error in trx_transmit_payload()\r\n");
+    UART_WAIT_UNTIL_DONE();
     return TRX_TRANSMISSION_FAILURE;
   }
 
@@ -310,20 +314,20 @@ trx_reception_outcome_t trx_receive_payload(
   // Not starting the timer means the timer flag will never go high.
 
   // Wait either for the transceiver to finish or to time out.
-  while(!TIMER_DONE && !TRX_IRQ);
+  //while(!TIMER_DONE && !TRX_IRQ);
+  while(!TRX_IRQ);
   // While loop exits either when the timer times out or an interrupt is requested.
 
+  // Set the CE pin low.
+  TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
-
-  if (TIMER_DONE) {
+  //if (TIMER_DONE) {
+  if (0) {
 
     timer_stop();
 
-    // Set the CE pin low.
-    TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
-
     // The reception timed out.
-    return TRX_RECEPTION_FAILURE;
+    return TRX_RECEPTION_TIMEOUT;
 
   } else {
 
@@ -333,17 +337,14 @@ trx_reception_outcome_t trx_receive_payload(
     trx_interrupt_request_t interrupt_request;
     interrupt_request = get_interrupt_request();
 
-    // Set the CE pin low.
-    TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
-
     if (interrupt_request == TRX_INTERRUPT_REQUEST_DATA_RECEIVED) {
       read_rx_payload(payload_buffer);
       return TRX_RECEPTION_SUCCESS;
     } else {
       // This should be an unreachable state.
-      uart_transmit_formatted_message("unreachable... truly?? %u !!!!!!!! \r\n", interrupt_request);
+      uart_transmit_formatted_message("[WARNING] Unknown error in trx_receive_payload()\r\n");
       UART_WAIT_UNTIL_DONE();
-      return TRX_RECEPTION_FAILURE;
+      return TRX_RECEPTION_ERROR;
     }
   }
 }

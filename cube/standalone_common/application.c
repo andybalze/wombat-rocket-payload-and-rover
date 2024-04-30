@@ -30,9 +30,13 @@ void application() {
     LED_set(LED_WHITE);
 
     while(true) {
+        network_rx(message, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
+        _delay_ms(400);
+        /*
         transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this, TRX_TIMEOUT_INDEFINITE);
         message[MAX_MESSAGE_LEN - 1] = 0;
         uart_transmit_formatted_message("Got the following message: %s", message);
         _delay_ms(400);
+        */
     }
 }

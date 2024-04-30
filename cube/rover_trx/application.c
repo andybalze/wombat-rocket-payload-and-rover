@@ -34,7 +34,12 @@ void application() {
 
     while(true) {
         snprintf(message, MAX_SEGMENT_LEN, "Test message\r\n");
+        network_tx(message, 15, 0x3c, MY_NETWORK_ADDR);
+        _delay_ms(2000);
+        /*
+        snprintf(message, MAX_SEGMENT_LEN, "Test message\r\n");
         transport_tx(message, 15, 0x3c);
         _delay_ms(3000);
+        */
     }
 }

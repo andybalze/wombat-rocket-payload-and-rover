@@ -115,28 +115,27 @@ I can finally adjust "current seq number" and move on and send the next packet.
 
 // ======================= Receiver Code =======================================
 
-enum transport_rx_result {
-    TRANSPORT_RX_SUCCESS,
-    TRANSPORT_RX_FAIL_TIMEOUT,
-    TRANSPORT_RX_FAIL_OUTDATED
-};
+typedef enum {
+    TRANSPORT_ATTEMPT_RX_SUCCESS,
+    TRANSPORT_ATTEMPT_RX_OUTDATED,
+    TRANSPORT_ATTEMPT_RX_TIMEOUT,
+    TRANSPORT_ATTEMPT_RX_ERROR
+} transport_attempt_rx_result;
 
 // Get data from the network layer.
 // Acknowledge it.
 // Verify the data is new by checking the sequence number.
 // Returns true if the reception was successful.
-int transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
+transport_attempt_rx_result transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
 
-    bool success;
+    network_rx_result result;
     byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
 
     // try to receive some data from the network
-    success = network_rx(segment, MAX_SEGMENT_LEN, timeout_ms);
+    result = network_rx(segment, MAX_SEGMENT_LEN, timeout_ms);
+    if (result == NETWORK_RX_TIMEOUT) return TRANSPORT_ATTEMPT_RX_TIMEOUT;
+    if (result == NETWORK_RX_ERROR) return TRANSPORT_ATTEMPT_RX_ERROR;
 
-    // Timed out?
-    if (!success) {
-        return TRANSPORT_RX_FAIL_TIMEOUT;
-    }
 
     // Alright we got something, let me acknowledge it really quick.
     _delay_ms(TRANSPORT_ACK_DELAY_MS);
@@ -151,16 +150,38 @@ int transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num, uin
 
     // Okay. Is this new data?
     if (expected_seq_num != segment[1]) {
-        return TRANSPORT_RX_FAIL_OUTDATED;
+        return TRANSPORT_ATTEMPT_RX_OUTDATED;
     }
 
-    return TRANSPORT_RX_SUCCESS;
+    return TRANSPORT_ATTEMPT_RX_SUCCESS;
 }
 
-bool transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
+typedef enum {
+    TRANSPORT_KEEP_TRYING_TO_RX_SUCCESS,
+    TRANSPORT_KEEP_TRYING_TO_RX_TIMEOUT,
+    TRANSPORT_KEEP_TRYING_TO_RX_ERROR,
+} transport_keep_trying_to_rx_result;
+
+transport_keep_trying_to_rx_result transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
     while(true) {
-        int result = transport_attempt_rx(segment, buf_len, expected_seq_num, timeout_ms);
+        transport_attempt_rx_result result = transport_attempt_rx(segment, buf_len, expected_seq_num, timeout_ms);
+
         switch (result) {
+
+        case TRANSPORT_ATTEMPT_RX_SUCCESS:
+        
+            break;
+
+        case TRANSPORT_ATTEMPT_RX_OUTDATED:
+            break;
+
+        case TRANSPORT_ATTEMPT_RX_TIMEOUT:
+            break;
+
+        case TRANSPORT_ATTEMPT_RX_ERROR:
+            break;
+
+
         case TRANSPORT_RX_SUCCESS:
             return true;
             break;

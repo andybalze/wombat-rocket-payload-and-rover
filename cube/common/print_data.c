@@ -4,14 +4,6 @@
 
 void print_segment(byte* segment) {
 
-    char payload[256];
-    for (int i = 0; i < 256; i++) {
-        payload[i] = '\0';
-    }
-
-    int payload_length;
-
-
     // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
     int segtype = segment[4];
 
@@ -50,10 +42,6 @@ void print_segment(byte* segment) {
     // rest is payload
 
     case SEGID_DATA:
-        payload_length = segment[0] - DATA_SEGMENT_HEADER_LEN;
-        for (int i = 0; i < payload_length; i++) {
-            payload[i] = segment[i + DATA_SEGMENT_HEADER_LEN];
-        }
         uart_transmit_formatted_message("\t\tLength of segment:          %d\r\n", segment[0]);
         UART_WAIT_UNTIL_DONE();
         uart_transmit_formatted_message("\t\tSequence number:            %d\r\n", segment[1]);
@@ -65,8 +53,6 @@ void print_segment(byte* segment) {
         uart_transmit_formatted_message("\t\tSegment identifier:         %02x (DATA)\r\n", segment[4]);
         UART_WAIT_UNTIL_DONE();
         uart_transmit_formatted_message("\t\tStart address:              %02x\r\n", ((segment[5] & 0xFF00) << 8) + ((segment[6] & 0x00FF) << 0));
-        UART_WAIT_UNTIL_DONE();
-        uart_transmit_formatted_message("\t\tThe payload:                %s\r\n", payload);
         UART_WAIT_UNTIL_DONE();
         break;
 

@@ -129,6 +129,11 @@ int main() {
     print_log();
 
     timer_start(STARTUP_DURATION_MS);
+
+    // DEBUG
+    //application();
+    // END DEBUG
+
     current_state = STARTUP;
 
     // The main state machine loop.
