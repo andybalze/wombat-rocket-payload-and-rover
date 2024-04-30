@@ -41,8 +41,8 @@ void application() {
         _delay_ms(2000);
         */
 
-        snprintf(message, MAX_MESSAGE_LEN, "Test message\r\n");
-        result = transport_tx(message, 15, 0x3c);
+        snprintf(message, MAX_MESSAGE_LEN, "Everything should be made as simple as possible,\r\nbut no simpler.\r\n");
+        result = transport_tx(message, 68, 0x3c);
         if (result == TRANSPORT_TX_REACHED_ATTEMPT_LIMIT) {
             uart_transmit_formatted_message("[WARNING] Transport layer reached attempt limit\r\n");
             UART_WAIT_UNTIL_DONE();

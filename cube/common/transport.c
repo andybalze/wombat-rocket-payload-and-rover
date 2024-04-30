@@ -199,6 +199,9 @@ transport_keep_trying_to_rx_result transport_keep_trying_to_rx(byte* segment, by
 // NOTE: this system ONLY works with one transmitter at a time.
 transport_rx_result transport_rx(byte* buffer, uint16_t buf_len, uint16_t* message_len, byte* source_port, uint16_t timeout_ms) {
 
+    // Start by initializing the recepient's buffer to zero.
+    for (int i = 0; i < buf_len; i++) buffer[i] = 0;
+
     int state = RXST_Idle;
 
     byte segment_len;
