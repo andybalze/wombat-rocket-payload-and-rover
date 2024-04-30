@@ -64,14 +64,17 @@ typedef uint8_t trx_payload_element_t;
 typedef uint8_t trx_status_buffer_t;
 
 // Whether a given transmission succeeded or failed.
-typedef uint8_t trx_transmission_outcome_t;
-#define TRX_TRANSMISSION_FAILURE (0)
-#define TRX_TRANSMISSION_SUCCESS (1)
+typedef enum {
+    TRX_TRANSMISSION_SUCCESS,
+    TRX_TRANSMISSION_FAILURE
+} trx_transmission_outcome_t;
 
 // Whether a given attempt to receive a transmission succeeded or failed.
-typedef uint8_t trx_reception_outcome_t;
-#define TRX_RECEPTION_FAILURE (0)
-#define TRX_RECEPTION_SUCCESS (1) 
+typedef enum {
+    TRX_RECEPTION_SUCCESS,
+    TRX_RECEPTION_ERROR,
+    TRX_RECEPTION_TIMEOUT
+} trx_reception_outcome_t;
 
 /////////////////// Public function prototypes /////////////////////////////////
 

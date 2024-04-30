@@ -1,5 +1,8 @@
 #include "digital_io.h"
 
+#include "cube_parameters.h"
+#include <util/delay.h>
+
 // Macros for LEDs
 #define RED_DDR     DDRD
 #define RED_PORT    PORTD
@@ -13,12 +16,15 @@
 #define BLUE_PORT  PORTC
 #define BLUE_INDEX PIN0
 
+#define BLINK_DURATION_MS (25)
+
 
 // Macros for switch & pushbuttons
 #define SW1_DDR     DDRD
 #define SW1_PORT    PORTD   //config pull-up
 #define SW1_RD      PIND
 #define SW1_INDEX   PIN3
+
 
 void digital_io_initialize(void) {
     // Configure the LED pins as outputs
@@ -38,7 +44,7 @@ void digital_io_initialize(void) {
     SW1_PORT &= ~_BV(SW1_INDEX);    // Turn off pull-up resistor because we have a hardware pull-up
 }
 
-void LED_set(char state) {
+void LED_set_state(char state) {
     if (((state >> 2) & 1) == 1) {      // if (left bit == 1)
         RED_PORT &= ~_BV(RED_INDEX);
     }
@@ -74,4 +80,29 @@ char SW_read(SW_name_t sw) {
     }
 
     return return_val;
+}
+
+// Done so LED can flash blue when receiving, and return to this color
+// after it is done.
+static char LED_color = LED_OFF;
+
+void LED_set(char color) {
+    LED_color = color;
+    LED_set_state(color);
+}
+
+void LED_blink(char color) {
+    if (color == LED_color) {
+        LED_set_state(LED_OFF);
+        _delay_ms(BLINK_DURATION_MS);
+        LED_set_state(LED_color);
+        _delay_ms(BLINK_DURATION_MS);
+    }
+    else {
+        LED_set_state(color);
+        _delay_ms(BLINK_DURATION_MS);
+        LED_set_state(LED_color);
+        _delay_ms(BLINK_DURATION_MS);
+    }
+    return;
 }

@@ -193,6 +193,10 @@ spi_message_element_t read_register(
   spi_message_element_t address
 );
 
+void flush_rx();
+
+void flush_tx();
+
 void write_address(
   spi_message_element_t register_address,
   trx_address_t         address
@@ -249,6 +253,8 @@ trx_transmission_outcome_t trx_transmit_payload(
   int payload_length
 ) {
 
+  flush_tx();
+
   // Configure the transceiver as a primary transmitter.
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_TX);
@@ -280,9 +286,13 @@ trx_transmission_outcome_t trx_transmit_payload(
     break;
 
   case TRX_INTERRUPT_REQUEST_MAX_RETRANSMISSIONS:
+    uart_transmit_formatted_message("[WARNING] Transceiver reached max retransmissions\r\n");
+    UART_WAIT_UNTIL_DONE();
     return TRX_TRANSMISSION_FAILURE;
   
   default:
+    uart_transmit_formatted_message("[WARNING] Unknown error in trx_transmit_payload()\r\n");
+    UART_WAIT_UNTIL_DONE();
     return TRX_TRANSMISSION_FAILURE;
   }
 
@@ -293,6 +303,8 @@ trx_reception_outcome_t trx_receive_payload(
   trx_payload_element_t *payload_buffer,
   timer_delay_ms_t timeout_ms
 ) {
+
+  flush_rx();
 
   // Move back into receive mode.
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_RX);
@@ -313,17 +325,19 @@ trx_reception_outcome_t trx_receive_payload(
   while(!TIMER_DONE && !TRX_IRQ);
   // While loop exits either when the timer times out or an interrupt is requested.
 
-  timer_stop();
-
   // Set the CE pin low.
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
   if (TIMER_DONE) {
 
+    timer_stop();
+
     // The reception timed out.
-    return TRX_RECEPTION_FAILURE;
+    return TRX_RECEPTION_TIMEOUT;
 
   } else {
+
+    timer_stop();
 
     // The reception succeeded.
     trx_interrupt_request_t interrupt_request;
@@ -334,7 +348,9 @@ trx_reception_outcome_t trx_receive_payload(
       return TRX_RECEPTION_SUCCESS;
     } else {
       // This should be an unreachable state.
-      return TRX_RECEPTION_FAILURE;
+      uart_transmit_formatted_message("[WARNING] Unknown error in trx_receive_payload()\r\n");
+      UART_WAIT_UNTIL_DONE();
+      return TRX_RECEPTION_ERROR;
     }
   }
 }
@@ -363,6 +379,20 @@ spi_message_element_t read_register(
   spi_message_element_t instruction = TRX_READ_REGISTER_INSTRUCTION | (address & TRX_READ_REGISTER_ADDRESS_MASK);
   spi_execute_transaction(&response, 1, 2, &instruction, 1, NULL, 1);
   return response;
+}
+
+void flush_rx() {
+  spi_message_element_t response;
+  spi_message_element_t instruction = 0b11100010;
+  spi_execute_transaction(&response, 0, 1, &instruction, 1);
+  return;
+}
+
+void flush_tx() {
+  spi_message_element_t response;
+  spi_message_element_t instruction = 0b11100001;
+  spi_execute_transaction(&response, 0, 1, &instruction, 1);
+  return;
 }
 
 void write_address(
