@@ -14,6 +14,62 @@
 #include "cube_parameters.h"
 #include <util/delay.h>
 
+// read message and adjust the LED accordingly
+void parse_message(char* message) {
+
+    char search[12];
+
+    snprintf(search, sizeof(search), "LED:OFF");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_OFF);
+        return;
+    }
+
+    snprintf(search, sizeof(search), "LED:BLUE");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_BLUE);
+        return;
+    }
+
+    snprintf(search, sizeof(search), "LED:GREEN");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_GREEN);
+        return;
+    }
+
+    snprintf(search, sizeof(search), "LED:CYAN");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_CYAN);
+        return;
+    }
+
+    snprintf(search, sizeof(search), "LED:RED");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_RED);
+        return;
+    }
+
+    snprintf(search, sizeof(search), "LED:MAGENTA");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_MAGENTA);
+        return;
+    }
+
+    snprintf(search, sizeof(search), "LED:YELLOW");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_YELLOW);
+        return;
+    }
+
+    snprintf(search, sizeof(search), "LED:WHITE");
+    if (strstr(message, search) != NULL) {
+        LED_set(LED_WHITE);
+        return;
+    }
+
+    return;
+}
+
 void application() {
 
     // To save on memory, the same buffer is used to store a received message
@@ -29,7 +85,7 @@ void application() {
     uart_transmit_formatted_message("::: Data cube %02x activated. Entering network mode. :::\r\n", MY_NETWORK_ADDR);
     UART_WAIT_UNTIL_DONE();
 
-    LED_set(LED_WHITE);
+    LED_set(LED_BLUE);
 
     while(true) {
 
@@ -40,6 +96,7 @@ void application() {
         result = transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this, TRX_TIMEOUT_INDEFINITE);
         if (result == TRANSPORT_RX_SUCCESS) {
             message[MAX_MESSAGE_LEN - 1] = 0;
+            parse_message(message);
             uart_transmit_formatted_message("=== Got a message ===\r\n%s\r\n=====================\r\n", message);
             UART_WAIT_UNTIL_DONE();
         }

@@ -60,7 +60,7 @@
 #define LED_COLOR_LOADING               LED_YELLOW
 #define LED_COLOR_LOADED_1              LED_RED
 #define LED_COLOR_LOADED_2              LED_OFF
-#define LED_COLOR_DISPENSING            LED_BLUE
+#define LED_COLOR_DISPENSING            LED_WHITE
 
 /////////////////// Private Typedefs ///////////////////////////////////////////
 

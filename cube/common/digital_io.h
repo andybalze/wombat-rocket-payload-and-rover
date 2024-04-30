@@ -20,6 +20,7 @@ typedef enum SW_name_enum SW_name_t;
 
 void digital_io_initialize(void);
 void LED_set(char state);     //Enter a value between 0-7 where the binary representation corresponds to RGB encoding. Ex: 010 would be green
+void LED_blink(char color);
 char SW_read(SW_name_t sw);
 
 #endif //DIGITAL_IO_H
