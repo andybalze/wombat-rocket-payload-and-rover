@@ -33,11 +33,11 @@
 // a network from being overwhelmed by throttling its own output!
 
 
-#define TRANSPORT_TX_ACK_TIMEOUT_MS (4000)
-#define TRANSPORT_TX_ACK_DELAY_MS (1000)
-#define TRANSPORT_TX_SEGMENT_SPACING_MS (500)
-#define TRANSPORT_TX_RETRY_DELAY_MS (1000)
-#define TRANSPORT_TX_ATTEMPT_LIMIT (3)
+#define TRANSPORT_TX_ACK_TIMEOUT_MS (1500)
+#define TRANSPORT_TX_ACK_DELAY_MS (250)
+#define TRANSPORT_TX_SEGMENT_SPACING_MS (250)
+#define TRANSPORT_TX_RETRY_DELAY_MS (250)
+#define TRANSPORT_TX_ATTEMPT_LIMIT (5)
 
 
 // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
@@ -127,32 +127,37 @@ typedef enum {
 // Acknowledge it.
 // Verify the data is new by checking the sequence number.
 // Returns true if the reception was successful.
-transport_attempt_rx_result transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
+transport_attempt_rx_result transport_attempt_rx(byte* segment, byte buf_len, uint16_t timeout_ms) {
 
+    static byte rx_seq = 0; // What we expect the next sequence number to be.
     network_rx_result result;
-    // DEBUG byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
+    byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
 
     // try to receive some data from the network
     result = network_rx(segment, MAX_SEGMENT_LEN, timeout_ms);
     if (result == NETWORK_RX_TIMEOUT) return TRANSPORT_ATTEMPT_RX_TIMEOUT;
     if (result == NETWORK_RX_ERROR) return TRANSPORT_ATTEMPT_RX_ERROR;
 
+    // If we got a START_OF_MESSAGE, we must synchronize our sequence numbers.
+    if (segment[4] == SEGID_START_OF_MESSAGE) rx_seq = segment[1];
 
     // Alright we got something, let me acknowledge it really quick.
-    // DEBUG _delay_ms(TRANSPORT_TX_ACK_DELAY_MS);
-    // DEBUG ack_seg[0] = ACK_SEGMENT_HEARDER_LEN;
-    // DEBUG ack_seg[1] = segment[1] == 0 ? 1 : 0; // advance seq number
-    // DEBUG ack_seg[2] = segment[3]; // destination port = port of whoever sent
-    // DEBUG ack_seg[3] = MY_PORT;    // source port = me :)
-    // DEBUG ack_seg[4] = SEGID_ACK;
-    // if this errors, we don't care, the other guy will send me another thing anyways
-    // DEBUG network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
-
+    _delay_ms(TRANSPORT_TX_ACK_DELAY_MS);
+    ack_seg[0] = ACK_SEGMENT_HEARDER_LEN;
+    ack_seg[1] = segment[1] == 0 ? 1 : 0; // advance seq number
+    ack_seg[2] = segment[3]; // destination port = port of whoever sent
+    ack_seg[3] = MY_PORT;    // source port = me :)
+    ack_seg[4] = SEGID_ACK;
+    // if this errors out, we don't care, the other guy will send me another thing anyways
+    network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
 
     // Okay. Is this new data?
-    // DEBUG if (expected_seq_num != segment[1]) {
-    // DEBUG     return TRANSPORT_ATTEMPT_RX_OUTDATED;
-    // DEBUG }
+    if (rx_seq != segment[1]) {
+        return TRANSPORT_ATTEMPT_RX_OUTDATED;
+    }
+
+    // Great, new data. Let's advance our expected sequence number.
+    rx_seq = rx_seq == 0 ? 1 : 0;
 
     return TRANSPORT_ATTEMPT_RX_SUCCESS;
 }
@@ -163,9 +168,9 @@ typedef enum {
     TRANSPORT_KEEP_TRYING_TO_RX_ERROR,
 } transport_keep_trying_to_rx_result;
 
-transport_keep_trying_to_rx_result transport_keep_trying_to_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
+transport_keep_trying_to_rx_result transport_keep_trying_to_rx(byte* segment, byte buf_len, uint16_t timeout_ms) {
     while(true) {
-        transport_attempt_rx_result result = transport_attempt_rx(segment, buf_len, expected_seq_num, timeout_ms);
+        transport_attempt_rx_result result = transport_attempt_rx(segment, buf_len, timeout_ms);
         switch (result) {
 
         case TRANSPORT_ATTEMPT_RX_SUCCESS:
@@ -208,18 +213,15 @@ transport_rx_result transport_rx(byte* buffer, uint16_t buf_len, uint16_t* messa
     byte segment[MAX_SEGMENT_LEN];
 
     byte segment_identifier;
-    byte expected_seq_num = 0;
 
     // Continually receive segments until we've put together a whole message.
     while(true) {
 
         // Get the next segment.
         // As a side effect, acknowledge anything we receive.
-        transport_keep_trying_to_rx_result result = transport_keep_trying_to_rx(segment, MAX_SEGMENT_LEN, expected_seq_num, timeout_ms);
+        transport_keep_trying_to_rx_result result = transport_keep_trying_to_rx(segment, MAX_SEGMENT_LEN, timeout_ms);
         if (result == TRANSPORT_KEEP_TRYING_TO_RX_TIMEOUT) return TRANSPORT_RX_TIMEOUT;
         if (result == TRANSPORT_KEEP_TRYING_TO_RX_ERROR) return TRANSPORT_RX_ERROR;
-
-        expected_seq_num = expected_seq_num == 0 ? 1 : 0;
 
         segment_len = segment[0];
         segment_identifier = segment[4];
@@ -248,11 +250,11 @@ transport_rx_result transport_rx(byte* buffer, uint16_t buf_len, uint16_t* messa
                 }
             }
             else if (segment_identifier == SEGID_END_OF_MESSAGE) {
+                state = RXST_Idle;
                 return TRANSPORT_RX_SUCCESS;
             }
-            // An unusual case. Can happen if the transmitter gives up
-            // and tries again from the beginning.
-            // note, may need to reset sequence number?
+            // This state is possible if the message fails and the other guy
+            // tries again from the beginning.
             else if (segment_identifier == SEGID_START_OF_MESSAGE) {
                 if (message_len != NULL) {
                     *message_len = segment[5] << 8 + segment[6];
@@ -272,6 +274,7 @@ typedef enum {
     TRANSPORT_ATTEMPT_TX_TRANSMIT_FAILED,
     TRANSPORT_ATTEMPT_TX_NOT_ACKNOWLEDGED,
     TRANSPORT_ATTEMPT_TX_OLD_ACK,
+    TRANSPORT_ATTEMPT_TX_NOT_AN_ACK,
     TRANSPORT_ATTEMPT_TX_ERROR
 } transport_attempt_tx_result;
 
@@ -280,7 +283,7 @@ typedef enum {
 // The function returns whether the acknowledgement was received before the timeout.
 transport_attempt_tx_result transport_attempt_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
-    // DEBUG byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
+    byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
     network_tx_result tx_result;
 
     // Let's send this bad boy.
@@ -288,11 +291,11 @@ transport_attempt_tx_result transport_attempt_tx(byte* segment, byte segment_len
     if (tx_result == NETWORK_TX_FAILURE) return TRANSPORT_ATTEMPT_TX_TRANSMIT_FAILED;
 
     // Now let's try to get an acknowledgement.
-    // DEBUG network_rx_result rx_result = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TX_ACK_TIMEOUT_MS);
-    // DEBUG if (rx_result == NETWORK_RX_TIMEOUT) return TRANSPORT_ATTEMPT_TX_NOT_ACKNOWLEDGED;
-    // DEBUG if (rx_result == NETWORK_RX_ERROR) return TRANSPORT_ATTEMPT_TX_ERROR;
-    // DEBUG if (hopefully_an_ack[4] != SEGID_ACK) return TRANSPORT_ATTEMPT_TX_ERROR;
-    // DEBUG if (hopefully_an_ack[1] == current_seq_num) return TRANSPORT_ATTEMPT_TX_OLD_ACK;
+    network_rx_result rx_result = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TX_ACK_TIMEOUT_MS);
+    if (rx_result == NETWORK_RX_TIMEOUT) return TRANSPORT_ATTEMPT_TX_NOT_ACKNOWLEDGED;
+    if (rx_result == NETWORK_RX_ERROR) return TRANSPORT_ATTEMPT_TX_ERROR;
+    if (hopefully_an_ack[4] != SEGID_ACK) return TRANSPORT_ATTEMPT_TX_NOT_AN_ACK;
+    if (hopefully_an_ack[1] == current_seq_num) return TRANSPORT_ATTEMPT_TX_OLD_ACK;
 
     return TRANSPORT_ATTEMPT_TX_SUCCESS;
 }
@@ -323,6 +326,8 @@ transport_keep_trying_to_tx_result transport_keep_trying_to_tx(byte* segment, by
 
         if (result == TRANSPORT_ATTEMPT_TX_SUCCESS) return TRANSPORT_KEEP_TRYING_TO_TX_SUCCESS;
         if (result == TRANSPORT_ATTEMPT_TX_ERROR) return TRANSPORT_KEEP_TRYING_TO_TX_ERROR;
+
+        // If I get Not an Ack, Old Ack, or Not Acknowledged, let's try again.
 
         _delay_ms(TRANSPORT_TX_RETRY_DELAY_MS);
 

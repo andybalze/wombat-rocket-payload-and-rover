@@ -16,7 +16,7 @@
 #define BLUE_PORT  PORTC
 #define BLUE_INDEX PIN0
 
-#define BLINK_DURATION_MS (30)
+#define BLINK_DURATION_MS (25)
 
 
 // Macros for switch & pushbuttons

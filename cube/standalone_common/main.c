@@ -119,14 +119,14 @@ void state_code_operational(void);
 
 int main() {
 
-    init_log();
+    //init_log();
 
     digital_io_initialize();
     uart_initialize();
 
     LED_set(LED_WHITE);
     uart_transmit_formatted_message("\r\n::: Data Cube %02x :::\r\n", MY_NETWORK_ADDR);
-    print_log();
+    //print_log();
 
     timer_start(STARTUP_DURATION_MS);
 
