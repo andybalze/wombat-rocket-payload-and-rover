@@ -74,7 +74,7 @@ void parse_message(char* message) {
 // call transport_tx and handle the error messages.
 void application_tx(byte* message, uint16_t message_len, byte dest_port) {
     transport_tx_result result;
-    result = transport_tx(message, 79, 0x3c);
+    result = transport_tx(message, 79, dest_port);
     if (result == TRANSPORT_TX_REACHED_ATTEMPT_LIMIT) {
         uart_transmit_formatted_message("[WARNING] Transport layer reached attempt limit\r\n");
         UART_WAIT_UNTIL_DONE();
@@ -95,26 +95,26 @@ void application() {
     byte who_sent_me_this;
 
     char *color_wheel_str[7] = {
-        "Do you like blue? LED:BLUE\r\n",
         "Go touch some grass. LED:GREEN\r\n",
         "This color reminds me of the ocean. LED:CYAN\r\n",
         "Is it pronounced \"tomato\" or \"tomato\"? LED:RED\r\n",
         "This color is pretty. LED:MAGENTA\r\n",
         "This is yellow? Are you sure? LED:YELLOW\r\n",
         "White chocolate is over-rated. Except when used in cookies. LED:WHITE\r\n",
+        "Do you like blue? LED:BLUE\r\n",
     };
 
     char color_wheel_raw[7] = {
-        LED_BLUE,
         LED_GREEN,
         LED_CYAN,
         LED_RED,
         LED_MAGENTA,
         LED_YELLOW,
-        LED_WHITE
+        LED_WHITE,
+        LED_BLUE,
     };
 
-    uint8_t port_wheel[3] = {
+    uint8_t everyone[3] = {
         0x3a,
         0x3b,
         0x3c
@@ -125,20 +125,28 @@ void application() {
 
     LED_set(LED_BLUE);
 
+    _delay_ms(1000);
+
     while(true) {
 
         // Step right up and spin the wheel!
         for (int i = 0; i < 7; i++) {
             char* this_color_str = color_wheel_str[i];
             char this_color_raw = color_wheel_raw[i];
+
+            // Show off the color we chose.
+            LED_set(this_color_raw);
             for (int i = 0; i < 5; i++) {
                 LED_blink(this_color_raw);
             }
-            LED_set(this_color_raw);
             _delay_ms(1000);
-            snprintf(message, MAX_MESSAGE_LEN, this_color_str);
-            application_tx(message, strlen(message), 0x3c);
-            _delay_ms(5000);
+
+            // Alright, now everybody has to wear it.
+            for (int j = 0; j < 3; j++) {
+                snprintf(message, MAX_MESSAGE_LEN, this_color_str);
+                application_tx(message, strlen(message), everyone[j]);
+                _delay_ms(5000);
+            }
         }
     }
 }

@@ -53,7 +53,7 @@ network_rx_result network_rx(byte* buffer, byte buf_len, uint16_t timeout_ms) {
             return NETWORK_RX_TIMEOUT;
         }
 
-        LED_blink(LED_BLUE);
+        LED_blink(LED_OFF);
 
         uart_transmit_formatted_message("Received a packet: ");
         UART_WAIT_UNTIL_DONE();
@@ -91,7 +91,7 @@ network_tx_result network_tx(byte* payload, byte payload_len, byte dest_network_
     }
     byte next_hop_addr = routing_table(dest_network_addr);
 
-    LED_blink(LED_BLUE);
+    LED_blink(LED_OFF);
     uart_transmit_formatted_message("Transmitting a packet: ");
     UART_WAIT_UNTIL_DONE();
     print_packet(packet);
