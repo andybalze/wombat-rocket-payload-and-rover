@@ -313,28 +313,35 @@ trx_reception_outcome_t trx_receive_payload(
   while(!TIMER_DONE && !TRX_IRQ);
   // While loop exits either when the timer times out or an interrupt is requested.
 
-  timer_stop();
 
-  // Set the CE pin low.
-  TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
   if (TIMER_DONE) {
+
+    timer_stop();
+
+    // Set the CE pin low.
+    TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
     // The reception timed out.
     return TRX_RECEPTION_FAILURE;
 
   } else {
 
+    timer_stop();
+
     // The reception succeeded.
     trx_interrupt_request_t interrupt_request;
     interrupt_request = get_interrupt_request();
+
+    // Set the CE pin low.
+    TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
 
     if (interrupt_request == TRX_INTERRUPT_REQUEST_DATA_RECEIVED) {
       read_rx_payload(payload_buffer);
       return TRX_RECEPTION_SUCCESS;
     } else {
       // This should be an unreachable state.
-      uart_transmit_formatted_message("unreachable... truly?? !!!!!!!! \r\n");
+      uart_transmit_formatted_message("unreachable... truly?? %u !!!!!!!! \r\n", interrupt_request);
       UART_WAIT_UNTIL_DONE();
       return TRX_RECEPTION_FAILURE;
     }
