@@ -50,7 +50,7 @@ Instead, commment out the flight section and uncomment the test section
 #define WAIT_FOR_LANDING_TIME           (uint32_t) 5  * ONE_SECOND
 #define EXIT_TIME                       (uint32_t) 2  * ONE_SECOND
 #define DRIVE_FORWARD_DELAY             (uint32_t) 100
-#define DRIVE_TIME                      (uint32_t) 30 * ONE_SECOND      // About 50 ft between dispensing each cube
+#define DRIVE_TIME                      (uint32_t) 84 * ONE_SECOND      // About 50 ft between dispensing each cube
 #define DISPENSE_TIME                   (uint32_t) 11 * ONE_SECOND      // To dispense one cube
 ////////// TEST //////////
 
