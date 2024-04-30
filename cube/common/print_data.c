@@ -2,6 +2,8 @@
 #include "transport.h"
 #include "uart.h"
 
+/*
+
 void print_segment(byte* segment) {
 
     // four segment types: START_OF_MESSAGE, DATA, END_OF_MESSAGE, ACK
@@ -132,4 +134,50 @@ void print_packet(byte* packet) {
     uart_transmit_formatted_message("\t============================\r\n");
     UART_WAIT_UNTIL_DONE();
 
+}
+*/
+
+void print_segment(byte* segment) {
+
+    if (segment != NULL) {
+
+        int segtype = segment[4];
+
+        uart_transmit_formatted_message("SegID %02x ", segtype);
+        UART_WAIT_UNTIL_DONE();
+
+        switch(segtype) {
+        
+        case SEGID_START_OF_MESSAGE:
+            uart_transmit_formatted_message("(START_OF_MESSAGE)");
+            UART_WAIT_UNTIL_DONE();
+            break;
+        case SEGID_DATA:
+            uart_transmit_formatted_message("(DATA)");
+            UART_WAIT_UNTIL_DONE();
+            break;
+        case SEGID_END_OF_MESSAGE:
+            uart_transmit_formatted_message("(END_OF_MESSAGE)");
+            UART_WAIT_UNTIL_DONE();
+            break;
+        case SEGID_ACK:
+            uart_transmit_formatted_message("(ACK)");
+            UART_WAIT_UNTIL_DONE();
+            break;
+        default:
+            uart_transmit_formatted_message("(INVALID)");
+            UART_WAIT_UNTIL_DONE();
+            break;
+        }
+
+    }
+    return;
+}
+
+void print_packet(byte* packet) {
+    uart_transmit_formatted_message("<");
+    UART_WAIT_UNTIL_DONE();
+    print_segment(&packet[PACKET_HEADER_LEN]);
+    uart_transmit_formatted_message(">\r\n");
+    UART_WAIT_UNTIL_DONE();
 }

@@ -35,11 +35,13 @@ void application() {
     LED_set(LED_WHITE);
 
     while(true) {
+        /*
         snprintf(message, MAX_SEGMENT_LEN, "Test message\r\n");
         network_tx(message, MAX_SEGMENT_LEN, 0x3c, MY_NETWORK_ADDR);
         _delay_ms(2000);
-        /*
-        snprintf(message, MAX_SEGMENT_LEN, "Test message\r\n");
+        */
+
+        snprintf(message, MAX_MESSAGE_LEN, "Test message\r\n");
         result = transport_tx(message, 15, 0x3c);
         if (result == TRANSPORT_TX_REACHED_ATTEMPT_LIMIT) {
             uart_transmit_formatted_message("[WARNING] Transport layer reached attempt limit\r\n");
@@ -50,6 +52,5 @@ void application() {
             UART_WAIT_UNTIL_DONE();
         }
         _delay_ms(5000);
-        */
     }
 }

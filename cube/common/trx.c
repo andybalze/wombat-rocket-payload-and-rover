@@ -253,7 +253,7 @@ trx_transmission_outcome_t trx_transmit_payload(
   int payload_length
 ) {
 
-  //flush_tx();
+  flush_tx();
 
   // Configure the transceiver as a primary transmitter.
   TRX_CE_PORT &= ~_BV(TRX_CE_INDEX);
@@ -304,7 +304,7 @@ trx_reception_outcome_t trx_receive_payload(
   timer_delay_ms_t timeout_ms
 ) {
 
-  //flush_rx();
+  flush_rx();
 
   // Move back into receive mode.
   write_register(TRX_REGISTER_ADDRESS_CONFIG, TRX_CONFIG_RX);

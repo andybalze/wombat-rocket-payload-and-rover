@@ -33,8 +33,10 @@
 // a network from being overwhelmed by throttling its own output!
 
 
-#define TRANSPORT_ACK_DELAY_MS (1000)
-#define TRANSPORT_TIMEOUT_MS (4000)
+#define TRANSPORT_TX_ACK_TIMEOUT_MS (4000)
+#define TRANSPORT_TX_ACK_DELAY_MS (1000)
+#define TRANSPORT_TX_SEGMENT_SPACING_MS (300)
+#define TRANSPORT_TX_RETRY_DELAY_MS (1000)
 #define TRANSPORT_TX_ATTEMPT_LIMIT (3)
 
 
@@ -128,7 +130,7 @@ typedef enum {
 transport_attempt_rx_result transport_attempt_rx(byte* segment, byte buf_len, byte expected_seq_num, uint16_t timeout_ms) {
 
     network_rx_result result;
-    byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
+    // DEBUG byte ack_seg[ACK_SEGMENT_HEARDER_LEN];
 
     // try to receive some data from the network
     result = network_rx(segment, MAX_SEGMENT_LEN, timeout_ms);
@@ -137,20 +139,20 @@ transport_attempt_rx_result transport_attempt_rx(byte* segment, byte buf_len, by
 
 
     // Alright we got something, let me acknowledge it really quick.
-    _delay_ms(TRANSPORT_ACK_DELAY_MS);
-    ack_seg[0] = ACK_SEGMENT_HEARDER_LEN;
-    ack_seg[1] = segment[1] == 0 ? 1 : 0; // advance seq number
-    ack_seg[2] = segment[3]; // destination port = port of whoever sent
-    ack_seg[3] = MY_PORT;    // source port = me :)
-    ack_seg[4] = SEGID_ACK;
+    // DEBUG _delay_ms(TRANSPORT_TX_ACK_DELAY_MS);
+    // DEBUG ack_seg[0] = ACK_SEGMENT_HEARDER_LEN;
+    // DEBUG ack_seg[1] = segment[1] == 0 ? 1 : 0; // advance seq number
+    // DEBUG ack_seg[2] = segment[3]; // destination port = port of whoever sent
+    // DEBUG ack_seg[3] = MY_PORT;    // source port = me :)
+    // DEBUG ack_seg[4] = SEGID_ACK;
     // if this errors, we don't care, the other guy will send me another thing anyways
-    network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
+    // DEBUG network_tx(ack_seg, ACK_SEGMENT_HEARDER_LEN, resolve_network_addr(segment[3]), MY_NETWORK_ADDR);
 
 
     // Okay. Is this new data?
-    if (expected_seq_num != segment[1]) {
-        return TRANSPORT_ATTEMPT_RX_OUTDATED;
-    }
+    // DEBUG if (expected_seq_num != segment[1]) {
+    // DEBUG     return TRANSPORT_ATTEMPT_RX_OUTDATED;
+    // DEBUG }
 
     return TRANSPORT_ATTEMPT_RX_SUCCESS;
 }
@@ -183,6 +185,7 @@ transport_keep_trying_to_rx_result transport_keep_trying_to_rx(byte* segment, by
             //return TRANSPORT_KEEP_TRYING_TO_RX_ERROR;
             break;
         }
+
     }
 }
 
@@ -274,7 +277,7 @@ typedef enum {
 // The function returns whether the acknowledgement was received before the timeout.
 transport_attempt_tx_result transport_attempt_tx(byte* segment, byte segment_len, byte dest_port, byte current_seq_num) {
 
-    byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
+    // DEBUG byte hopefully_an_ack[ACK_SEGMENT_HEARDER_LEN];
     network_tx_result tx_result;
 
     // Let's send this bad boy.
@@ -282,11 +285,11 @@ transport_attempt_tx_result transport_attempt_tx(byte* segment, byte segment_len
     if (tx_result == NETWORK_TX_FAILURE) return TRANSPORT_ATTEMPT_TX_TRANSMIT_FAILED;
 
     // Now let's try to get an acknowledgement.
-    network_rx_result rx_result = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TIMEOUT_MS);
-    if (rx_result == NETWORK_RX_TIMEOUT) return TRANSPORT_ATTEMPT_TX_NOT_ACKNOWLEDGED;
-    if (rx_result == NETWORK_RX_ERROR) return TRANSPORT_ATTEMPT_TX_ERROR;
-    if (hopefully_an_ack[4] != SEGID_ACK) return TRANSPORT_ATTEMPT_TX_ERROR;
-    if (hopefully_an_ack[1] == current_seq_num) return TRANSPORT_ATTEMPT_TX_OLD_ACK;
+    // DEBUG network_rx_result rx_result = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TX_ACK_TIMEOUT_MS);
+    // DEBUG if (rx_result == NETWORK_RX_TIMEOUT) return TRANSPORT_ATTEMPT_TX_NOT_ACKNOWLEDGED;
+    // DEBUG if (rx_result == NETWORK_RX_ERROR) return TRANSPORT_ATTEMPT_TX_ERROR;
+    // DEBUG if (hopefully_an_ack[4] != SEGID_ACK) return TRANSPORT_ATTEMPT_TX_ERROR;
+    // DEBUG if (hopefully_an_ack[1] == current_seq_num) return TRANSPORT_ATTEMPT_TX_OLD_ACK;
 
     return TRANSPORT_ATTEMPT_TX_SUCCESS;
 }
@@ -317,6 +320,8 @@ transport_keep_trying_to_tx_result transport_keep_trying_to_tx(byte* segment, by
 
         if (result == TRANSPORT_ATTEMPT_TX_SUCCESS) return TRANSPORT_KEEP_TRYING_TO_TX_SUCCESS;
         if (result == TRANSPORT_ATTEMPT_TX_ERROR) return TRANSPORT_KEEP_TRYING_TO_TX_ERROR;
+
+        _delay_ms(TRANSPORT_TX_RETRY_DELAY_MS);
 
     }
 }
@@ -350,6 +355,8 @@ transport_tx_result transport_tx(byte* message, uint16_t message_len, byte dest_
     if (result == TRANSPORT_KEEP_TRYING_TO_TX_ERROR) return TRANSPORT_TX_ERROR;
     current_seq_num = current_seq_num == 0 ? 1 : 0;
 
+    _delay_ms(TRANSPORT_TX_SEGMENT_SPACING_MS);
+
     // ------ send data segments -----
     while (bytes_remaining > 0) {
 
@@ -382,6 +389,8 @@ transport_tx_result transport_tx(byte* message, uint16_t message_len, byte dest_
         if (result == TRANSPORT_KEEP_TRYING_TO_TX_REACHED_ATTEMPT_LIMIT) return TRANSPORT_TX_REACHED_ATTEMPT_LIMIT;
         if (result == TRANSPORT_KEEP_TRYING_TO_TX_ERROR) return TRANSPORT_TX_ERROR;
         current_seq_num = current_seq_num == 0 ? 1 : 0;
+
+        _delay_ms(TRANSPORT_TX_SEGMENT_SPACING_MS);
     }
 
     // ------ send END_OF_MESSAGE -----

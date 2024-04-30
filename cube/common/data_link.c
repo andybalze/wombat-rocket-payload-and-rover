@@ -35,8 +35,6 @@ data_link_rx_result data_link_rx(byte* buffer, byte buf_len, timer_delay_ms_t ti
 
 data_link_tx_result data_link_tx(byte* payload, byte payload_len, uint32_t addr) {
 
-    uart_transmit_formatted_message("data_link_tx: Transmitting to %08lx\r\n", addr);
-
     trx_transmission_outcome_t result;
 
     // initialize
