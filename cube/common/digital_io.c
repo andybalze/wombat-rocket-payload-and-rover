@@ -96,11 +96,13 @@ void LED_blink(char color) {
         LED_set_state(LED_OFF);
         _delay_ms(BLINK_DURATION_MS);
         LED_set_state(LED_color);
+        _delay_ms(BLINK_DURATION_MS);
     }
     else {
         LED_set_state(color);
         _delay_ms(BLINK_DURATION_MS);
         LED_set_state(LED_color);
+        _delay_ms(BLINK_DURATION_MS);
     }
     return;
 }
