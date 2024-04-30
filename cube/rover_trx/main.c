@@ -6,21 +6,32 @@
 #include "digital_io.h"
 #include "trx.h"
 #include "application.h"
+#include "log.h"
+#include "uart.h"
 
 #include "cube_parameters.h"
 #include <util/delay.h>
 
 int main() {
 
-	digital_io_initialize();
-	LED_set(LED_OFF);
+    //init_log();
 
-	// Wait until the rover instructs the cube to start transmitting.
-	while(SW_read(SW1));
+    digital_io_initialize();
+    uart_initialize();
 
-	trx_initialize(MY_DATA_LINK_ADDR);
+    LED_set(LED_OFF);
+    uart_transmit_formatted_message("\r\n::: Wombat %02x :::\r\n", MY_NETWORK_ADDR);
+    //print_log();
 
-	application();
+    // Wait until the rover instructs the cube to start transmitting.
+    while(SW_read(SW1));
 
-	while(1);
+    LED_set(LED_WHITE);
+    _delay_ms(2000);
+
+    trx_initialize(MY_DATA_LINK_ADDR);
+
+    application();
+
+    while(1);
 }

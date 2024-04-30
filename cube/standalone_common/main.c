@@ -14,6 +14,7 @@
 #include "trx.h"
 #include "networking_constants.h"
 #include "timer.h"
+#include "log.h"
 
 // Specific to this cube includes
 #include "address.h"
@@ -39,7 +40,8 @@
 
 // The number of milliseconds that the data cube's limit switch must be
 // depressed for before the cube enters the LOADED state.
-#define LOADING_DURATION_MS 5000
+//#define LOADING_DURATION_MS 5000
+#define LOADING_DURATION_MS 500 // ----------------- DEBUG!!!!!!!! ---------
 // Wait two full seconds (too short?).
 
 // The number of seconds the data cube waits until it turns off its LED.
@@ -58,7 +60,7 @@
 #define LED_COLOR_LOADING               LED_YELLOW
 #define LED_COLOR_LOADED_1              LED_RED
 #define LED_COLOR_LOADED_2              LED_OFF
-#define LED_COLOR_DISPENSING            LED_BLUE
+#define LED_COLOR_DISPENSING            LED_WHITE
 
 /////////////////// Private Typedefs ///////////////////////////////////////////
 
@@ -117,12 +119,21 @@ void state_code_operational(void);
 
 int main() {
 
+    //init_log();
+
     digital_io_initialize();
     uart_initialize();
 
+    LED_set(LED_WHITE);
     uart_transmit_formatted_message("\r\n::: Data Cube %02x :::\r\n", MY_NETWORK_ADDR);
+    //print_log();
 
     timer_start(STARTUP_DURATION_MS);
+
+    // DEBUG
+    //application();
+    // END DEBUG
+
     current_state = STARTUP;
 
     // The main state machine loop.

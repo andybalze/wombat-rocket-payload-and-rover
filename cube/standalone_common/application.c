@@ -2,59 +2,66 @@
 #include "transport.h"
 #include "networking_constants.h"
 #include "uart.h"
+#include "address.h"
 #include "digital_io.h"
+#include "log.h"
+#include "trx.h"
+#include "network.h"
 
 #include <stdio.h>
 #include <string.h>
+
+#include "cube_parameters.h"
+#include <util/delay.h>
 
 // read message and adjust the LED accordingly
 void parse_message(char* message) {
 
     char search[12];
 
-    strncpy(search, "LED:OFF", sizeof(search));
+    snprintf(search, sizeof(search), "LED:OFF");
     if (strstr(message, search) != NULL) {
         LED_set(LED_OFF);
         return;
     }
 
-    strncpy(search, "LED:BLUE", sizeof(search));
+    snprintf(search, sizeof(search), "LED:BLUE");
     if (strstr(message, search) != NULL) {
         LED_set(LED_BLUE);
         return;
     }
 
-    strncpy(search, "LED:GREEN", sizeof(search));
+    snprintf(search, sizeof(search), "LED:GREEN");
     if (strstr(message, search) != NULL) {
         LED_set(LED_GREEN);
         return;
     }
 
-    strncpy(search, "LED:CYAN", sizeof(search));
+    snprintf(search, sizeof(search), "LED:CYAN");
     if (strstr(message, search) != NULL) {
         LED_set(LED_CYAN);
         return;
     }
 
-    strncpy(search, "LED:RED", sizeof(search));
+    snprintf(search, sizeof(search), "LED:RED");
     if (strstr(message, search) != NULL) {
         LED_set(LED_RED);
         return;
     }
 
-    strncpy(search, "LED:MAGENTA", sizeof(search));
+    snprintf(search, sizeof(search), "LED:MAGENTA");
     if (strstr(message, search) != NULL) {
         LED_set(LED_MAGENTA);
         return;
     }
 
-    strncpy(search, "LED:YELLOW", sizeof(search));
+    snprintf(search, sizeof(search), "LED:YELLOW");
     if (strstr(message, search) != NULL) {
         LED_set(LED_YELLOW);
         return;
     }
 
-    strncpy(search, "LED:WHITE", sizeof(search));
+    snprintf(search, sizeof(search), "LED:WHITE");
     if (strstr(message, search) != NULL) {
         LED_set(LED_WHITE);
         return;
@@ -65,40 +72,41 @@ void parse_message(char* message) {
 
 void application() {
 
+    // To save on memory, the same buffer is used to store a received message
+    // and to prepare a message to transmit.
     char message[MAX_MESSAGE_LEN];
     uint16_t message_len;
     byte who_sent_me_this;
 
-    uart_transmit_formatted_message("Data cube activated. Now entering network mode.\r\n");
+    transport_rx_result result;
 
-    LED_set(LED_WHITE);
+    uint16_t num_messages_this_session = 0;
+
+    uart_transmit_formatted_message("::: Data cube %02x activated. Entering network mode. :::\r\n", MY_NETWORK_ADDR);
+    UART_WAIT_UNTIL_DONE();
+
+    LED_set(LED_BLUE);
 
     while(true) {
 
+        /*
+        network_rx(message, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
+        */
 
-        // listen for a message
-        for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
-        transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this);
-
-        // force the string to be null-terminated if it isn't already
-        message[MAX_MESSAGE_LEN - 1] = '\0';
-
-        // record it
-        // TO-DO
-
-        // parse the message and light the LED depending on the result
-        parse_message(message);
-
-
-        // compose the response
-        for (int i = 0; i < MAX_MESSAGE_LEN; i++) message[i] = 0;
-        snprintf(message, MAX_MESSAGE_LEN, "Text, %d", 1);
-
-        // transmit the response
-        // note: the +1 is to include the null terminator in the message
-        transport_tx(message, strlen(message) + 1, who_sent_me_this);
-
-
+        result = transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this, TRX_TIMEOUT_INDEFINITE);
+        if (result == TRANSPORT_RX_SUCCESS) {
+            message[MAX_MESSAGE_LEN - 1] = 0;
+            parse_message(message);
+            uart_transmit_formatted_message("=== Got a message ===\r\n%s\r\n=====================\r\n", message);
+            UART_WAIT_UNTIL_DONE();
+        }
+        if (result == TRANSPORT_RX_TIMEOUT) {
+            uart_transmit_formatted_message("[WARNING] Transport layer RX timed out %s\r\n", message);
+            UART_WAIT_UNTIL_DONE();
+        }
+        if (result == TRANSPORT_RX_ERROR) {
+            uart_transmit_formatted_message("[WARNING] Transport layer RX encountered an error %s\r\n", message);
+            UART_WAIT_UNTIL_DONE();
+        }
     }
-
 }
