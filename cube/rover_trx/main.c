@@ -19,14 +19,14 @@ int main() {
     digital_io_initialize();
     uart_initialize();
 
-    LED_set(LED_WHITE);
+    LED_set(LED_OFF);
     uart_transmit_formatted_message("\r\n::: Wombat %02x :::\r\n", MY_NETWORK_ADDR);
     print_log();
 
     // Wait until the rover instructs the cube to start transmitting.
-    //while(SW_read(SW1));
-    //
-    // For debug, only!
+    while(SW_read(SW1));
+
+    LED_set(LED_WHITE);
     _delay_ms(2000);
 
     trx_initialize(MY_DATA_LINK_ADDR);
