@@ -32,6 +32,8 @@ void application() {
     LED_set(LED_WHITE);
 
     while(true) {
+        network_rx(message, MAX_SEGMENT_LEN, TRX_TIMEOUT_INDEFINITE);
+        /*
         result = transport_rx(message, MAX_MESSAGE_LEN, &message_len, &who_sent_me_this, TRX_TIMEOUT_INDEFINITE);
         if (result == TRANSPORT_RX_SUCCESS) {
             message[MAX_MESSAGE_LEN - 1] = 0;
@@ -46,5 +48,6 @@ void application() {
             uart_transmit_formatted_message("[WARNING] Transport layer RX encountered an error %s\r\n", message);
             UART_WAIT_UNTIL_DONE();
         }
+        */
     }
 }
