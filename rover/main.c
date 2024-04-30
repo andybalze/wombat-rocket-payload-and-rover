@@ -9,8 +9,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// #include <math.h>   // DEBUG //
-
 
 #include "config.h"
 #include "digital_io.h"
@@ -144,9 +142,9 @@ int main() {
                         }
 
                         if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_TIME) {//                     exit condition
-                            no_motion_check_enable();   // TEST //                  // Has to be in here b.c. counter can't work during motion check
-                            if (get_no_motion() == true) {  // TEST //
-                                no_motion_check_disable();  // TEST //
+                            no_motion_check_enable();
+                            if (get_no_motion() == true) {
+                                no_motion_check_disable();
                                 LED_set(YELLOW, OFF);
                                 is_upside_down = !is_up();          // Joey TEST // //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
                                 PWM_enable();
