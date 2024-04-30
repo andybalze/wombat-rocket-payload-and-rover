@@ -334,6 +334,8 @@ trx_reception_outcome_t trx_receive_payload(
       return TRX_RECEPTION_SUCCESS;
     } else {
       // This should be an unreachable state.
+      uart_transmit_formatted_message("unreachable... truly?? !!!!!!!! \r\n");
+      UART_WAIT_UNTIL_DONE();
       return TRX_RECEPTION_FAILURE;
     }
   }
