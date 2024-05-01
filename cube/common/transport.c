@@ -288,11 +288,14 @@ transport_attempt_tx_result transport_attempt_tx(byte* segment, byte segment_len
 
     // Let's send this bad boy.
     tx_result = network_tx(segment, segment_len, resolve_network_addr(dest_port), MY_NETWORK_ADDR);
-    if (tx_result == NETWORK_TX_FAILURE) {
-        // Simulate the timeout. This is actually very important to stop things from talking over eachother.
-        _delay_ms(TRANSPORT_TX_ACK_TIMEOUT_MS);
-        return TRANSPORT_ATTEMPT_TX_TRANSMIT_FAILED;
-    }
+
+    // Why is this commented out?
+    // For some reason, we sometimes get errors, even when the transmission is successful.
+    // We should just rely on the transport layer acknowledgement. It acts more predictably.
+    //if (tx_result == NETWORK_TX_FAILURE) {
+        //_delay_ms(TRANSPORT_TX_ACK_TIMEOUT_MS);
+        //return TRANSPORT_ATTEMPT_TX_TRANSMIT_FAILED;
+    //}
 
     // Now let's try to get an acknowledgement.
     network_rx_result rx_result = network_rx(hopefully_an_ack, ACK_SEGMENT_HEARDER_LEN, TRANSPORT_TX_ACK_TIMEOUT_MS);
