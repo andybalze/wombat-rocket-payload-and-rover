@@ -45,6 +45,20 @@ typedef enum {
 
 
 
+/////////////////// Private Global Variables ///////////////////////////////////
+
+// Set true to end rover operation and enter a dead loop.
+static volatile bool end_operation = false;
+
+// Set after rover exits canister. True: rover is upside down, False: rover is right-side up
+// Joey sets before exiting canister. Wombat sets after exiting canister.
+static volatile bool is_upside_down;
+
+// Keeps track of number of data cubes dispensed by the rover.
+static volatile uint8_t cubes_dispensed = 0;
+
+
+
 /////////////////// Private Function Prototypes ///////////////////////////////
 
 // The code that's run each time around the state machine loop, depending on
@@ -55,7 +69,7 @@ typedef enum {
 // based off SW2 on the rover controller board.
 rover_mode_t rover_mode_state_reset(void);
 rover_mode_t rover_mode_state_manual_load(void);
-rover_mode_t rover_mode_state_flight(void);
+rover_mode_t rover_mode_state_flight(bool reset_flight_state);
 
 // The flight_state state machine is inside the rover_mode state machine's flight_mode state
 flight_state_t flight_state_wait_for_launch(void);
@@ -72,20 +86,15 @@ flight_state_t flight_state_dead_loop(void);
 
 int main() {
 
-    rover_mode_t   rover_mode = RESET;
-
-    bool end_operation = false;
-    bool is_upside_down;
-
-    // uint32_t current_time;
-    uint8_t cubes_dispensed = 0;
+    rover_mode_t rover_mode = RESET;    // Current state of rover mode state machine
+    bool reset_flight_state = true;     // Set true to set flight state to WAIT_FOR_LAUNCH
 
     // Initialize functions
     digital_io_initialize();
     ir_initialize();
     uart_initialize();
     adc_initialize();
-    motors_initialize();            // PWM must be initialized seperately
+    motors_initialize();                // PWM must be initialized seperately
 
     timer_counter_initialize();
 
@@ -99,7 +108,7 @@ int main() {
         switch (rover_mode) {
             case RESET: {
                 rover_mode = rover_mode_state_reset();
-                flight_state = WAIT_FOR_LAUNCH;
+                reset_flight_state = true;
                 break;
             }
 
@@ -109,7 +118,8 @@ int main() {
             }
 
             case FLIGHT_MODE: {
-                rover_mode = rover_mode_state_flight();
+                rover_mode = rover_mode_state_flight(reset_flight_state);
+                reset_flight_state = false;
                 break;
             }
 
@@ -123,6 +133,14 @@ int main() {
         }
     }
 
+
+    // Turn off motors
+    motor(LEFT_MOTOR, FORWARD, 0);
+    motor(RIGHT_MOTOR, FORWARD, 0);
+    motor(DISPENSER_MOTOR, FORWARD, 0);
+
+    // Disable interrupts
+    cli();
 
     uart_transmit_formatted_message("End rover operation\r\n");
     UART_WAIT_UNTIL_DONE();
@@ -184,9 +202,13 @@ rover_mode_t rover_mode_state_manual_load(void) {
 
 
 
-rover_mode_t rover_mode_state_flight(void) {
+rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
     rover_mode_t rover_mode_next = FLIGHT_MODE;      // return value
-    flight_state_t flight_state;
+    static flight_state_t flight_state;
+
+    if (reset_flight_state == true) {
+        flight_state = WAIT_FOR_LAUNCH;
+    }
 
     switch (flight_state) {
         case WAIT_FOR_LAUNCH:
