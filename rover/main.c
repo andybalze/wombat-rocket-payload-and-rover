@@ -54,6 +54,7 @@ int main() {
     bool end_operation = false;
     bool is_upside_down;
 
+    uint32_t current_time;
     uint8_t cubes_dispensed = 0;
 
     digital_io_initialize();                                                        // initialize functions
@@ -119,7 +120,8 @@ int main() {
             case FLIGHT_MODE: {                                                     //         case (FLIGHT_MODE)
                 switch (flight_state) {                                             //             switch (flight state)
                     case WAIT_FOR_LAUNCH: {                                         //                 case (WAIT_FOR_LAUNCH)
-                        if (get_timer_counter(counter_alpha) >= WAIT_FOR_LAUNCH_LED_OFF_TIME) {
+                        current_time = get_timer_counter(counter_alpha);
+                        if (current_time >= WAIT_FOR_LAUNCH_LED_OFF_TIME) {
                             LED_set(YELLOW, OFF);
                             launch_check_enable();
                         }
@@ -137,11 +139,12 @@ int main() {
                     }                                                               //                 end case
 
                     case WAIT_FOR_LANDING: {                                        //                 case (WAIT_FOR_LANDING)
-                        if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_LED_OFF_TIME) {
+                        current_time = get_timer_counter(counter_alpha);
+                        if (current_time >= WAIT_FOR_LANDING_LED_OFF_TIME) {
                             LED_set(YELLOW, OFF);
                         }
 
-                        if (get_timer_counter(counter_alpha) >= WAIT_FOR_LANDING_TIME) {//                     exit condition
+                        if (current_time >= WAIT_FOR_LANDING_TIME) {//                     exit condition
                             no_motion_check_enable();
                             if (get_no_motion() == true) {
                                 no_motion_check_disable();
@@ -160,8 +163,9 @@ int main() {
                     case EXIT_CANISTER: {                                           //                 case (EXIT_CANISTER)
                         motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);    //                     turn on drive motors
                         motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
+                        current_time = get_timer_counter(counter_alpha);
 
-                        if (get_timer_counter(counter_alpha) >= EXIT_TIME) {        //                     exit condition if (time delay reached)
+                        if (current_time >= EXIT_TIME) {        //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             ir_power(ON);
@@ -174,11 +178,12 @@ int main() {
                     }                                                               //                 end case
 
                     case DRIVE_FORWARD: {                                           //                 case (DRIVE_FORWARD)
-                        if (get_timer_counter(counter_alpha) >= DRIVE_FORWARD_DELAY) {
+                        current_time = get_timer_counter(counter_alpha);
+                        if (current_time >= DRIVE_FORWARD_DELAY) {
                             avoid(is_upside_down);
                         }
 
-                        if (get_timer_counter(counter_alpha) >= DRIVE_TIME) {       //                     exit condition if (time delay reached)
+                        if (current_time >= DRIVE_TIME) {       //                     exit condition if (time delay reached)
                             motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             ir_power(OFF);
@@ -192,8 +197,9 @@ int main() {
 
                     case DISPENSE_DATA_CUBE: {                                      //                 case (DISPENSE_DATA_CUBE)
                         motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 //                     turn on dispenser motor
+                        current_time = get_timer_counter(counter_alpha);
 
-                        if (get_timer_counter(counter_alpha) >= DISPENSE_TIME && cubes_dispensed < MAX_DATA_CUBE_INV-1) {//                     exit condition if (time delay reached)
+                        if ((current_time >= DISPENSE_TIME) && (cubes_dispensed < MAX_DATA_CUBE_INV-1)) {//                     exit condition if (time delay reached)
                             motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
                             ir_power(ON);
                             cubes_dispensed++;
@@ -202,7 +208,7 @@ int main() {
                             reset_timer_counter(counter_alpha);                     //                         reset timer counter
                             flight_state = DRIVE_FORWARD;                           //                         change state to DRIVE_FORWARD
                         }
-                        else if (get_timer_counter(counter_alpha) >= DISPENSE_TIME) {
+                        else if (current_time >= DISPENSE_TIME) {
                             motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
                             motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
                             motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
@@ -215,7 +221,8 @@ int main() {
                     }                                                               //                 end case
 
                     case SIGNAL_ONBOARD_DATA_CUBE: {                                //                 case (SIGNAL_ONBOARD_DATA_CUBE)
-                        if (get_timer_counter(counter_alpha) >= DRIVE_TIME) { //                     exit condition
+                        current_time = get_timer_counter(counter_alpha);
+                        if (current_time >= DRIVE_TIME) {                           //                     exit condition
                             motor(LEFT_MOTOR, FORWARD, 0);
                             motor(RIGHT_MOTOR, FORWARD, 0);
                             signal_data_cube(ON);                                   //                         signal onboard data cube
