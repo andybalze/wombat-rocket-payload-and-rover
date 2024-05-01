@@ -34,24 +34,24 @@ Instead, commment out the flight section and uncomment the test section
 */
 
 ////////// FLIGHT //////////
-// #define WAIT_FOR_LAUNCH_LED_OFF_TIME    (uint32_t) 10 * ONE_SECOND     // LED turns green for this amount of time before turning off
-// #define WAIT_FOR_LANDING_LED_OFF_TIME   (uint32_t) 10 * ONE_SECOND     // LED turns red for this amount of time before turning off
-// #define WAIT_FOR_LANDING_TIME           (uint32_t) 10 * ONE_MINUTE     // Rover waits this amount of time after launch before attempting to exit the canister
-// #define EXIT_TIME                       (uint32_t) 2  * ONE_SECOND     // Rover drives forward this amount of time in an attempt to exit the canister
-// #define DRIVE_FORWARD_DELAY             (uint32_t) 100                 // Delay between exiting canister and driving forward to reduce back EMF if the rover wheels change direction
-// #define DRIVE_TIME                      (uint32_t) 10  * ONE_SECOND     // Rover drives forward this amount of time between dispensing each cube. Joey drives just under 0.6 ft/s
-// #define DISPENSE_TIME                   (uint32_t) 11 * ONE_SECOND     // Rover runs dispenser motor this amount of time to dispense one cube
+// #define WAIT_FOR_LAUNCH_LED_OFF_TIME    ((uint32_t) 10 * ONE_SECOND)         // LED turns green for this amount of time before turning off
+// #define WAIT_FOR_LANDING_LED_OFF_TIME   ((uint32_t) 10 * ONE_SECOND)         // LED turns red for this amount of time before turning off
+// #define WAIT_FOR_LANDING_TIME           ((uint32_t) 10 * ONE_MINUTE)         // Rover waits this amount of time after launch before attempting to exit the canister
+// #define EXIT_TIME                       ((uint32_t) 2  * ONE_SECOND)         // Rover drives forward this amount of time in an attempt to exit the canister
+// #define DRIVE_FORWARD_DELAY             ((uint32_t) 100)                     // Delay between exiting canister and driving forward to reduce back EMF if the rover wheels change direction
+// #define DRIVE_TIME                      ((uint32_t) 10  * ONE_SECOND)        // Rover drives forward this amount of time between dispensing each cube. Joey drives just under 0.6 ft/s
+// #define DISPENSE_TIME                   ((uint32_t) 12 * ONE_SECOND)         // Rover runs dispenser motor this amount of time to dispense one cube
 ////////// FLIGHT //////////
 
 
 ////////// TEST //////////
-#define WAIT_FOR_LAUNCH_LED_OFF_TIME    (uint32_t) 2  * ONE_SECOND
-#define WAIT_FOR_LANDING_LED_OFF_TIME   (uint32_t) 2  * ONE_SECOND
-#define WAIT_FOR_LANDING_TIME           (uint32_t) 5  * ONE_SECOND
-#define EXIT_TIME                       (uint32_t) 2  * ONE_SECOND
-#define DRIVE_FORWARD_DELAY             (uint32_t) 100
-#define DRIVE_TIME                      (uint32_t) 2  * ONE_SECOND      // About 0.6 ft/s
-#define DISPENSE_TIME                   (uint32_t) 11 * ONE_SECOND      // To dispense one cube
+#define WAIT_FOR_LAUNCH_LED_OFF_TIME    ((uint32_t) 2  * ONE_SECOND)
+#define WAIT_FOR_LANDING_LED_OFF_TIME   ((uint32_t) 2  * ONE_SECOND)
+#define WAIT_FOR_LANDING_TIME           ((uint32_t) 3  * ONE_SECOND)
+#define EXIT_TIME                       ((uint32_t) 2  * ONE_SECOND)
+#define DRIVE_FORWARD_DELAY             ((uint32_t) 100)
+#define DRIVE_TIME                      ((uint32_t) 2  * ONE_SECOND)    //84 * ONE_SECOND      // About 0.6 ft/s
+#define DISPENSE_TIME                   ((uint32_t) 12 * ONE_SECOND)    // To dispense one cube
 ////////// TEST //////////
 
 ////////// Timing for different states of the rover's main state machine ///////////////////
@@ -77,7 +77,8 @@ Instead, commment out the flight section and uncomment the test section
 ////////// No movement detection settings //////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-// Upper and lower threshold of acceleration in (1/2) m/s/s the accelerometer watches for to detect that the rover is not moving
+// Threshold of acceleration in (1/2) m/s/s the accelerometer watches for to detect that the rover is not moving
+// Threshold is plus/minus so the actual tolerance is twice as much as entered below
 // No motion is 19.6 (1/2) m/s/s
 #define NO_MOVEMENT_TOLERANCE 5
 
