@@ -153,18 +153,18 @@ int main() {
 rover_mode_t rover_mode_state_reset(void) {
     rover_mode_t rover_mode_next = RESET;
 
-    motor(DISPENSER_MOTOR, FORWARD, OFF);                               //             turn off dispenser motor
-    motor(LEFT_MOTOR, FORWARD, OFF);                                    //             turn off drive motors
+    motor(DISPENSER_MOTOR, FORWARD, OFF);
+    motor(LEFT_MOTOR, FORWARD, OFF);
     motor(RIGHT_MOTOR, FORWARD, OFF);
-    LED_set(YELLOW, OFF);                                               //             LED off
+    LED_set(YELLOW, OFF);
 
-    if (SW_read(ROVER_MODE_SW) == 1) {                                  //             exit condition if (rover mode switch is manual load)
+    if (SW_read(ROVER_MODE_SW) == 1) {
         uart_transmit_formatted_message("MANUAL_LOAD_MODE\r\n");
         UART_WAIT_UNTIL_DONE();
-        rover_mode_next = MANUAL_LOAD_MODE;                                  //                 change state to MANUAL_LOAD_MODE
-    }                                                                   //             end if
-    else {                                                              //             else if (rover mode switch is flight)
-        LED_set(GREEN, ON);                                             //                     LED solid green
+        rover_mode_next = MANUAL_LOAD_MODE;
+    }
+    else {
+        LED_set(GREEN, ON);
         uart_transmit_formatted_message("FLIGHT_MODE\r\n");
         UART_WAIT_UNTIL_DONE();
         uart_transmit_formatted_message("WAIT_FOR_LAUNCH\r\n");
@@ -172,8 +172,8 @@ rover_mode_t rover_mode_state_reset(void) {
         reset_launch_is_a_go();
         reset_no_motion();
         reset_timer_counter(counter_alpha);
-        rover_mode_next = FLIGHT_MODE;                                       //                 change state to FLIGHT_MODE
-    }                                                                   //             end exit condition
+        rover_mode_next = FLIGHT_MODE;
+    }
 
     return rover_mode_next;
 }   // end rover_mode_state_reset()
@@ -183,21 +183,21 @@ rover_mode_t rover_mode_state_reset(void) {
 rover_mode_t rover_mode_state_manual_load(void) {
     rover_mode_t rover_mode_next = MANUAL_LOAD_MODE;
 
-    LED_set(YELLOW, ON);                                                //             LED solid yellow
+    LED_set(YELLOW, ON);
 
-    if (SW_read(LOAD_BTN) == 1) {                                       //             if (load button pressed)
-        motor(DISPENSER_MOTOR, REVERSE, SPEED_MAX);                     //                 load dispenser
-    }                                                                   //             end if
-    else if (SW_read(UNLOAD_BTN) == 1) {                                //             else if (unload button pressed)
-        motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                     //                 unload dispenser
-    }                                                                   //             end if
-    else {                                                              //             else if (neither button pressed)
-        motor(DISPENSER_MOTOR, FORWARD, 0);                             //                 turn off dispenser motor
-    }                                                                   //             end if
+    if (SW_read(LOAD_BTN) == 1) {
+        motor(DISPENSER_MOTOR, REVERSE, SPEED_MAX);
+    }                                                                   
+    else if (SW_read(UNLOAD_BTN) == 1) {                                
+        motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                     
+    }                                                                   
+    else {                                                              
+        motor(DISPENSER_MOTOR, FORWARD, 0);                             
+    }                                                                   
 
-    if (SW_read(ROVER_MODE_SW) == 0) {                                  //             exit condition if (rover mode switch is flight)
-        rover_mode_next = RESET;                                             //                 change state to RESET
-    }                                                                   //             end exit condition
+    if (SW_read(ROVER_MODE_SW) == 0) {                                  
+        rover_mode_next = RESET;                                             
+    }                                                                   
 }   // end rover_mode_state_manual_load()
 
 
@@ -249,12 +249,12 @@ rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
 
     }   // end flight state switch
 
-    if (SW_read(ROVER_MODE_SW) == 1) {                                  //             exit condition if (rover mode switch is manual load)
+    if (SW_read(ROVER_MODE_SW) == 1) {                                  
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
         motor(DISPENSER_MOTOR, FORWARD, 0);
-        rover_mode_next = RESET;                                             //                 change state to RESET
-    }                                                                   //             end exit condition
+        rover_mode_next = RESET;                                             
+    }                                                                   
 
     return rover_mode_next;
 }   // end rover_mode_state_flight()
@@ -272,15 +272,15 @@ flight_state_t flight_state_wait_for_launch(void) {
         launch_check_enable();
     }
 
-    if (get_launch_is_a_go() == true) {                         //                     exit condition if (rocket launched)
+    if (get_launch_is_a_go() == true) {                         
         launch_check_disable();
         LED_set(RED, ON);
         LED_set(GREEN, OFF);
         uart_transmit_formatted_message("WAIT_FOR_LANDING\r\n");
         UART_WAIT_UNTIL_DONE();
         reset_timer_counter(counter_alpha);
-        flight_state_next = WAIT_FOR_LANDING;                        //                         change state to WAIT_FOR_LANDING
-    }                                                           //                     end exit condition
+        flight_state_next = WAIT_FOR_LANDING;                        
+    }                                                           
 
     return flight_state_next;
 }   // end flight_state_wait_for_launch()
@@ -297,19 +297,19 @@ flight_state_t flight_state_wait_for_landing(void) {
         LED_set(YELLOW, OFF);
     }
 
-    if (current_time >= WAIT_FOR_LANDING_TIME) {//                     exit condition
+    if (current_time >= WAIT_FOR_LANDING_TIME) {
         no_motion_check_enable();
         if (get_no_motion() == true) {
             no_motion_check_disable();
             LED_set(YELLOW, OFF);
-            is_upside_down = !is_up();          // Joey TEST // //                         determine which way up  // Joey TEST // this line goes after EXIT_CANISTER state for the Wombat
+            is_upside_down = !is_up();          // Joey TEST //
             PWM_enable();
             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
             UART_WAIT_UNTIL_DONE();
-            reset_timer_counter(counter_alpha);                 //                         reset timer counter
-            flight_state_next = EXIT_CANISTER;                       //                         change state to EXIT_CANISTER
+            reset_timer_counter(counter_alpha);                
+            flight_state_next = EXIT_CANISTER;                      
         }
-    }                                                           //                     end exit condition
+    }                                                          
 
     return flight_state_next;
 }   // end flight_state_wait_for_landing()
@@ -320,19 +320,19 @@ flight_state_t flight_state_exit_canister(void) {
     flight_state_t flight_state_next = EXIT_CANISTER;     // return value
     uint32_t current_time;
 
-    motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);    //                     turn on drive motors
+    motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);   
     motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
     current_time = get_timer_counter(counter_alpha);
 
-    if (current_time >= EXIT_TIME) {        //                     exit condition if (time delay reached)
-        motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
+    if (current_time >= EXIT_TIME) {       
+        motor(LEFT_MOTOR, FORWARD, 0);                         
         motor(RIGHT_MOTOR, FORWARD, 0);
         ir_power(ON);
         uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
         UART_WAIT_UNTIL_DONE();
-        reset_timer_counter(counter_alpha);                     //                         reset timer counter
-        flight_state_next = DRIVE_FORWARD;                           //                         change state to DRIVE_FORWARD
-    }                                                           //                     end exit condition
+        reset_timer_counter(counter_alpha);                    
+        flight_state_next = DRIVE_FORWARD;                          
+    }                                                          
 
     return flight_state_next;
 }   // end flight_state_exit_canister()
@@ -349,15 +349,15 @@ flight_state_t flight_state_drive_forward(void) {
         avoid(is_upside_down);
     }
 
-    if (current_time >= DRIVE_TIME) {       //                     exit condition if (time delay reached)
-        motor(LEFT_MOTOR, FORWARD, 0);                          //                         turn off drive motors
+    if (current_time >= DRIVE_TIME) {      
+        motor(LEFT_MOTOR, FORWARD, 0);                         
         motor(RIGHT_MOTOR, FORWARD, 0);
         ir_power(OFF);
         uart_transmit_formatted_message("DISPENSE_DATA_CUBE %d\r\n", cubes_dispensed+1);
         UART_WAIT_UNTIL_DONE();
-        reset_timer_counter(counter_alpha);                     //                         reset timer counter
-        flight_state_next = DISPENSE_DATA_CUBE;                      //                         change state to DISPENSE_DATA_CUBE
-    }                                                           //                     end exit condition
+        reset_timer_counter(counter_alpha);                    
+        flight_state_next = DISPENSE_DATA_CUBE;                     
+    }                                                          
 
     return flight_state_next;
 } // end flight_state_drive_forward()
@@ -368,27 +368,27 @@ flight_state_t flight_state_dispense_data_cube(void) {
     flight_state_t flight_state_next = DISPENSE_DATA_CUBE;     // return value
     uint32_t current_time;
 
-    motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 //                     turn on dispenser motor
+    motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 
     current_time = get_timer_counter(counter_alpha);
 
-    if ((current_time >= DISPENSE_TIME) && (cubes_dispensed < MAX_DATA_CUBE_INV-1)) {//                     exit condition if (time delay reached)
-        motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
+    if ((current_time >= DISPENSE_TIME) && (cubes_dispensed < MAX_DATA_CUBE_INV-1)) {
+        motor(DISPENSER_MOTOR, FORWARD, 0);                     
         ir_power(ON);
         cubes_dispensed++;
         uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
         UART_WAIT_UNTIL_DONE();
-        reset_timer_counter(counter_alpha);                     //                         reset timer counter
-        flight_state_next = DRIVE_FORWARD;                           //                         change state to DRIVE_FORWARD
+        reset_timer_counter(counter_alpha);                     
+        flight_state_next = DRIVE_FORWARD;                           
     }
     else if (current_time >= DISPENSE_TIME) {
-        motor(DISPENSER_MOTOR, FORWARD, 0);                     //                         turn off dispenser motor
+        motor(DISPENSER_MOTOR, FORWARD, 0);                     
         motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
         motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
         uart_transmit_formatted_message("SIGNAL_ONBOARD_DATA_CUBE\r\n");
         UART_WAIT_UNTIL_DONE();
         reset_timer_counter(counter_alpha);
-        flight_state_next = SIGNAL_ONBOARD_DATA_CUBE;                //                         change state to SIGNAL_ONBOARD_DATA_CUBE
-    }                                                           //                     end exit condition
+        flight_state_next = SIGNAL_ONBOARD_DATA_CUBE;                
+    }                                                           
 
     return flight_state_next;
 }   // end flight_state_drive_forward
@@ -401,16 +401,16 @@ flight_state_t flight_state_signal_onboard_data_cube(void) {
 
     current_time = get_timer_counter(counter_alpha);
 
-    if (current_time >= DRIVE_TIME) {                           //                     exit condition
+    if (current_time >= DRIVE_TIME) {                           
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
-        signal_data_cube(ON);                                   //                         signal onboard data cube
-        LED_set(GREEN, ON);                                     //                     LED solid green
+        signal_data_cube(ON);                                   
+        LED_set(GREEN, ON);                                     
         LED_set(RED, OFF);
         uart_transmit_formatted_message("DEAD_LOOP\r\n");
         UART_WAIT_UNTIL_DONE();
-        flight_state_next = DEAD_LOOP;                               //                         change state to DEAD_LOOP
-    }                                                           //                     end exit condition
+        flight_state_next = DEAD_LOOP;                               
+    }                                                           
 
     return flight_state_next;
 }   // end flight_state_signal_onboard_data_cube()
