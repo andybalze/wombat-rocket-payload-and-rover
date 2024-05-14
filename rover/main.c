@@ -78,12 +78,12 @@ flight_state_t flight_state_exit_canister(void);
 flight_state_t flight_state_drive_forward(void);
 flight_state_t flight_state_dispense_data_cube(void);
 flight_state_t flight_state_signal_onboard_data_cube(void);
-flight_state_t flight_state_dead_loop(void);
 
 
 
 /////////////////// Public Function Bodies ////////////////////////////////////
 
+// main
 int main() {
 
     rover_mode_t rover_mode = RESET;    // Current state of rover mode state machine
@@ -150,6 +150,7 @@ int main() {
 
 
 
+// reset state
 rover_mode_t rover_mode_state_reset(void) {
     rover_mode_t rover_mode_next = RESET;
 
@@ -180,6 +181,7 @@ rover_mode_t rover_mode_state_reset(void) {
 
 
 
+// manual load mode
 rover_mode_t rover_mode_state_manual_load(void) {
     rover_mode_t rover_mode_next = MANUAL_LOAD_MODE;
 
@@ -202,6 +204,7 @@ rover_mode_t rover_mode_state_manual_load(void) {
 
 
 
+// flight mode state machine
 rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
     rover_mode_t rover_mode_next = FLIGHT_MODE;      // return value
     static flight_state_t flight_state;
@@ -261,6 +264,7 @@ rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
 
 
 
+// wait for launch
 flight_state_t flight_state_wait_for_launch(void) {
     flight_state_t flight_state_next = WAIT_FOR_LAUNCH;     // return value
     uint32_t current_time;
@@ -287,6 +291,7 @@ flight_state_t flight_state_wait_for_launch(void) {
 
 
 
+// wait for landing
 flight_state_t flight_state_wait_for_landing(void) {
     flight_state_t flight_state_next = WAIT_FOR_LANDING;     // return value
     uint32_t current_time;
@@ -316,6 +321,7 @@ flight_state_t flight_state_wait_for_landing(void) {
 
 
 
+// exit canister
 flight_state_t flight_state_exit_canister(void) {
     flight_state_t flight_state_next = EXIT_CANISTER;     // return value
     uint32_t current_time;
@@ -339,6 +345,7 @@ flight_state_t flight_state_exit_canister(void) {
 
 
 
+// drive forward
 flight_state_t flight_state_drive_forward(void) {
     flight_state_t flight_state_next = DRIVE_FORWARD;     // return value
     uint32_t current_time;
@@ -364,6 +371,7 @@ flight_state_t flight_state_drive_forward(void) {
 
 
 
+// dispense data cube
 flight_state_t flight_state_dispense_data_cube(void) {
     flight_state_t flight_state_next = DISPENSE_DATA_CUBE;     // return value
     uint32_t current_time;
@@ -395,6 +403,7 @@ flight_state_t flight_state_dispense_data_cube(void) {
 
 
 
+// signal onboard data cube
 flight_state_t flight_state_signal_onboard_data_cube(void) {
     flight_state_t flight_state_next = DISPENSE_DATA_CUBE;     // return value
     uint32_t current_time;
@@ -417,6 +426,5 @@ flight_state_t flight_state_signal_onboard_data_cube(void) {
 
 
 
-flight_state_t flight_state_dead_loop(void) {
-
-}   // end flight_state_dead_loop()
+// dead loop
+// no state function for this state
