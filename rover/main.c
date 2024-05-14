@@ -99,13 +99,12 @@ int main() {
     timer_counter_initialize();
 
 
-    // Begin main loop
-    while(1) {
+    while(1) { // Begin main loop
         if (end_operation == true) {
             break;
         }
 
-        switch (rover_mode) {
+        switch (rover_mode) {   // Rover mode state machine (reset, manual load/unload, flight)
             case RESET: {
                 rover_mode = rover_mode_state_reset();
                 reset_flight_state = true;
@@ -130,8 +129,8 @@ int main() {
                 UART_WAIT_UNTIL_DONE();
                 break;
             }
-        }
-    }
+        } // end rover mode state machine
+    } // end main loop
 
 
     // Turn off motors
@@ -152,19 +151,20 @@ int main() {
 
 // reset state
 rover_mode_t rover_mode_state_reset(void) {
-    rover_mode_t rover_mode_next = RESET;
+    rover_mode_t rover_mode_next = RESET;       // return value
 
     motor(DISPENSER_MOTOR, FORWARD, OFF);
     motor(LEFT_MOTOR, FORWARD, OFF);
     motor(RIGHT_MOTOR, FORWARD, OFF);
     LED_set(YELLOW, OFF);
 
-    if (SW_read(ROVER_MODE_SW) == 1) {
+    // exit condition: unconditional
+    if (SW_read(ROVER_MODE_SW) == 1) {  // change state to manual load mode if switch is turned to manual load
         uart_transmit_formatted_message("MANUAL_LOAD_MODE\r\n");
         UART_WAIT_UNTIL_DONE();
         rover_mode_next = MANUAL_LOAD_MODE;
     }
-    else {
+    else {                              // change state to flight if switch is turned to flight mode
         LED_set(GREEN, ON);
         uart_transmit_formatted_message("FLIGHT_MODE\r\n");
         UART_WAIT_UNTIL_DONE();
@@ -183,7 +183,7 @@ rover_mode_t rover_mode_state_reset(void) {
 
 // manual load mode
 rover_mode_t rover_mode_state_manual_load(void) {
-    rover_mode_t rover_mode_next = MANUAL_LOAD_MODE;
+    rover_mode_t rover_mode_next = MANUAL_LOAD_MODE;        // return value
 
     LED_set(YELLOW, ON);
 
@@ -197,6 +197,7 @@ rover_mode_t rover_mode_state_manual_load(void) {
         motor(DISPENSER_MOTOR, FORWARD, 0);
     }
 
+    //exit condition: switch turned to flight mode
     if (SW_read(ROVER_MODE_SW) == 0) {
         rover_mode_next = RESET;
     }
@@ -213,7 +214,7 @@ rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
         flight_state = WAIT_FOR_LAUNCH;
     }
 
-    switch (flight_state) {
+    switch (flight_state) { // flight-state state machine (7 states)
         case WAIT_FOR_LAUNCH:
             flight_state = flight_state_wait_for_launch();
             break;
@@ -250,8 +251,9 @@ rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
             end_operation = true;
             break;
 
-    }   // end flight state switch
+    }   // end flight-state state machine
 
+    // exit condition: switch turned to manual load mode
     if (SW_read(ROVER_MODE_SW) == 1) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
@@ -276,6 +278,7 @@ flight_state_t flight_state_wait_for_launch(void) {
         launch_check_enable();
     }
 
+    // exit condition: rocket launch detected
     if (get_launch_is_a_go() == true) {
         launch_check_disable();
         LED_set(RED, ON);
@@ -302,6 +305,7 @@ flight_state_t flight_state_wait_for_landing(void) {
         LED_set(YELLOW, OFF);
     }
 
+    // exit condition: time delay elapsed and rover not in motion
     if (current_time >= WAIT_FOR_LANDING_TIME) {
         no_motion_check_enable();
         if (get_no_motion() == true) {
@@ -330,6 +334,7 @@ flight_state_t flight_state_exit_canister(void) {
     motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
     current_time = get_timer_counter(counter_alpha);
 
+    // exit condition: time delay elapsed
     if (current_time >= EXIT_TIME) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
@@ -356,6 +361,7 @@ flight_state_t flight_state_drive_forward(void) {
         avoid(is_upside_down);
     }
 
+    // exit condition: time delay elapsed
     if (current_time >= DRIVE_TIME) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
@@ -379,7 +385,8 @@ flight_state_t flight_state_dispense_data_cube(void) {
     motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);
     current_time = get_timer_counter(counter_alpha);
 
-    if ((current_time >= DISPENSE_TIME) && (cubes_dispensed < MAX_DATA_CUBE_INV-1)) {
+    // exit condition: time delay elapsed
+    if ((current_time >= DISPENSE_TIME) && (cubes_dispensed < MAX_DATA_CUBE_INV-1)) {   // change state to drive if not all cubes dispensed
         motor(DISPENSER_MOTOR, FORWARD, 0);
         ir_power(ON);
         cubes_dispensed++;
@@ -388,7 +395,7 @@ flight_state_t flight_state_dispense_data_cube(void) {
         reset_timer_counter(counter_alpha);
         flight_state_next = DRIVE_FORWARD;
     }
-    else if (current_time >= DISPENSE_TIME) {
+    else if (current_time >= DISPENSE_TIME) {   // change state to signal data cube if all data cubes dispensed (drive on state transition)
         motor(DISPENSER_MOTOR, FORWARD, 0);
         motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
         motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
@@ -410,6 +417,7 @@ flight_state_t flight_state_signal_onboard_data_cube(void) {
 
     current_time = get_timer_counter(counter_alpha);
 
+    // exit condition: time delay elapsed
     if (current_time >= DRIVE_TIME) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
@@ -427,4 +435,5 @@ flight_state_t flight_state_signal_onboard_data_cube(void) {
 
 
 // dead loop
-// no state function for this state
+// no state function for dead loop state
+// instead, main loop is exitted and enters a dead loop at the end of main()
