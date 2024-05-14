@@ -398,8 +398,6 @@ flight_state_t flight_state_dispense_data_cube(void) {
     }
     else if (current_time >= DISPENSE_TIME) {   // change state to signal data cube if all data cubes dispensed (drive on state transition)
         motor(DISPENSER_MOTOR, FORWARD, 0);
-        motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
-        motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
         uart_transmit_formatted_message("SIGNAL_ONBOARD_DATA_CUBE\r\n");
         UART_WAIT_UNTIL_DONE();
         reset_timer_counter(counter_alpha);
@@ -413,8 +411,10 @@ flight_state_t flight_state_dispense_data_cube(void) {
 
 // signal onboard data cube
 flight_state_t flight_state_signal_onboard_data_cube(void) {
-    flight_state_t flight_state_next = DISPENSE_DATA_CUBE;     // return value
+    flight_state_t flight_state_next = SIGNAL_ONBOARD_DATA_CUBE;     // return value
     uint32_t current_time;
+
+    avoid(is_upside_down);
 
     current_time = get_timer_counter(counter_alpha);
 
