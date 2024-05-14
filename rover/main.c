@@ -258,6 +258,7 @@ rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
         motor(DISPENSER_MOTOR, FORWARD, 0);
+        launch_check_disable();
         rover_mode_next = RESET;
     }
 
