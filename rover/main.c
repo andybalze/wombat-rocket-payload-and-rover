@@ -187,17 +187,17 @@ rover_mode_t rover_mode_state_manual_load(void) {
 
     if (SW_read(LOAD_BTN) == 1) {
         motor(DISPENSER_MOTOR, REVERSE, SPEED_MAX);
-    }                                                                   
-    else if (SW_read(UNLOAD_BTN) == 1) {                                
-        motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                     
-    }                                                                   
-    else {                                                              
-        motor(DISPENSER_MOTOR, FORWARD, 0);                             
-    }                                                                   
+    }
+    else if (SW_read(UNLOAD_BTN) == 1) {
+        motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);
+    }
+    else {
+        motor(DISPENSER_MOTOR, FORWARD, 0);
+    }
 
-    if (SW_read(ROVER_MODE_SW) == 0) {                                  
-        rover_mode_next = RESET;                                             
-    }                                                                   
+    if (SW_read(ROVER_MODE_SW) == 0) {
+        rover_mode_next = RESET;
+    }
 }   // end rover_mode_state_manual_load()
 
 
@@ -249,12 +249,12 @@ rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
 
     }   // end flight state switch
 
-    if (SW_read(ROVER_MODE_SW) == 1) {                                  
+    if (SW_read(ROVER_MODE_SW) == 1) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
         motor(DISPENSER_MOTOR, FORWARD, 0);
-        rover_mode_next = RESET;                                             
-    }                                                                   
+        rover_mode_next = RESET;
+    }
 
     return rover_mode_next;
 }   // end rover_mode_state_flight()
@@ -272,15 +272,15 @@ flight_state_t flight_state_wait_for_launch(void) {
         launch_check_enable();
     }
 
-    if (get_launch_is_a_go() == true) {                         
+    if (get_launch_is_a_go() == true) {
         launch_check_disable();
         LED_set(RED, ON);
         LED_set(GREEN, OFF);
         uart_transmit_formatted_message("WAIT_FOR_LANDING\r\n");
         UART_WAIT_UNTIL_DONE();
         reset_timer_counter(counter_alpha);
-        flight_state_next = WAIT_FOR_LANDING;                        
-    }                                                           
+        flight_state_next = WAIT_FOR_LANDING;
+    }
 
     return flight_state_next;
 }   // end flight_state_wait_for_launch()
@@ -306,10 +306,10 @@ flight_state_t flight_state_wait_for_landing(void) {
             PWM_enable();
             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
             UART_WAIT_UNTIL_DONE();
-            reset_timer_counter(counter_alpha);                
-            flight_state_next = EXIT_CANISTER;                      
+            reset_timer_counter(counter_alpha);
+            flight_state_next = EXIT_CANISTER;
         }
-    }                                                          
+    }
 
     return flight_state_next;
 }   // end flight_state_wait_for_landing()
@@ -324,15 +324,15 @@ flight_state_t flight_state_exit_canister(void) {
     motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
     current_time = get_timer_counter(counter_alpha);
 
-    if (current_time >= EXIT_TIME) {       
-        motor(LEFT_MOTOR, FORWARD, 0);                         
+    if (current_time >= EXIT_TIME) {
+        motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
         ir_power(ON);
         uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
         UART_WAIT_UNTIL_DONE();
-        reset_timer_counter(counter_alpha);                    
-        flight_state_next = DRIVE_FORWARD;                          
-    }                                                          
+        reset_timer_counter(counter_alpha);
+        flight_state_next = DRIVE_FORWARD;
+    }
 
     return flight_state_next;
 }   // end flight_state_exit_canister()
@@ -349,15 +349,15 @@ flight_state_t flight_state_drive_forward(void) {
         avoid(is_upside_down);
     }
 
-    if (current_time >= DRIVE_TIME) {      
-        motor(LEFT_MOTOR, FORWARD, 0);                         
+    if (current_time >= DRIVE_TIME) {
+        motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
         ir_power(OFF);
         uart_transmit_formatted_message("DISPENSE_DATA_CUBE %d\r\n", cubes_dispensed+1);
         UART_WAIT_UNTIL_DONE();
-        reset_timer_counter(counter_alpha);                    
-        flight_state_next = DISPENSE_DATA_CUBE;                     
-    }                                                          
+        reset_timer_counter(counter_alpha);
+        flight_state_next = DISPENSE_DATA_CUBE;
+    }
 
     return flight_state_next;
 } // end flight_state_drive_forward()
@@ -368,27 +368,27 @@ flight_state_t flight_state_dispense_data_cube(void) {
     flight_state_t flight_state_next = DISPENSE_DATA_CUBE;     // return value
     uint32_t current_time;
 
-    motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);                 
+    motor(DISPENSER_MOTOR, FORWARD, SPEED_MAX);
     current_time = get_timer_counter(counter_alpha);
 
     if ((current_time >= DISPENSE_TIME) && (cubes_dispensed < MAX_DATA_CUBE_INV-1)) {
-        motor(DISPENSER_MOTOR, FORWARD, 0);                     
+        motor(DISPENSER_MOTOR, FORWARD, 0);
         ir_power(ON);
         cubes_dispensed++;
         uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
         UART_WAIT_UNTIL_DONE();
-        reset_timer_counter(counter_alpha);                     
-        flight_state_next = DRIVE_FORWARD;                           
+        reset_timer_counter(counter_alpha);
+        flight_state_next = DRIVE_FORWARD;
     }
     else if (current_time >= DISPENSE_TIME) {
-        motor(DISPENSER_MOTOR, FORWARD, 0);                     
+        motor(DISPENSER_MOTOR, FORWARD, 0);
         motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
         motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
         uart_transmit_formatted_message("SIGNAL_ONBOARD_DATA_CUBE\r\n");
         UART_WAIT_UNTIL_DONE();
         reset_timer_counter(counter_alpha);
-        flight_state_next = SIGNAL_ONBOARD_DATA_CUBE;                
-    }                                                           
+        flight_state_next = SIGNAL_ONBOARD_DATA_CUBE;
+    }
 
     return flight_state_next;
 }   // end flight_state_drive_forward
@@ -401,16 +401,16 @@ flight_state_t flight_state_signal_onboard_data_cube(void) {
 
     current_time = get_timer_counter(counter_alpha);
 
-    if (current_time >= DRIVE_TIME) {                           
+    if (current_time >= DRIVE_TIME) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
-        signal_data_cube(ON);                                   
-        LED_set(GREEN, ON);                                     
+        signal_data_cube(ON);
+        LED_set(GREEN, ON);
         LED_set(RED, OFF);
         uart_transmit_formatted_message("DEAD_LOOP\r\n");
         UART_WAIT_UNTIL_DONE();
-        flight_state_next = DEAD_LOOP;                               
-    }                                                           
+        flight_state_next = DEAD_LOOP;
+    }
 
     return flight_state_next;
 }   // end flight_state_signal_onboard_data_cube()
