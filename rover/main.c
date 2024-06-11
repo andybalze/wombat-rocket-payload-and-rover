@@ -312,7 +312,9 @@ flight_state_t flight_state_wait_for_landing(void) {
         if (get_no_motion() == true) {
             no_motion_check_disable();
             LED_set(YELLOW, OFF);
-            is_upside_down = !is_up();          // Joey TEST //
+            #ifdef JOEY_EXIT_METHOD
+                is_upside_down = !is_up();
+            #endif
             PWM_enable();
             uart_transmit_formatted_message("EXIT_CANISTER\r\n");
             UART_WAIT_UNTIL_DONE();
@@ -331,8 +333,16 @@ flight_state_t flight_state_exit_canister(void) {
     flight_state_t flight_state_next = EXIT_CANISTER;     // return value
     uint32_t current_time;
 
-    motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);   
-    motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
+    #ifdef JOEY_EXIT_METHOD
+        motor(LEFT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
+        motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, EXIT_SPEED);
+    #endif
+
+    #ifdef WOMBAT_EXIT_METHOD
+        motor(LEFT_MOTOR, FORWARD, EXIT_SPEED);
+        motor(RIGHT_MOTOR, FORWARD, EXIT_SPEED);
+    #endif
+
     current_time = get_timer_counter(counter_alpha);
 
     // exit condition: time delay elapsed
@@ -340,6 +350,9 @@ flight_state_t flight_state_exit_canister(void) {
         motor(LEFT_MOTOR, FORWARD, 0);
         motor(RIGHT_MOTOR, FORWARD, 0);
         ir_power(ON);
+        #ifdef WOMBAT_EXIT_METHOD
+            is_upside_down = !is_up();
+        #endif
         uart_transmit_formatted_message("DRIVE_FORWARD\r\n");
         UART_WAIT_UNTIL_DONE();
         reset_timer_counter(counter_alpha);
