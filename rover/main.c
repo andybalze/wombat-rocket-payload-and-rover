@@ -25,6 +25,18 @@
 # define MAX_DATA_CUBE_INV 3
 
 
+// Throw an error if payload box exit method is misdefined in config.h
+#if !(defined(WOMBAT_EXIT_METHOD) ^ defined(JOEY_EXIT_METHOD))
+    #error: rover exit method misdefined in config.h
+#endif
+
+/*
+0 0 | 0
+0 1 | 1
+1 0 | 1
+1 1 | 0
+*/
+
 /////////////////// Private Typedefs ///////////////////////////////////////////
 
 typedef enum {
