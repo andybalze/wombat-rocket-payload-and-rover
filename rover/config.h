@@ -33,7 +33,6 @@ indescriminent of which orientation it is in.
 // Use this macro if the rover's tread relies on gravity and DOES NOT engage with the payload box
 // #define JOEY_EXIT_METHOD
 
-
 ////////// Rover exit method ///////////////////////////////////////////////////////////////
 
 
