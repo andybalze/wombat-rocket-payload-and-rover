@@ -91,19 +91,19 @@ Instead, commment out the flight section and uncomment the test section
 ////////////////////////////////////////////////////////////////////////////////////////////
 /*
 Uncomment the section for the rover controller serial number you are using.
-Please comment both sections out when you push so we get an error if we forget to configure this.
+Current launch detection code is designed to be unaffected from a miscalibrated accelerometer.
 */
 
 ////////// Rover Controller SN1 //////////
-// #define X_AXIS_ERROR ?
-// #define Y_AXIS_ERROR ?
-// #define Z_AXIS_ERROR ?
+// #define X_AXIS_ERROR 0
+// #define Y_AXIS_ERROR 0
+// #define Z_AXIS_ERROR 0
 ////////// Rover Controller SN1 //////////
 
 
 ////////// Rover Controller SN2 //////////
-#define X_AXIS_ERROR 2
-#define Y_AXIS_ERROR 2
+#define X_AXIS_ERROR 0
+#define Y_AXIS_ERROR 0
 #define Z_AXIS_ERROR 0
 ////////// Rover Controller SN2 //////////
 
