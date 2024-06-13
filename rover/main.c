@@ -313,21 +313,17 @@ flight_state_t flight_state_wait_for_landing(void) {
         LED_set(YELLOW, OFF);
     }
 
-    // exit condition: time delay elapsed and rover not in motion
+    // exit condition: time delay elapsed
     if (current_time >= WAIT_FOR_LANDING_TIME) {
-        no_motion_check_enable();
-        if (get_no_motion() == true) {
-            no_motion_check_disable();
-            LED_set(YELLOW, OFF);
-            #ifdef JOEY_EXIT_METHOD
-                is_upside_down = !is_up();
-            #endif
-            PWM_enable();
-            uart_transmit_formatted_message("EXIT_CANISTER\r\n");
-            UART_WAIT_UNTIL_DONE();
-            reset_timer_counter(counter_alpha);
-            flight_state_next = EXIT_CANISTER;
-        }
+        LED_set(YELLOW, OFF);
+        #ifdef JOEY_EXIT_METHOD
+            is_upside_down = !is_up();
+        #endif
+        PWM_enable();
+        uart_transmit_formatted_message("EXIT_CANISTER\r\n");
+        UART_WAIT_UNTIL_DONE();
+        reset_timer_counter(counter_alpha);
+        flight_state_next = EXIT_CANISTER;
     }
 
     return flight_state_next;
