@@ -30,12 +30,7 @@
     #error: rover exit method misdefined in config.h
 #endif
 
-/*
-0 0 | 0
-0 1 | 1
-1 0 | 1
-1 1 | 0
-*/
+
 
 /////////////////// Private Typedefs ///////////////////////////////////////////
 
