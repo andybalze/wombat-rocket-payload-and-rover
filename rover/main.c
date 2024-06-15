@@ -342,8 +342,8 @@ flight_state_t flight_state_exit_canister(void) {
     #endif
 
     #ifdef WOMBAT_EXIT_METHOD
-        motor(LEFT_MOTOR, FORWARD, EXIT_SPEED);
-        motor(RIGHT_MOTOR, FORWARD, EXIT_SPEED);
+        motor(LEFT_MOTOR, REVERSE, EXIT_SPEED);
+        motor(RIGHT_MOTOR, REVERSE, EXIT_SPEED);
     #endif
 
     current_time = get_timer_counter(counter_alpha);
