@@ -16,6 +16,9 @@
 
 typedef uint64_t logic_vector;
 
+
+// counter_alpha used by main
+// counter_beta used by avoid (and dance routine)
 enum counter_name_enum {
     counter_alpha,
     counter_beta
