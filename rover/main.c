@@ -19,6 +19,7 @@
 #include "accelerometer.h"
 #include "ir.h"
 #include "avoid_obstacles.h"
+#include "dance_routine.h"
 
 
 
@@ -27,7 +28,12 @@
 
 // Throw an error if payload box exit method is misdefined in config.h
 #if !(defined(WOMBAT_EXIT_METHOD) ^ defined(JOEY_EXIT_METHOD))
-    #error: rover exit method misdefined in config.h
+    #error // rover exit method misdefined in config.h
+#endif
+
+// Throw a warning if dance routine is enabled
+#if defined(DANCE_ROUTINE_ENABLE)
+    #warning // Dance routine is enabled. Disable this for flight.
 #endif
 
 
