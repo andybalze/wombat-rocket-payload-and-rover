@@ -303,6 +303,15 @@ flight_state_t flight_state_wait_for_launch(void) {
         flight_state_next = WAIT_FOR_LANDING;
     }
 
+    // Dance routine
+    #ifdef DANCE_ROUTINE_ENABLE
+        if (SW_read(LOAD_BTN)) {
+            while (true) {
+                dance_routine(is_upside_down);
+            }
+        }
+    #endif
+
     return flight_state_next;
 }   // end flight_state_wait_for_launch()
 
