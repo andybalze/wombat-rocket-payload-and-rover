@@ -1,7 +1,7 @@
 #include "timer.h"
 
-uint32_t counter_alpha_cnt = 0;         // Only timer interrupt allowed to change
-uint32_t counter_beta_cnt = 0;          // Only timer interrupt allowed to change
+static volatile uint32_t counter_alpha_cnt = 0;         // Only timer interrupt allowed to change
+static volatile uint32_t counter_beta_cnt = 0;          // Only timer interrupt allowed to change
 
 
 // Initializes TIMER0 which is used for two seperate counters. Can be used at the same time as Left and Right motor PWM
@@ -18,6 +18,7 @@ void timer_counter_initialize(void) {
 
 
 void reset_timer_counter(counter_name_t counter) {
+    cli();                      // Disable interrupts
     switch (counter) {
         case counter_alpha: {
             counter_alpha_cnt = 0;
@@ -37,11 +38,13 @@ void reset_timer_counter(counter_name_t counter) {
             break;
         }
     }
+    sei();                      // Enable interrupts
 }
 
 
 
 uint32_t get_timer_counter(counter_name_t counter) {
+    cli();                      // Disable interrupts
     unsigned long int count;
 
     switch (counter) {
@@ -64,6 +67,7 @@ uint32_t get_timer_counter(counter_name_t counter) {
         }
     }
 
+    sei();                      // Enable interrupts
     return count;
 }
 

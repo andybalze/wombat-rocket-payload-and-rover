@@ -4,6 +4,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include "timer.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // TRX
@@ -38,10 +40,17 @@
 #define TRX_IRQ_INT       INT0
 #define TRX_IRQ_INT_vect  INT0_vect
 
+// Passing this to trx_receive_payload will cause the function to wait for a
+// reception indefinitely.
+#define TRX_TIMEOUT_INDEFINITE (15001)
+
 /////////////////// TRX Macros /////////////////////////////////////////////////
 
+// Whether the transceiver has requested an interrupt
+#define TRX_IRQ ((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) == 0)
+
 // Waits until the TRX_IRQ pin goes low.
-#define TRX_WAIT_FOR_IRQ() while((TRX_IRQ_PIN & _BV(TRX_IRQ_INDEX)) != 0)
+#define TRX_WAIT_FOR_IRQ() while(!TRX_IRQ)
 
 /////////////////// TRX type definitions ///////////////////////////////////////
 
@@ -55,9 +64,17 @@ typedef uint8_t trx_payload_element_t;
 typedef uint8_t trx_status_buffer_t;
 
 // Whether a given transmission succeeded or failed.
-typedef uint8_t trx_transmission_outcome_t;
-#define TRX_TRANSMISSION_FAILURE (0)
-#define TRX_TRANSMISSION_SUCCESS (1)
+typedef enum {
+    TRX_TRANSMISSION_SUCCESS,
+    TRX_TRANSMISSION_FAILURE
+} trx_transmission_outcome_t;
+
+// Whether a given attempt to receive a transmission succeeded or failed.
+typedef enum {
+    TRX_RECEPTION_SUCCESS,
+    TRX_RECEPTION_ERROR,
+    TRX_RECEPTION_TIMEOUT
+} trx_reception_outcome_t;
 
 /////////////////// Public function prototypes /////////////////////////////////
 
@@ -75,8 +92,9 @@ trx_transmission_outcome_t trx_transmit_payload(
 );
 
 // Receives a payload using polling.
-int trx_receive_payload(
-  trx_payload_element_t *payload_buffer
+trx_reception_outcome_t trx_receive_payload(
+  trx_payload_element_t *payload_buffer,
+  timer_delay_ms_t timeout_ms
 );
 
 // Gets the value currently in the status buffer. This is equivalent to what was

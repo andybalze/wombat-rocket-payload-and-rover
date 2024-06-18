@@ -1,4 +1,5 @@
 **.hex
 **.out
 **.s
+build/**
 .vscode/**

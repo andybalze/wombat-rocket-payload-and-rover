@@ -1,3 +1,4 @@
+#include "avoid_obstacles.h"
 #include "ir.h"
 #include "motors.h"
 #include "timer.h"
@@ -9,8 +10,8 @@
 #define KEEP_TURNING (2 * ONE_SECOND)
 
 
-void avoid(void) {
-    motor(RIGHT_MOTOR, FORWARD, SPEED_MAX);
+void avoid(bool is_upside_down) {
+    motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
 
     static uint64_t count = 0;
     static bool obstacle = false;
@@ -21,13 +22,13 @@ void avoid(void) {
     counter_val = get_timer_counter(counter_beta);
 
     if (ir_val > FORW_STOP_REV) {
-        motor(LEFT_MOTOR, FORWARD, (uint8_t)(8 * (ir_distance_read()-25)));
+        motor(LEFT_MOTOR, FORWARD ^ is_upside_down, (uint8_t)(8 * (ir_distance_read()-25)));
     }
     else if (ir_val < FORW_STOP_REV - 2) {
-        motor(LEFT_MOTOR, REVERSE, (uint8_t)(8 * (25-ir_distance_read())));
+        motor(LEFT_MOTOR, REVERSE ^ is_upside_down, (uint8_t)(8 * (25-ir_distance_read())));
     }
     else {
-        motor(LEFT_MOTOR, FORWARD, 0);
+        motor(LEFT_MOTOR, FORWARD ^ is_upside_down, 0);
     }
 
     if (ir_val <= FORW_STOP_REV + 10) {
@@ -40,7 +41,7 @@ void avoid(void) {
         }
         count = counter_val;
 
-        motor(LEFT_MOTOR, REVERSE, SPEED_MAX);
+        motor(LEFT_MOTOR, REVERSE ^ is_upside_down, SPEED_MAX);
 
         if (count >= KEEP_TURNING) {
             obstacle = false;

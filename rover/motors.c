@@ -150,12 +150,12 @@ void motor(motor_name_t motor_name, motor_direction_t direction, uint8_t speed) 
         case DISPENSER_MOTOR: {
             if (ocr_val != OCR_MAX) {
                 if (direction == FORWARD) {
-                    DISPENSER1_PORT |=  _BV(DISPENSER1_INDEX);
-                    DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
-                }
-                else {  // (direction == REVERSE)
                     DISPENSER1_PORT &= ~_BV(DISPENSER1_INDEX);
                     DISPENSER2_PORT |=  _BV(DISPENSER2_INDEX);
+                }
+                else {  // (direction == REVERSE)
+                    DISPENSER1_PORT |=  _BV(DISPENSER1_INDEX);
+                    DISPENSER2_PORT &= ~_BV(DISPENSER2_INDEX);
                 }
             }
             else {      // (ocr_val == OCR_MAX)

@@ -10,8 +10,8 @@
 #include "uart.h"
 #include "accelerometer.h"
 
-#define ONE_SECOND 1000
-#define ONE_MINUTE 60000
+#define ONE_SECOND (1000)
+#define ONE_MINUTE (60000)
 
 
 typedef uint64_t logic_vector;
