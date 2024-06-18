@@ -1,6 +1,8 @@
 #ifndef DANCE_ROUTINE_H
 #define DANCE_ROUTINE_H
 
+#include "stdbool.h"
+
 void dance_routine(bool is_upside_down);
 
 

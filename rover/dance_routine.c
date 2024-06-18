@@ -1,7 +1,5 @@
 #include "dance_routine.h"
 
-#include "stdbool.h"
-
 #include "digital_io.h"
 #include "motors.h"
 #include "timer.h"
@@ -60,27 +58,27 @@ void dance_routine(bool is_upside_down) {
             }
 
             case SPIN_CNTR_CLKW: {
-                dance_state = spin_cntr_clkw();
+                dance_state = spin_cntr_clkw(is_upside_down);
                 break;
             }
 
             case REV_180: {
-                dance_state = rev_180();
+                dance_state = rev_180(is_upside_down);
                 break;
             }
 
             case FWRD_L_TRN: {
-                dance_state = fwrd_l_trn();
+                dance_state = fwrd_l_trn(is_upside_down);
                 break;
             }
 
             case SHAKE: {
-                dance_state = shake();
+                dance_state = shake(is_upside_down);
                 break;
             }
 
             case SPIN_CLKW: {
-                dance_state =  spin_clkw();
+                dance_state =  spin_clkw(is_upside_down);
                 break;
             }
 
@@ -234,7 +232,7 @@ dance_state_t shake(bool is_upside_down) {
             break;
         }
 
-        case SHAKE_TIME*5 ... SHAKE_TIME*6-1 {
+        case SHAKE_TIME*5 ... SHAKE_TIME*6-1: {
             motor(LEFT_MOTOR, REVERSE ^ is_upside_down, SPEED_MAX);
             motor(RIGHT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
             break;
