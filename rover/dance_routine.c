@@ -143,17 +143,40 @@ dance_state_t rev_180(bool is_upside_down) {
     
     timer_current = get_timer_counter(counter_beta);
 
-    if (timer_current < SQUIGGLE || timer_current > SQUIGGLE*3) {
-        motor(LEFT_MOTOR, (REVERSE ^ is_upside_down) - SQUIGGLE_SPEED_DIFF, SPEED_MAX);
-        motor(RIGHT_MOTOR, (REVERSE ^ is_upside_down), SPEED_MAX);
-    }
-    else {
-        motor(LEFT_MOTOR, (REVERSE ^ is_upside_down), SPEED_MAX);
-        motor(RIGHT_MOTOR, (REVERSE ^ is_upside_down) - SQUIGGLE_SPEED_DIFF, SPEED_MAX);
+    switch (timer_current) {
+        case 0 ... SQUIGGLE-1: {
+            motor(LEFT_MOTOR, (REVERSE ^ is_upside_down) - SQUIGGLE_SPEED_DIFF, SPEED_MAX);
+            motor(RIGHT_MOTOR, (REVERSE ^ is_upside_down), SPEED_MAX);
+            break;
+        }
+
+        case SQUIGGLE ... SQUIGGLE*3-1: {
+            motor(LEFT_MOTOR, (REVERSE ^ is_upside_down), SPEED_MAX);
+            motor(RIGHT_MOTOR, (REVERSE ^ is_upside_down) - SQUIGGLE_SPEED_DIFF, SPEED_MAX);
+            break;
+        }
+
+        case SQUIGGLE*3 ... SQUIGGLE*4-1: {
+            motor(LEFT_MOTOR, (REVERSE ^ is_upside_down) - SQUIGGLE_SPEED_DIFF, SPEED_MAX);
+            motor(RIGHT_MOTOR, (REVERSE ^ is_upside_down), SPEED_MAX);
+            break;
+        }
+
+        case SQUIGGLE*4 ... (SQUIGGLE*4 + SPIN_180_TIME): {
+            motor(LEFT_MOTOR, FORWARD ^ is_upside_down, SPEED_MAX);
+            motor(RIGHT_MOTOR, REVERSE ^ is_upside_down, SPEED_MAX);
+            break;
+        }
+
+        default: {
+            motor(LEFT_MOTOR, FORWARD, 0);
+            motor(RIGHT_MOTOR, FORWARD, 0);
+            break;
+        }
     }
 
     // exit condition
-    if (get_timer_counter(counter_beta) < SQUIGGLE*4) {
+    if (get_timer_counter(counter_beta) < (SQUIGGLE*4 + SPIN_180_TIME)) {
         next_state = REV_180;
     }
     else {
