@@ -27,9 +27,13 @@
 
 // Throw an error if payload box exit method is misdefined in config.h
 #if !(defined(WOMBAT_EXIT_METHOD) ^ defined(JOEY_EXIT_METHOD))
-    #error: rover exit method misdefined in config.h
+    #error // rover exit method misdefined in config.h
 #endif
 
+// Throw a warning if the data cube demo code is enabled
+#ifdef DATA_CUBE_DEMO_ENABLE
+    #warning // Demo code enabled. Skip to data cube functionality enabled.
+#endif
 
 
 /////////////////// Private Typedefs ///////////////////////////////////////////
@@ -278,6 +282,12 @@ rover_mode_t rover_mode_state_flight(bool reset_flight_state) {
 flight_state_t flight_state_wait_for_launch(void) {
     flight_state_t flight_state_next = WAIT_FOR_LAUNCH;     // return value
     uint32_t current_time;
+
+    #ifdef DATA_CUBE_DEMO_ENABLE
+        if (SW_read(LOAD_BTN) == 1) {
+            flight_state_next = SIGNAL_ONBOARD_DATA_CUBE;
+        }
+    #endif
 
     current_time = get_timer_counter(counter_alpha);
 
